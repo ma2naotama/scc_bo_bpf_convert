@@ -244,7 +244,7 @@ namespace ConvertDaiwaForBPF
                 {
                     string sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
 
-                    Dbg.Log("load sheeet:" + sheeetname);
+                    //Dbg.Log("load sheeet:" + sheeetname);
 
                     //シートを選択する　シート名で取得する
                     var worksheet = workbook.Worksheet(sheeetname);

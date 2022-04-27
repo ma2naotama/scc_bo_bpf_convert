@@ -8,9 +8,16 @@ using System.Threading.Tasks;
 namespace ConvertDaiwaForBPF
 {
     //ターミナル出力
-
     internal class Dbg
     {
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Dbg()
+        {
+
+        }
+
+
         public static void Log(String logText)
         {
             FormMain main = FormMain.GetInstance();
@@ -21,6 +28,9 @@ namespace ConvertDaiwaForBPF
             }
 
             main.WriteLog(logText);
+
+            _logger.Debug(logText);
+
         }
 
     }

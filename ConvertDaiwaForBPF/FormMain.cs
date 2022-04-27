@@ -15,6 +15,7 @@ namespace ConvertDaiwaForBPF
     {
         private static FormMain mInstance = null;
 
+
         public FormMain()
         {
             mInstance = this;
@@ -104,6 +105,8 @@ namespace ConvertDaiwaForBPF
                 return;
             }
 
+            //Dbg.Log("master.xlsx 読み込み中...");
+
             BaseExcelLoader excel = new BaseExcelLoader();
 
             ExcelOption[] optionarray = new ExcelOption[]
@@ -120,6 +123,7 @@ namespace ConvertDaiwaForBPF
             excel.SetExcelOptionArray(optionarray);
 
             mMasterSheets = excel.ReadAllSheets(".\\_master\\master.xlsm");
+            Dbg.Log("master.xlsx 読み込み終了");
 
             DataTable sheet = mMasterSheets["項目マッピング"];
 
