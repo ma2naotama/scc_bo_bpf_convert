@@ -1,9 +1,11 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,53 +55,12 @@ namespace ConvertDaiwaForBPF
             ReadMasterFile();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog();
-
-            string[] filters = new string[]
-            {
-                "CSVファイル|*.csv"
-            };
-
-            //[ファイルの種類]に表示される選択肢を指定する
-            //指定しないとすべてのファイルが表示される
-            ofd.Filter = String.Join("|", filters);
-
-            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                textBox1.Text = ofd.FileName;
-            }
-        }
-
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox1_DragDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-                textBox1.Text = files[0];
-            }
-        }
-
-        private void textBox1_DragEnter(object sender, DragEventArgs e)
-        {
-            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
-            e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
-
-        }
-
 
         Dictionary<string, DataTable> mMasterSheets = null;
 
         private void ReadMasterFile()
         {
-            if(mMasterSheets != null)
+            if (mMasterSheets != null)
             {
                 //2重読み込み防止
                 return;
@@ -107,7 +68,7 @@ namespace ConvertDaiwaForBPF
 
             //Dbg.Log("master.xlsx 読み込み中...");
 
-            BaseExcelLoader excel = new BaseExcelLoader();
+            UtilExcel excel = new UtilExcel();
 
             ExcelOption[] optionarray = new ExcelOption[]
             {
@@ -149,6 +110,99 @@ namespace ConvertDaiwaForBPF
 
 
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbDialog = new FolderBrowserDialog();
 
+            // ダイアログの説明文を指定する
+            fbDialog.Description = "受領フォルダの選択";
+
+            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+
+            // デフォルトのフォルダを指定する
+            fbDialog.SelectedPath = stCurrentDir;
+
+            // 「新しいフォルダーの作成する」ボタンを表示する
+            fbDialog.ShowNewFolderButton = true;
+
+            if (fbDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                textBox1.Text = fbDialog.SelectedPath;
+            }
+        }
+
+
+        private void textBox1_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                textBox1.Text = files[0];
+            }
+        }
+
+        private void textBox1_DragEnter(object sender, DragEventArgs e)
+        {
+            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
+            e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+
+            string[] Csvfilters = new string[]
+            {
+               "CSVファイル|*.csv"
+            };
+
+            //[ファイルの種類]に表示される選択肢を指定する
+            //指定しないとすべてのファイルが表示される
+            ofd.Filter = String.Join("|", Csvfilters);
+
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                textBox2.Text = ofd.FileName;
+            }
+
+        }
+
+
+        private void textBox2_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                textBox1.Text = files[0];
+            }
+        }
+
+
+        private void textBox2_DragEnter(object sender, DragEventArgs e)
+        {
+            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
+            e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+
+            DateTime dt = DateTime.Now;
+
+            sfd.FileName = String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                textBox3.Text = sfd.FileName;
+            }
+
+        }
+
+        private void buttonConvert_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

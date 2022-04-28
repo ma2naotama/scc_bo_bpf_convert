@@ -33,5 +33,11 @@ namespace ConvertDaiwaForBPF
 
         }
 
+
+        public static void FileLog(String logText)
+        {
+            _logger.Debug(logText);
+        }
+
     }
 }

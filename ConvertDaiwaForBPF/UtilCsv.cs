@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
-    internal class BaseCsvLoader
+    internal class UtilCsv
     {
         //コールバックの定義
-        public delegate void CallbackCsvLoader(long processLength, List<string> colums); 
+        //public delegate void CallbackCsvLoader(long processLength, List<string> colums); 
 
         private bool mbCancel;
 
-        public BaseCsvLoader()
+        public UtilCsv()
         {
             mbCancel = false;
         }
@@ -130,6 +130,48 @@ namespace ConvertDaiwaForBPF
             Dbg.Log("GetFileMaxLines:" + lines);
             return lines;
         }
+
+
+        void WriteFile(string path, DataTable dt)
+        {
+
+            try
+            {
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder();
+
+                    string[] columnNames = dt.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToArray();
+
+                    sb.AppendLine(string.Join(",", columnNames));
+
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        //IEnumerable<string> fields = row.ItemArray.Select(field => string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\""));
+
+                        //カンマ付きの文字列は、全体をダブルクォーテーションで囲む
+                        IEnumerable<string> fields = row.ItemArray.Select(field => {
+                            if (field.ToString().IndexOf(',') > 0)
+                            {
+                                return string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\"");
+                            }
+                            return field.ToString();
+                        });
+
+                        sb.AppendLine(string.Join(",", fields));
+                    }
+
+                    //ファイルを別アプリで開いている場合はエラーになる
+                    File.WriteAllText(path, sb.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Dbg.FileLog(ex.ToString());
+                throw ex;
+            }
+        }
+
 
 
     }

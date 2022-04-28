@@ -70,8 +70,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseCsvLoader.cs" />
-    <Compile Include="BaseExcelLoader.cs" />
+    <Compile Include="UtilCsv.cs" />
+    <Compile Include="UtilExcel.cs" />
     <Compile Include="Dbg.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>

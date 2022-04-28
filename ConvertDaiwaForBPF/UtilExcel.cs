@@ -47,17 +47,17 @@ namespace ConvertDaiwaForBPF
         }
     }
 
-    internal class BaseExcelLoader
+    internal class UtilExcel
     {
         //コールバックの定義
-        public delegate void CallbackLoader(long processLength, List<string> colums);
+        //public delegate void CallbackLoader(long processLength, List<string> colums);
 
         private bool mbCancel;
 
 
         private List<ExcelOption> mExcelOption = new List<ExcelOption>();
 
-        public BaseExcelLoader()
+        public UtilExcel()
         {
             mbCancel = false;
 
@@ -350,5 +350,21 @@ namespace ConvertDaiwaForBPF
             return lines;
         }
 
+
+        void WriteFile(string path, DataTable dt)
+        {
+            try
+            {
+                var workbook = new XLWorkbook();
+                var worksheet = workbook.Worksheets.Add(dt);
+                workbook.SaveAs(path);
+            }
+            catch (Exception ex)
+            {
+                Dbg.FileLog(ex.ToString());
+                throw ex;
+            }
+        }
     }
 }
+
