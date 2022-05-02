@@ -111,6 +111,8 @@
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new System.Drawing.Size(390, 20);
             this.textBox3.TabIndex = 7;
+            this.textBox3.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBox3_DragDrop);
+            this.textBox3.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBox3_DragEnter);
             // 
             // button3
             // 
@@ -126,6 +128,7 @@
             // buttonConvert
             // 
             this.buttonConvert.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonConvert.Enabled = false;
             this.buttonConvert.Location = new System.Drawing.Point(336, 215);
             this.buttonConvert.Name = "buttonConvert";
             this.buttonConvert.Size = new System.Drawing.Size(127, 54);

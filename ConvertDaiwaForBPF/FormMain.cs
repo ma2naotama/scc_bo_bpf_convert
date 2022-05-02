@@ -52,62 +52,13 @@ namespace ConvertDaiwaForBPF
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-            ReadMasterFile();
+
+            DateTime dt = DateTime.Now;
+
+            string name = String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+
+            textBox3.Text = name;
         }
-
-
-        Dictionary<string, DataTable> mMasterSheets = null;
-
-        private void ReadMasterFile()
-        {
-            if (mMasterSheets != null)
-            {
-                //2重読み込み防止
-                return;
-            }
-
-            //Dbg.Log("master.xlsx 読み込み中...");
-
-            UtilExcel excel = new UtilExcel();
-
-            ExcelOption[] optionarray = new ExcelOption[]
-            {
-                new ExcelOption ( "DHPTV001HED",        2, 1),
-                new ExcelOption ( "DHPTV001DTL",        2, 1),
-                new ExcelOption ( "JLAC10変換",         2, 1),
-                new ExcelOption ( "項目マッピング",     2, 1),
-                new ExcelOption ( "コードマッピング",   2, 1),
-                new ExcelOption ( "ロジックマッピング", 2, 1),
-                new ExcelOption ( "オーダーマッピング", 2, 1),
-            };
-
-            excel.SetExcelOptionArray(optionarray);
-
-            mMasterSheets = excel.ReadAllSheets(".\\_master\\master.xlsm");
-            Dbg.Log("master.xlsx 読み込み終了");
-
-            DataTable sheet = mMasterSheets["項目マッピング"];
-
-            /*
-             * 検索のサンプル
-            DataRow[] rows =
-                sheet.AsEnumerable()
-                  .Where(x => Int32.Parse(x["No"].ToString()) > 1)
-                  .ToArray();
-            */
-
-            /*
-            DataRow[] rows =
-            sheet.AsEnumerable()
-              .Where(x => x["項目名"].ToString() != "")
-              .ToArray();
-
-            foreach (DataRow row in rows)
-                Dbg.Log(row["項目名"].ToString());
-            */
-
-        }
-
 
 
         private void button1_Click(object sender, EventArgs e)
@@ -129,6 +80,8 @@ namespace ConvertDaiwaForBPF
             {
                 textBox1.Text = fbDialog.SelectedPath;
             }
+
+            CheckActiveRunButton();
         }
 
 
@@ -139,6 +92,8 @@ namespace ConvertDaiwaForBPF
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBox1.Text = files[0];
             }
+
+            CheckActiveRunButton();
         }
 
         private void textBox1_DragEnter(object sender, DragEventArgs e)
@@ -166,6 +121,7 @@ namespace ConvertDaiwaForBPF
                 textBox2.Text = ofd.FileName;
             }
 
+            CheckActiveRunButton();
         }
 
 
@@ -174,8 +130,11 @@ namespace ConvertDaiwaForBPF
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-                textBox1.Text = files[0];
+                textBox2.Text = files[0];
             }
+
+            CheckActiveRunButton();
+
         }
 
 
@@ -184,6 +143,8 @@ namespace ConvertDaiwaForBPF
             //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
         }
+
+
 
         private void button3_Click(object sender, EventArgs e)
         {
@@ -198,11 +159,88 @@ namespace ConvertDaiwaForBPF
                 textBox3.Text = sfd.FileName;
             }
 
+            CheckActiveRunButton();
         }
+
+        private void textBox3_DragDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                textBox3.Text = files[0];
+            }
+
+            CheckActiveRunButton();
+
+        }
+
+
+
+        private void textBox3_DragEnter(object sender, DragEventArgs e)
+        {
+            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
+            e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
+
+        }
+
+
+        bool isTextActive(string str)
+        {
+            if(str == null)
+            {
+                return false;
+            }
+
+            if(str.Length == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        void CheckActiveRunButton()
+        {
+            buttonConvert.Enabled = false;
+
+            if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
+            {
+                buttonConvert.Enabled = true;
+            }
+        }
+
+
+        private ConverterMain   mConverterMain = null;
+
 
         private void buttonConvert_Click(object sender, EventArgs e)
         {
+            mConverterMain = new ConverterMain();
+            mConverterMain.InitConvert(
+                textBox1.Text
+                , textBox2.Text
+                , textBox3.Text
+            );
+
+            using (FormProgressDialog dlg = new FormProgressDialog())
+            {
+                //マルチスレッド用のクラスを渡す
+                dlg.SetThreadClass(mConverterMain);
+
+                //プログレスバーの表示とマルチスレッドスタート
+                if (dlg.ShowDialog(this) == DialogResult.OK)
+                {
+                    MessageBox.Show("完了しました。");
+                }
+                else
+                {
+                    MessageBox.Show("キャンセルしました。");
+                    return;
+                }
+
+            }
 
         }
+
     }
 }
