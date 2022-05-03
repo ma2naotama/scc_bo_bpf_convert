@@ -193,7 +193,7 @@ namespace ConvertDaiwaForBPF
                 {
                     StringBuilder sb = new StringBuilder();
 
-                    //string[] columnNames = dt.Select(column => column).ToArray();
+                    //string[] columnNames = dt.As.Select(column => column).ToArray();
 
                     //sb.AppendLine(string.Join(",", columnNames));
 
@@ -209,7 +209,8 @@ namespace ConvertDaiwaForBPF
                             return field.ToString();
                         });
                         */
-                        sb.AppendLine(string.Join(",", row));
+                        
+                        sb.AppendLine(string.Join(",", row.ToString()));
                     }
 
                     //ファイルを別アプリで開いている場合はエラーになる

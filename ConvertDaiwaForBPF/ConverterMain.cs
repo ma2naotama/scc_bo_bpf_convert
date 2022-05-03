@@ -103,10 +103,33 @@ namespace ConvertDaiwaForBPF
             mState = 0;
         }
 
+        private void PurgeMemory()
+        {
+            //メモリ解放
+            if(mHdr != null)
+            {
+                mHdr.Clear();
+                mHdr = null;
+            }
+
+            if (mTdl != null)
+            {
+                mTdl.Clear();
+                mTdl = null;
+            }
+
+            if (mergeTable != null)
+            {
+                mergeTable.Clear();
+                mergeTable = null;
+            }
+        }
+
         //スレッド内の処理（これ自体をキャンセルはできない）
         private int mState = -1;
         private DataTable mHdr = null;
         private DataTable mTdl = null;
+        private DataTable mergeTable = null;
 
         public override int MultiThreadMethod()
         {
@@ -118,6 +141,7 @@ namespace ConvertDaiwaForBPF
             {
                 if (Cancel)
                 {
+                    PurgeMemory();
                     mState = 0;
                     return 0;
                 }
@@ -184,12 +208,46 @@ namespace ConvertDaiwaForBPF
                             break;
 
 
+                        case 15:
+                            {
+                                /*
+                                DataTable dt = new DataTable();
+                                dt.Columns.Add("id", typeof(ulong));
+                                dt.Columns.Add("name", typeof(string));
+
+
+                                dt.Rows.Add(10000, "nakata");
+                                dt.Rows.Add(10001, "honda");
+                                dt.Rows.Add(10002, "kagawa");
+                                dt.Rows.Add(10002, "nagatomo");
+                                dt.Rows.Add(10003, "okazaki");
+                                dt.Rows.Add(10003, "okazaki");
+
+                                var dr_array = from row in dt.AsEnumerable()
+                                               where (
+                                                   from _row in dt.AsEnumerable()
+                                                   where (ulong)row["id"] == (ulong)_row["id"]
+                                                       && row["name"] == _row["name"]
+                                                   select _row["id"]
+                                                   ).Count() > 1 //重複していたら、２つ以上見つかる
+                                               select row;
+                                DataTable dt_overlap = dr_array.CopyToDataTable();
+                                */
+                                UtilCsv csv = new UtilCsv();
+                                csv.WriteFile(".\\重複2.csv", mHdr);
+                                mState = 6;
+                            }
+                            break;
+
                         case 5:
                             {
+                                UtilCsv csv = new UtilCsv();
+
                                 //結合して取得
                                 var query =
                                      from h in mHdr.AsEnumerable()
                                      join d in mTdl.AsEnumerable() on h.Field<string>("組合C") equals d.Field<string>("組合C")
+                                     orderby h.Field<string>("個人番号"), h.Field<string>("健診実施日")
                                      where 
                                         h.Field<string>("健診基本情報管理番号") == d.Field<string>("健診基本情報管理番号")
                                         && h.Field<string>("削除フラグ")  == "0"
@@ -199,184 +257,43 @@ namespace ConvertDaiwaForBPF
                                      select new
                                      {
                                          PersonNo = h.Field<string>("個人番号"),
-                                         KenshinDate = h.Field<string>("健診実施日"),
-                                         KenshinkikanName = h.Field<string>("健診実施機関名称"),
+                                         KenshinNo = h.Field<string>("健診基本情報管理番号"),
+                                         KenshinDate = h.Field<string>("健診実施日"),        //yyymmdd
                                          KensakoumokuCode = d.Field<string>("検査項目コード"),
                                          KensakoumokuName = d.Field<string>("検査項目名称"),
                                          KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号"),
                                          Value = d.Field<string>("結果値"),
+                                         KenshinkikanName = h.Field<string>("健診実施機関名称"),
                                          Comment = d.Field<string>("コメント"),
                                      };
 
-                                mHdr = null;
-                                mTdl = null;
-
+                                //結合テーブルの作成
+                                mergeTable = CreateDataTable(query);
+                                csv.WriteFile(".\\結合.csv", mergeTable);
 
                                 //重複の確認
-                                var dr_array =
-                                    from row in query.AsEnumerable()
-                                     // group row by row.PersonNo  into g	// 一つのｷｰでgroup化するならこれで良い
-                                    group row by new // 複数のｷｰでgroup化する場合
-                                    {
-                                        row.PersonNo,
-                                        row.KenshinDate,
-                                        row.KensakoumokuCode,
-                                        row.KenshinkikanName
-                                    } into g
-                                    orderby g.Key.PersonNo //descending
-                                    orderby g.Key.KenshinDate
-                                    //select g;	// Count()計算しないならこれで良い。
-                                    select new
-                                    {
-                                        g.Key.PersonNo,
-                                        g.Key.KenshinDate,
-                                        g.Key.KensakoumokuCode,
-                                        g.Key.KenshinkikanName,
-                                        Count = g.Count()
-                                    };
-
-                                var queryResult = dr_array.AsEnumerable()
-                                              .OrderBy(x => x.PersonNo)
-                                              .Where(x => (int)x.Count > 1)
-                                              .Select (x => new {x.PersonNo, x.KenshinDate, x.KensakoumokuCode, x.KenshinkikanName });
-                                //.CopyToDataTable();
-
-                                //var queryResult = dr_array.ToList();
-                                DataTable boundTable = CreateDataTable(queryResult);
-                                Dbg.Log("重複件数：" + boundTable.Rows.Count);
-
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(".\\重複.csv", boundTable);
-
-                                /*
-                                //int index = 0;
-                                var boundTable = table.AsEnumerable()
-                                    .GroupBy(r => new { Col1 = r["PersonNo"], Col2 = r["KenshinDate"] })  into grp
-                                    .Select(g =>
-                                    {
-                                        var row = table.NewRow();
-                                        row["PersonNo"] = g.Key.Col1;
-                                        row["KenshinDate"] = g.Key.Col2;
-                                        row["count"] = grp.
-                                        return row;
-
-                                    })
-                                    .OrderBy(x => x["PersonNo"])
-                                    .ThenBy(x => x["KenshinDate"])
-                                    .CopyToDataTable();
-                                */
-
-                                /*
-                                var dr_array = from row in table.AsEnumerable()
+                                var dr_array = from row in mergeTable.AsEnumerable()
                                                where (
-                                                   from _row in table.AsEnumerable()
-                                                   where row["PersonNo"].ToString() == _row["PersonNo"].ToString() 
-                                                   && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
-                                                   select _row["PersonNo"]
-                                               ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               select row;
-
-                                var boundTable = dr_array.CopyToDataTable();
-                                */
-                                /*
-                                var dr_array = from row in query.AsEnumerable()
-                                               where (
-                                                   from _row in query.AsEnumerable()
-                                                   where
-                                                   row.PersonNo.ToString() == _row.PersonNo.ToString()
-                                                   && row.KenshinDate.ToString() == _row.KenshinDate.ToString()
-                                                   && row.KensakoumokuCode.ToString() == _row.KensakoumokuCode.ToString()
-                                                   select _row.PersonNo
-                                               ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               //orderby row["PersonNo"], row["KenshinDate"]
-                                               select new { row.PersonNo };
-                                */
-
-                                //Dbg.Log("重複件数：" + boundTable.Rows.Count);
-                                //csv.WriteFile(".\\重複.csv", boundTable);
-
-
-                                // 2プロパティをグループ化、おまけで重複したグループ数を得る
-                                /*
-                                var points = Points.GroupBy(point => new { point.X, point.Y })
-                                                    .Select(point => new { point.Key.X, point.Key.Y, Count = point.Count() });
-                                */
-                                /*
-                                var boundTable = table.AsEnumerable()
-                                   .GroupBy(r => new { PersonNo = r["PersonNo"], KenshinDate = r["KenshinDate"] })
-                                   //.Select(g => g.OrderBy(r => r["PersonNo"]).ThenBy(x => x["KenshinDate"]).First())
-                                   //.Select(g => g.Any())
-                                   .Select(g =>
-                                   {
-                                       var row = table.NewRow();
-                                       row["PersonNo"] = g.Key.PersonNo;
-                                       row["KenshinDate"] = g.Key.KenshinDate;
-                                       return row;
-                                   })
-                                   .CopyToDataTable();
-                                */
-                                /*
-                                var dr_array = from row in table.AsEnumerable()
-                                               where (
-                                                   from _row in table.AsEnumerable()
+                                                   from _row in mergeTable.AsEnumerable()
                                                    where 
-                                                   row["PersonNo"].ToString() == _row["PersonNo"].ToString() 
-                                                   && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
-                                                   && row["KensakoumokuCode"].ToString() == _row["KensakoumokuCode"].ToString()
+                                                    row["PersonNo"].ToString() == _row["PersonNo"].ToString()
+                                                    && row["KenshinNo"].ToString() == _row["KenshinNo"].ToString()
+                                                    && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
+                                                    && row["KensakoumokuCode"].ToString() == _row["KensakoumokuCode"].ToString()
+                                                    && row["KenshinmeisaiNo"].ToString() == _row["KenshinmeisaiNo"].ToString()
                                                    select _row["PersonNo"]
                                                ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               //orderby row["PersonNo"], row["KenshinDate"]
                                                select row;
 
-                                var boundTable = dr_array.CopyToDataTable();
-                                */
-                                /*
-                                DataTable result = data.AsEnumerable()
-                                   .Where(x => x["Option"] == '1')
-                                   .Select(x => new {
-                                       id = x["ID"].ToString(),
-                                       name = x["Name"].ToString()
-                                   });
-                                */
-                                /*
-                                var boundTable = table.AsEnumerable()
-                                   .GroupBy(r => new { Col1 = r["Col1"], Col2 = r["Col2"] })
-                                   .Select(g => g.OrderBy(r => r["PK"]).First())
-                                   .CopyToDataTable();
-                                */
-                                //Dbg.Log("重複件数："+ boundTable.Rows.Count);
-                                /*
-                                foreach (var row in dr_array)
+                                DataTable queryResult = new DataTable();
+                                queryResult = dr_array.CopyToDataTable();
+
+                                int overlapcount = queryResult.Rows.Count;
+                                if (overlapcount > 0)
                                 {
-                                    string str = "";
-                                    foreach (var item in row.ItemArray)
-                                    {
-                                        //byte[] bytesUTF8 = System.Text.Encoding.Default.GetBytes(item.ToString());
-                                        //string stringSJIS = System.Text.Encoding.UTF8.GetString(bytesUTF8);
-                                        str += item + " ";
-                                    }
-                                    Dbg.Log(str);
+                                    Dbg.Log("重複件数：" + overlapcount);
+                                    csv.WriteFile(".\\重複.csv", queryResult);
                                 }
-                                */
-
-                                //UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(".\\重複.csv", boundTable);
-
-                                //DataTable dt_overlap = dr_array.CopyToDataTable();
-                                //DataTable dt_overlap = CreateDataTable(dr_array);
-                                /*
-                                if (dr_array != null && dr_array.Count()>0)
-                                {
-                                    //DataTable dt_overlap = new DataTable();
-                                    //dt_overlap = dr_array.CopyToDataTable();
-                                    foreach (var item in dr_array)
-                                    {
-                                        //Dbg.Log(item["PersonNo"].ToString() + " " + item["KenshinDate"].ToString());
-                                        Dbg.Log(item.PersonNo + " " + item.KenshinDate);
-                                    }
-                                }
-
-                                */
 
                                 //TODO:検査項目コードの置換
 
@@ -396,6 +313,7 @@ namespace ConvertDaiwaForBPF
                         default:
                             {
                                 Dbg.Log("state:"+ mState);
+                                PurgeMemory();
                                 loop = false;
                                 break;
                             }
