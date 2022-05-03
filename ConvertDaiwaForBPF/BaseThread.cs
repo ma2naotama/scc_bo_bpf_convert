@@ -31,7 +31,7 @@ namespace ConvertDaiwaForBPF
 
 
         //非同期処理開始
-        public async void RunMultiThreadAsync()
+        public void RunMultiThreadAsync()
         {
             //変数初期化
             Cancel = false;
@@ -51,8 +51,9 @@ namespace ConvertDaiwaForBPF
             try
             {
                 Dbg.Log("RunMultiThread");
-                task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);
-                int result = await task; // スレッドの処理の結果を「待ち受け」する
+                MultiThreadMethod();
+                //task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);
+                //int result = await task; // スレッドの処理の結果を「待ち受け」する
             }
             catch (TaskCanceledException ex)
             {
@@ -71,7 +72,6 @@ namespace ConvertDaiwaForBPF
         {
             if(_tokenSource != null)
             {
-                Dbg.Log("DoCancel :Cancel" + Cancel);
                 _tokenSource.Cancel();
             } 
 

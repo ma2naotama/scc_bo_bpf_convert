@@ -90,10 +90,9 @@ namespace ConvertDaiwaForBPF
         private void FormProgressDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
             Dbg.Log("From Close");
-
             if (!_base.Completed)
             {
-                Dbg.Log("完了前に中断");
+                Dbg.Log("変換キャンセル");
                 _base.MultiThreadCancel();
             } 
         }

@@ -203,9 +203,10 @@ namespace ConvertDaiwaForBPF
         {
             buttonConvert.Enabled = false;
 
-            if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
+            //if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
+            if (isTextActive(textBox1.Text) && isTextActive(textBox3.Text))
             {
-                buttonConvert.Enabled = true;
+                    buttonConvert.Enabled = true;
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualBasic.FileIO;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -142,7 +143,7 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        void WriteFile(string path, DataTable dt)
+        public void WriteFile(string path, DataTable dt)
         {
 
             try
@@ -169,6 +170,46 @@ namespace ConvertDaiwaForBPF
                         });
 
                         sb.AppendLine(string.Join(",", fields));
+                    }
+
+                    //ファイルを別アプリで開いている場合はエラーになる
+                    File.WriteAllText(path, sb.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                Dbg.FileLog(ex.ToString());
+                throw ex;
+            }
+        }
+
+
+        public void WriteFile(string path, IEnumerable dt)
+        {
+
+            try
+            {
+                if (dt != null)
+                {
+                    StringBuilder sb = new StringBuilder();
+
+                    //string[] columnNames = dt.Select(column => column).ToArray();
+
+                    //sb.AppendLine(string.Join(",", columnNames));
+
+                    foreach (var row in dt)
+                    {
+                        /*
+                        //カンマ付きの文字列は、全体をダブルクォーテーションで囲む
+                        IEnumerable<string> fields = row.Select(field => {
+                            if (field.ToString().IndexOf(',') > 0)
+                            {
+                                return string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\"");
+                            }
+                            return field.ToString();
+                        });
+                        */
+                        sb.AppendLine(string.Join(",", row));
                     }
 
                     //ファイルを別アプリで開いている場合はエラーになる
