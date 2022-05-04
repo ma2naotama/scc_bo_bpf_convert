@@ -14,6 +14,9 @@ namespace ConvertDaiwaForBPF
     {
         //シート番号（どのシートに対するオプションなのか判断する為に使用する）
         public string sheetName { get; set; }
+
+        public bool isActive { get; set; }
+
         public int HeaderRowStartNumber { get; set; }
 
         public int HeaderColumnStartNumber { get; set; }
@@ -24,6 +27,7 @@ namespace ConvertDaiwaForBPF
 
         public ExcelOption()
         {
+            this.isActive = false;      //初期設定ではシートは読まない
             this.HeaderRowStartNumber = 1;
             this.HeaderColumnStartNumber = 1;
             this.HeaderColumnEndNumber = 10000;
@@ -31,7 +35,7 @@ namespace ConvertDaiwaForBPF
             this.DataRowStartNumber = 2;
         }
 
-        public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber)
+        public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber, bool active)
         {
             this.sheetName = sheetName;
             this.HeaderRowStartNumber = headerRowStartNumber;
@@ -39,6 +43,8 @@ namespace ConvertDaiwaForBPF
             this.HeaderColumnEndNumber = 10000;
 
             this.DataRowStartNumber = headerRowStartNumber+1;
+
+            this.isActive = active;
         }
 
         public int GetColumnMax()
@@ -255,7 +261,7 @@ namespace ConvertDaiwaForBPF
                     if (columnNum < 0)
                     {
                         Dbg.Log("データがありません。sheeetname:" + sheeetname);
-                        break;
+                        continue;
                     }
 
                     //取得するセルの最大行数
@@ -263,13 +269,18 @@ namespace ConvertDaiwaForBPF
                     if (RowsMax <=0)
                     {
                         Dbg.Log("データがありません。sheeetname:" + sheeetname);
-                        break;
+                        continue;
                     }
 
                     //シート番号で検索
                     ExcelOption option = GetExcelOption(sheeetname);
                     if (option != null)
                     {
+                        if(!option.isActive)
+                        {
+                            continue;
+                        }
+
                         if (columnNum > option.GetColumnMax())
                         {
                             columnNum = option.GetColumnMax();
