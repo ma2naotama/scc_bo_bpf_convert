@@ -6,6 +6,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -184,47 +185,36 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public void WriteFile(string path, IEnumerable dt)
+
+        public DataTable CreateDataTable(IEnumerable source)
         {
-
-            try
+            var table = new DataTable();
+            int index = 0;
+            var properties = new List<PropertyInfo>();
+            foreach (var obj in source)
             {
-                if (dt != null)
+                if (index == 0)
                 {
-                    StringBuilder sb = new StringBuilder();
-
-                    //string[] columnNames = dt.As.Select(column => column).ToArray();
-
-                    //sb.AppendLine(string.Join(",", columnNames));
-
-                    foreach (var row in dt)
+                    foreach (var property in obj.GetType().GetProperties())
                     {
-                        /*
-                        //カンマ付きの文字列は、全体をダブルクォーテーションで囲む
-                        IEnumerable<string> fields = row.Select(field => {
-                            if (field.ToString().IndexOf(',') > 0)
-                            {
-                                return string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\"");
-                            }
-                            return field.ToString();
-                        });
-                        */
-                        
-                        sb.AppendLine(string.Join(",", row.ToString()));
+                        if (Nullable.GetUnderlyingType(property.PropertyType) != null)
+                        {
+                            continue;
+                        }
+                        properties.Add(property);
+                        table.Columns.Add(new DataColumn(property.Name, property.PropertyType));
                     }
-
-                    //ファイルを別アプリで開いている場合はエラーになる
-                    File.WriteAllText(path, sb.ToString());
                 }
+                object[] values = new object[properties.Count];
+                for (int i = 0; i < properties.Count; i++)
+                {
+                    values[i] = properties[i].GetValue(obj);
+                }
+                table.Rows.Add(values);
+                index++;
             }
-            catch (Exception ex)
-            {
-                Dbg.FileLog(ex.ToString());
-                throw ex;
-            }
+            return table;
         }
-
-
 
     }
 }

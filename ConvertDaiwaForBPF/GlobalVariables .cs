@@ -19,19 +19,21 @@ namespace ConvertDaiwaForBPF
             ERROR_NONE = 100,
             ERROR_HEADER_IS_EMPTY,
             ERROR_BODY_IS_EMPTY,
+            ERROR_BODY_IS_NOUSERDATA,
         };
 
 
         private static Dictionary<ERRORCOSE, string> ERRORMSG = new Dictionary<ERRORCOSE, string>(){
-            {ERRORCOSE.ERROR_NONE,              "ERROR_NONE"},
-            {ERRORCOSE.ERROR_HEADER_IS_EMPTY,   "受信ヘッダーが空です。"},
-            {ERRORCOSE.ERROR_BODY_IS_EMPTY,     "受信データが空です。"}
+            {ERRORCOSE.ERROR_NONE,                  "ERROR_NONE"},
+            {ERRORCOSE.ERROR_HEADER_IS_EMPTY,       "受信ヘッダーが空です。"},
+            {ERRORCOSE.ERROR_BODY_IS_EMPTY,         "受信データが空です。"},
+            {ERRORCOSE.ERROR_BODY_IS_NOUSERDATA,    "受信データに該当ユーザーがいません{1}。"}
         };
 
 
-        public static string GetErrorMsg(ERRORCOSE errorcode)
+        public static string GetErrorMsg(ERRORCOSE errorcode, params string[] args)
         {
-            return ERRORMSG[errorcode].ToString();
+            return string.Format(ERRORMSG[errorcode].ToString(), args);
         }
     }
 }

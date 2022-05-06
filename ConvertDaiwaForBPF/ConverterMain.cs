@@ -17,20 +17,15 @@ namespace ConvertDaiwaForBPF
         {
         }
 
-        private void ReadMasterFile()
+        private Dictionary<string, DataTable> ReadMasterFile(string path)
         {
-            if (mMasterSheets != null)
-            {
-                //2重読み込み防止
-                return;
-            }
-
             //Dbg.Log("master.xlsx 読み込み中...");
 
             UtilExcel excel = new UtilExcel();
 
             ExcelOption[] optionarray = new ExcelOption[]
             {
+                new ExcelOption ( "config",             2, 1, true),
                 new ExcelOption ( "DHPTV001HED",        2, 1, true),
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "JLAC10変換",         2, 1, true),
@@ -42,13 +37,15 @@ namespace ConvertDaiwaForBPF
 
             excel.SetExcelOptionArray(optionarray);
 
-            mMasterSheets = excel.ReadAllSheets(".\\_master\\master.xlsm");
-            Dbg.Log("master.xlsx 読み込み終了");
+            Dictionary<string, DataTable> master = new Dictionary<string, DataTable>();
 
-            DataTable sheet = mMasterSheets["項目マッピング"];
+            master = excel.ReadAllSheets(path + "\\master.xlsm");
+            Dbg.Log("master.xlsx 読み込み終了");
 
             //検索のサンプル
             /*
+            DataTable sheet = mMasterSheets["項目マッピング"];
+
             DataRow[] rows =
                 sheet.AsEnumerable()
                   .Where(x => Int32.Parse(x["No"].ToString()) > 1)
@@ -64,6 +61,8 @@ namespace ConvertDaiwaForBPF
             foreach (DataRow row in rows)
                 Dbg.Log(row["★列番号"].ToString());
             */
+
+            return master;
         }
 
         public override void MultiThreadCancel()
@@ -156,7 +155,7 @@ namespace ConvertDaiwaForBPF
                     { 
                         case 0:
                             {
-                                ReadMasterFile();
+                                mMasterSheets = ReadMasterFile(mPathInput);
 
                                 //次の処理へ
                                 mState++;
@@ -165,7 +164,14 @@ namespace ConvertDaiwaForBPF
 
                         case 1:
                             {
-                                mHdr = mCsvHDR.ReadFile(mPathInput + "\\DHPTV001HED_458BNF.csv", ",", GlobalVariables.ENCORDTYE.SJIS);
+                                DataRow[] rows =
+                                    mMasterSheets["config"].AsEnumerable()
+                                      .Where(x => x["受信ファイル名"].ToString() != "")
+                                      .ToArray();
+
+                                Dbg.Log(""+ rows[0][0]);
+
+                                mHdr = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYE.SJIS);
                                 if (mHdr == null)
                                 {
                                     return 0;
@@ -193,7 +199,14 @@ namespace ConvertDaiwaForBPF
 
                         case 3:
                             {
-                                mTdl = mCsvDTL.ReadFile(mPathInput + "\\DHPTV001DTL_458BNF.csv", ",", GlobalVariables.ENCORDTYE.SJIS);
+                                DataRow[] rows =
+                                    mMasterSheets["config"].AsEnumerable()
+                                      .Where(x => x["受信ファイル名"].ToString() != "")
+                                      .ToArray();
+
+                                Dbg.Log("" + rows[1][0]);
+
+                                mTdl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYE.SJIS);
                                 if (mTdl == null)
                                 {
                                     return 0;
@@ -230,7 +243,7 @@ namespace ConvertDaiwaForBPF
 
                                 if (mHdrRows.Length <= 0)
                                 {
-                                    Dbg.Log(GlobalVariables.GetErrorMsg(GlobalVariables.ERRORCOSE.ERROR_HEADER_IS_EMPTY));
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_HEADER_IS_EMPTY);
                                     mState++;
                                     break;
                                 }
@@ -285,30 +298,28 @@ namespace ConvertDaiwaForBPF
 
                                 DataRow hrow = mHdrRows[mHdrIndex];
 
-                                DataTable dt = new DataTable();
-                                dt.Columns.Add("組合C", typeof(string));
-                                dt.Columns.Add("健診基本情報管理番号", typeof(string));
-                                dt.Columns.Add("健診実施日", typeof(string));
-                                dt.Columns.Add("個人番号", typeof(string));
-                                dt.Columns.Add("削除フラグ", typeof(string));
+                                DataTable hdt = new DataTable();
+                                hdt.Columns.Add("組合C", typeof(string));
+                                hdt.Columns.Add("健診基本情報管理番号", typeof(string));
+                                hdt.Columns.Add("健診実施日", typeof(string));
+                                hdt.Columns.Add("個人番号", typeof(string));
 
-                                dt.Rows.Add(
-                                    hrow["組合C"].ToString().Trim(), 
-                                    hrow["健診基本情報管理番号"].ToString().Trim(),
-                                    hrow["健診実施日"].ToString().Trim(),
-                                    hrow["個人番号"].ToString().Trim(), 
-                                    hrow["削除フラグ"].ToString().Trim());
+                                hdt.Rows.Add(
+                                        hrow["組合C"].ToString().Trim(), 
+                                        hrow["健診基本情報管理番号"].ToString().Trim(),
+                                        hrow["健診実施日"].ToString().Trim(),
+                                        hrow["個人番号"].ToString().Trim()
+                                    );
 
                                 //UtilCsv csv = new UtilCsv();
                                 //csv.WriteFile(".\\HEADER.csv", dt);
 
                                 //結合して取得
                                 var query =
-                                        from h in dt.AsEnumerable()
+                                        from h in hdt.AsEnumerable()
                                         join d in mTdl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
                                     where
                                         h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
-                                        && h.Field<string>("削除フラグ").Trim() == "0"
                                         && d.Field<string>("削除フラグ").Trim() == "0"
                                         && d.Field<string>("未実施FLG").Trim() == "0"
                                         && d.Field<string>("測定不能FLG").Trim() == "0"
@@ -325,9 +336,20 @@ namespace ConvertDaiwaForBPF
                                             Comment = d.Field<string>("コメント").Trim(),
                                         };
 
+                                if (query.Count() <= 0)
+                                {
+                                    //結合した結果データが無い
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_BODY_IS_NOUSERDATA, 
+                                        hrow["個人番号"].ToString());
+                                    mState++;
+                                    break;
+                                }
+
+                                //var merge = query.ToArray();
+
 
                                 //結合テーブルの作成
-                                DataTable merge = CreateDataTable(query);
+                                //DataTable merge = CreateDataTable(query);
 
                                 //UtilCsv csv = new UtilCsv();
                                 //csv.WriteFile(".\\結合.csv", merge);
@@ -361,6 +383,38 @@ namespace ConvertDaiwaForBPF
                                     csv.WriteFile(".\\重複.csv", queryResult);
                                 }
                                 */
+
+                                //項目マッピング
+                                DataTable itemSheet = mMasterSheets["項目マッピング"];
+
+                                var mergeMapped =
+                                        from m in query.AsEnumerable()
+                                        join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
+                                        select new
+                                        {
+                                            PersonNo = m.PersonNo,
+                                            KenshinNo = m.KenshinNo,
+                                            KenshinDate = m.KenshinDate,
+                                            KensakoumokuCode = m.KensakoumokuCode,
+                                            KensakoumokuName = m.KensakoumokuName,
+                                            KenshinmeisaiNo = m.KenshinmeisaiNo,
+                                            Value = m.Value,
+                                            //KenshinkikanName = h.Field<string>("健診実施機関名称"),
+                                            Comment = m.Comment,
+                                            MItemName = t.Field<string>("項目名"),
+                                            MAttribute = t.Field<string>("属性"),
+                                            MCodeID = t.Field<string>("コードID"),
+                                            MOutputIndex = t.Field<string>("★列番号"),
+                                            MOutputHeader = t.Field<string>("ヘッダ項目名"),
+                                            MOutputFormat = t.Field<string>("出力文字フォーマット"),
+                                        };
+
+                                UtilCsv csv = new UtilCsv();
+                                csv.WriteFile(".\\MergeMappedcsv", csv.CreateDataTable(mergeMapped));
+
+                                //コードマッピング
+                                //CodeMapping()
+
 
                                 mHdrIndex++;
 
@@ -460,35 +514,9 @@ namespace ConvertDaiwaForBPF
             return dt_overlap;
         }
 
-
-        public DataTable CreateDataTable(IEnumerable source)
+        private IEnumerable CodeMapping(DataTable masterSheet, IEnumerable merged)
         {
-            var table = new DataTable();
-            int index = 0;
-            var properties = new List<PropertyInfo>();
-            foreach (var obj in source)
-            {
-                if (index == 0)
-                {
-                    foreach (var property in obj.GetType().GetProperties())
-                    {
-                        if (Nullable.GetUnderlyingType(property.PropertyType) != null)
-                        {
-                            continue;
-                        }
-                        properties.Add(property);
-                        table.Columns.Add(new DataColumn(property.Name, property.PropertyType));
-                    }
-                }
-                object[] values = new object[properties.Count];
-                for (int i = 0; i < properties.Count; i++)
-                {
-                    values[i] = properties[i].GetValue(obj);
-                }
-                table.Rows.Add(values);
-                index++;
-            }
-            return table;
+            return null;
         }
     }
 }
