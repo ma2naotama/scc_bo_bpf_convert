@@ -39,20 +39,12 @@ namespace ConvertDaiwaForBPF
 
             Dictionary<string, DataTable> master = new Dictionary<string, DataTable>();
 
-            master = excel.ReadAllSheets(path + "\\master.xlsm");
+            master = excel.ReadAllSheets(path + "\\master_v2.xlsm");
             Dbg.Log("master.xlsx 読み込み終了");
 
             //検索のサンプル
             /*
-            DataTable sheet = mMasterSheets["項目マッピング"];
-
-            DataRow[] rows =
-                sheet.AsEnumerable()
-                  .Where(x => Int32.Parse(x["No"].ToString()) > 1)
-                  .ToArray();
-            */
-
-            /*
+            DataTable sheet = master["項目マッピング"];
             DataRow[] rows =
                 sheet.AsEnumerable()
                   .Where(x => x["★列番号"].ToString() != "")
@@ -60,6 +52,17 @@ namespace ConvertDaiwaForBPF
 
             foreach (DataRow row in rows)
                 Dbg.Log(row["★列番号"].ToString());
+            */
+
+            /*
+            DataTable sheet = master["項目マッピング"];
+            DataRow[] rows =
+                sheet.AsEnumerable()
+                  .Where(x => x["テスト項目"].ToString() != "")
+                  .ToArray();
+
+            foreach (DataRow row in rows)
+                Dbg.Log(row["テスト項目"].ToString());
             */
 
             return master;

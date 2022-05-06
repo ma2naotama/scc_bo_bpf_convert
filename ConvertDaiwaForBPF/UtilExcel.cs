@@ -241,6 +241,7 @@ namespace ConvertDaiwaForBPF
             FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             //Excelファイルを開く
+            //XLEventTracking.Disabled 追跡を無効
             using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
             {
 
