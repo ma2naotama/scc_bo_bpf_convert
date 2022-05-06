@@ -119,13 +119,20 @@ namespace ConvertDaiwaForBPF
                 mTdl = null;
             }
 
+            if (mHdrRows != null)
+            {
+                mHdrRows = null;
+            }
+
+            GC.Collect();
         }
 
         //スレッド内の処理（これ自体をキャンセルはできない）
         private int mState = -1;
         private DataTable mHdr = null;
         private DataTable mTdl = null;
-        private DataTable mergeTable = null;
+        private DataRow[] mHdrRows = null;
+        private int mHdrIndex = 0;
 
         public override int MultiThreadMethod()
         {
@@ -135,6 +142,7 @@ namespace ConvertDaiwaForBPF
 
             while (loop)
             {
+                //キャンセル処理
                 if (Cancel)
                 {
                     PurgeLoadedMemory();
@@ -149,7 +157,9 @@ namespace ConvertDaiwaForBPF
                         case 0:
                             {
                                 ReadMasterFile();
-                                mState = 1;
+
+                                //次の処理へ
+                                mState++;
                             }
                             break;
 
@@ -167,14 +177,17 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                mState = 2;
+                                //次の処理へ
+                                mState++;
                             }
                             break;
 
                         case 2:
                             {
                                 SetColumnName(mHdr, mMasterSheets["DHPTV001HED"]);
-                                mState = 3;
+
+                                //次の処理へ
+                                mState++;
                             }
                             break;
 
@@ -191,7 +204,8 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                mState = 4;
+                                //次の処理へ
+                                mState++;
                             }
                             break;
 
@@ -199,211 +213,161 @@ namespace ConvertDaiwaForBPF
                             {
 
                                 SetColumnName(mTdl, mMasterSheets["DHPTV001DTL"]);
-                                mState = 100;
+
+                                //次の処理へ
+                                mState++;
                             }
                             break;
 
-
-                        case 15:
-                            {
-                                /*
-                                DataTable dt = new DataTable();
-                                dt.Columns.Add("id", typeof(ulong));
-                                dt.Columns.Add("name", typeof(string));
-
-
-                                dt.Rows.Add(10000, "nakata");
-                                dt.Rows.Add(10001, "honda");
-                                dt.Rows.Add(10002, "kagawa");
-                                dt.Rows.Add(10002, "nagatomo");
-                                dt.Rows.Add(10003, "okazaki");
-                                dt.Rows.Add(10003, "okazaki");
-
-                                var dr_array = from row in dt.AsEnumerable()
-                                               where (
-                                                   from _row in dt.AsEnumerable()
-                                                   where (ulong)row["id"] == (ulong)_row["id"]
-                                                       && row["name"] == _row["name"]
-                                                   select _row["id"]
-                                                   ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               select row;
-                                DataTable dt_overlap = dr_array.CopyToDataTable();
-                                */
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(".\\重複2.csv", mHdr);
-                                mState = 6;
-                            }
-                            break;
 
                         case 5:
                             {
+                                //ヘッダーの削除フラグが0だけ抽出
+                                mHdrRows =
+                                    mHdr.AsEnumerable()
+                                    .Where(x => x["削除フラグ"].ToString() == "0")
+                                    .ToArray();
+
+                                if (mHdrRows.Length <= 0)
+                                {
+                                    Dbg.Log(GlobalVariables.GetErrorMsg(GlobalVariables.ERRORCOSE.ERROR_HEADER_IS_EMPTY));
+                                    mState++;
+                                    break;
+                                }
+
+                                //重複の確認(何をもって重複とするか検討)
+                                var dr_array = from row in mHdrRows.AsEnumerable()
+                                               where (
+                                                   from _row in mHdrRows.AsEnumerable()
+                                                   where
+                                                   //row["組合C"].ToString() == _row["組合C"].ToString()
+                                                   //&& row["健診基本情報管理番号"].ToString() == _row["健診基本情報管理番号"].ToString()
+                                                   row["個人番号"].ToString() == _row["個人番号"].ToString()
+                                                   && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
+                                                   //&& row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
+                                                   select _row["個人番号"]
+                                               ).Count() > 1 //重複していたら、２つ以上見つかる
+                                               select row;
+
+                                //DataTableが大きすぎるとここで処理が終わらない事がある。
+                                //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+                                int overlapcount = dr_array.Count();
+                                Dbg.Log("重複件数：" + overlapcount);
+
+                                if (overlapcount > 0)
+                                {
+                                    DataTable queryResult = new DataTable();
+                                    queryResult = dr_array.CopyToDataTable();
+
+                                    UtilCsv csv = new UtilCsv();
+                                    csv.WriteFile(".\\重複ユーザー.csv", queryResult);
+
+                                    //重複していたら終了
+                                    mState = 100;
+                                    break;
+                                }
+
+                                //次の処理へ
+                                mHdrIndex = 0;
+                                mState++;
+                            }
+                            break;
+
+                        //メモリが不足して正常に動作しない為、ヘッダーの一行毎に処理する
+                        case 6:
+                            {
+                                if (mHdrIndex >= mHdrRows.Length)
+                                {
+                                    //次の処理へ
+                                    mState++;
+                                    break;
+                                }
+
+                                DataRow hrow = mHdrRows[mHdrIndex];
+
+                                DataTable dt = new DataTable();
+                                dt.Columns.Add("組合C", typeof(string));
+                                dt.Columns.Add("健診基本情報管理番号", typeof(string));
+                                dt.Columns.Add("健診実施日", typeof(string));
+                                dt.Columns.Add("個人番号", typeof(string));
+                                dt.Columns.Add("削除フラグ", typeof(string));
+
+                                dt.Rows.Add(
+                                    hrow["組合C"].ToString().Trim(), 
+                                    hrow["健診基本情報管理番号"].ToString().Trim(),
+                                    hrow["健診実施日"].ToString().Trim(),
+                                    hrow["個人番号"].ToString().Trim(), 
+                                    hrow["削除フラグ"].ToString().Trim());
+
+                                //UtilCsv csv = new UtilCsv();
+                                //csv.WriteFile(".\\HEADER.csv", dt);
+
                                 //結合して取得
                                 var query =
-                                     from h in mHdr.AsEnumerable()
-                                     join d in mTdl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
-                                     //orderby h.Field<string>("個人番号"), h.Field<string>("健診実施日")
-                                     where 
+                                        from h in dt.AsEnumerable()
+                                        join d in mTdl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
+                                    where
                                         h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
                                         && h.Field<string>("削除フラグ").Trim() == "0"
                                         && d.Field<string>("削除フラグ").Trim() == "0"
                                         && d.Field<string>("未実施FLG").Trim() == "0"
                                         && d.Field<string>("測定不能FLG").Trim() == "0"
-                                     select new
-                                     {
-                                         PersonNo = h.Field<string>("個人番号").Trim(),
-                                         KenshinNo = h.Field<string>("健診基本情報管理番号").Trim(),
-                                         KenshinDate = h.Field<string>("健診実施日").Trim(),        //yyymmdd
-                                         KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
-                                         KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
-                                         KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
-                                         Value = d.Field<string>("結果値").Trim(),
-                                         //KenshinkikanName = h.Field<string>("健診実施機関名称"),
-                                         Comment = d.Field<string>("コメント").Trim(),
-                                     };
+                                        select new
+                                        {
+                                            PersonNo = h.Field<string>("個人番号").Trim(),
+                                            KenshinNo = h.Field<string>("健診基本情報管理番号").Trim(),
+                                            KenshinDate = h.Field<string>("健診実施日").Trim(),        //yyymmdd
+                                            KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
+                                            KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
+                                            KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
+                                            Value = d.Field<string>("結果値").Trim(),
+                                            //KenshinkikanName = h.Field<string>("健診実施機関名称"),
+                                            Comment = d.Field<string>("コメント").Trim(),
+                                        };
+
 
                                 //結合テーブルの作成
-                                mergeTable = CreateDataTable(query);
+                                DataTable merge = CreateDataTable(query);
 
-                                PurgeLoadedMemory();
+                                //UtilCsv csv = new UtilCsv();
+                                //csv.WriteFile(".\\結合.csv", merge);
 
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(".\\結合.csv", mergeTable);
-
-                                mState = 6;
-                            }
-                            break;
-
-                            case 6:
-                            {
-                                //重複の確認
-                                var dr_array = from row in mergeTable.AsEnumerable()
-                                               where (
-                                                   from _row in mergeTable.AsEnumerable()
-                                                   where 
+                                /*
+                                //重複の確認　TODO:ユーザー毎の重複となるので、ユーザーが重複してても分からない
+                                var dr_array = from row in merge.AsEnumerable()
+                                                where (
+                                                    from _row in merge.AsEnumerable()
+                                                    where
                                                     row["PersonNo"].ToString() == _row["PersonNo"].ToString()
                                                     && row["KenshinNo"].ToString() == _row["KenshinNo"].ToString()
                                                     && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
                                                     && row["KensakoumokuCode"].ToString() == _row["KensakoumokuCode"].ToString()
                                                     && row["KenshinmeisaiNo"].ToString() == _row["KenshinmeisaiNo"].ToString()
-                                                   select _row["PersonNo"]
-                                               ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               select row;
+                                                    select _row["PersonNo"]
+                                                ).Count() > 1 //重複していたら、２つ以上見つかる
+                                                select row;
 
-                                Dbg.Log("重複DataTable");
-                                DataTable queryResult = new DataTable();
-                                queryResult = dr_array.CopyToDataTable();
+                                //DataTableが大きすぎるとここで処理が終わらない事がある。
+                                //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+                                int overlapcount = dr_array.Count();
+                                Dbg.Log("重複件数：" + overlapcount);
 
-                                Dbg.Log("重複件数...");
-                                int overlapcount = queryResult.Rows.Count;
                                 if (overlapcount > 0)
                                 {
-                                    Dbg.Log("重複件数：" + overlapcount);
+                                    DataTable queryResult = new DataTable();
+                                    queryResult = dr_array.CopyToDataTable();
+
                                     UtilCsv csv = new UtilCsv();
                                     csv.WriteFile(".\\重複.csv", queryResult);
                                 }
+                                */
 
-                                //TODO:検査項目コードの置換
+                                mHdrIndex++;
 
-                                //TODO:項目マッピング
-
-                                //TODO:コードマッピング
-
-                                //TODO:ロジックマッピング
-
-                                //TODO:オーダーマッピング
-
-                                mState = 7;
+                                //テスト用の為、１ユーザー分で終了
+                                mState++;
                             }
                             break;
-
-                        //メモリが不足して正常に動作しない為、ヘッダーの一行毎に処理する
-                        case 100:
-                            {
-                                //ヘッダーの削除フラグが0だけ抽出
-                                DataRow[] hdrRows =
-                                    mHdr.AsEnumerable()
-                                    .Where(x => x["削除フラグ"].ToString() == "0")
-                                    .ToArray();
-
-                                foreach (DataRow hrow in hdrRows)
-                                {
-                                    DataTable dt = new DataTable();
-                                    dt.Columns.Add("組合C", typeof(string));
-                                    dt.Columns.Add("健診基本情報管理番号", typeof(string));
-                                    dt.Columns.Add("健診実施日", typeof(string));
-                                    dt.Columns.Add("個人番号", typeof(string));
-                                    dt.Columns.Add("削除フラグ", typeof(string));
-
-                                    dt.Rows.Add(
-                                        hrow["組合C"].ToString().Trim(), 
-                                        hrow["健診基本情報管理番号"].ToString().Trim(),
-                                        hrow["健診実施日"].ToString().Trim(),
-                                        hrow["個人番号"].ToString().Trim(), 
-                                        hrow["削除フラグ"].ToString().Trim());
-
-                                    UtilCsv csv = new UtilCsv();
-                                    csv.WriteFile(".\\HEADER.csv", dt);
-
-                                    //結合して取得
-                                    var query =
-                                         from h in dt.AsEnumerable()
-                                         join d in mTdl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
-                                     where
-                                            h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
-                                            && h.Field<string>("削除フラグ").Trim() == "0"
-                                            && d.Field<string>("削除フラグ").Trim() == "0"
-                                            && d.Field<string>("未実施FLG").Trim() == "0"
-                                            && d.Field<string>("測定不能FLG").Trim() == "0"
-                                         select new
-                                         {
-                                             PersonNo = h.Field<string>("個人番号").Trim(),
-                                             KenshinNo = h.Field<string>("健診基本情報管理番号").Trim(),
-                                             KenshinDate = h.Field<string>("健診実施日").Trim(),        //yyymmdd
-                                             KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
-                                             KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
-                                             KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
-                                             Value = d.Field<string>("結果値").Trim(),
-                                             //KenshinkikanName = h.Field<string>("健診実施機関名称"),
-                                             Comment = d.Field<string>("コメント").Trim(),
-                                         };
-
-
-                                    //結合テーブルの作成
-                                    DataTable merge = CreateDataTable(query);
-                                    csv.WriteFile(".\\結合.csv", merge);
-
-
-                                    //重複の確認
-                                    var dr_array = from row in merge.AsEnumerable()
-                                                   where (
-                                                       from _row in merge.AsEnumerable()
-                                                       where
-                                                        row["PersonNo"].ToString() == _row["PersonNo"].ToString()
-                                                        && row["KenshinNo"].ToString() == _row["KenshinNo"].ToString()
-                                                        && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
-                                                        && row["KensakoumokuCode"].ToString() == _row["KensakoumokuCode"].ToString()
-                                                        && row["KenshinmeisaiNo"].ToString() == _row["KenshinmeisaiNo"].ToString()
-                                                       select _row["PersonNo"]
-                                                   ).Count() > 1 //重複していたら、２つ以上見つかる
-                                                   select row;
-
-                                    Dbg.Log("重複件数...");
-                                    int overlapcount = dr_array.Count();
-                                    if (overlapcount > 0)
-                                    {
-                                        Dbg.Log("重複件数：" + overlapcount);
-                                        DataTable queryResult = new DataTable();
-                                        queryResult = dr_array.CopyToDataTable();
-                                        csv.WriteFile(".\\重複.csv", queryResult);
-                                    }
-
-                                    break;
-                                }
-
-                                mState = 101;
-                            }
-                            break;
-
 
                         //終了
                         default:
