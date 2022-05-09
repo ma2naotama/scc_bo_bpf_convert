@@ -37,10 +37,12 @@ namespace ConvertDaiwaForBPF
 
             excel.SetExcelOptionArray(optionarray);
 
-            Dictionary<string, DataTable> master = new Dictionary<string, DataTable>();
+            Dictionary<string, DataTable> master = excel.ReadAllSheets(path);
+            if(master == null)
+            {
+                return null;
+            }
 
-            master = excel.ReadAllSheets(path + "\\master_v2.xlsm");
-            Dbg.Log("master.xlsx 読み込み終了");
 
             //検索のサンプル
             /*
@@ -101,7 +103,7 @@ namespace ConvertDaiwaForBPF
             mCsvDTL = new UtilCsv();
 
             Cancel = false;
-            mState = 0;
+            mState = CONVERT_STATE.READ_MASTER;
         }
 
 
@@ -130,11 +132,23 @@ namespace ConvertDaiwaForBPF
         }
 
         //スレッド内の処理（これ自体をキャンセルはできない）
-        private int mState = -1;
         private DataTable mHdr = null;
         private DataTable mTdl = null;
         private DataRow[] mHdrRows = null;
         private int mHdrIndex = 0;
+
+
+        private enum CONVERT_STATE
+        {
+            READ_MASTER = 0,
+            READ_HEADER,
+            READ_DATA,
+            CONVERT_GETUSER,
+            CONVERT_MAIN,
+            END = 100,
+        }
+
+        private CONVERT_STATE mState = CONVERT_STATE.READ_MASTER;
 
         public override int MultiThreadMethod()
         {
@@ -148,7 +162,7 @@ namespace ConvertDaiwaForBPF
                 if (Cancel)
                 {
                     PurgeLoadedMemory();
-                    mState = 0;
+                    mState = CONVERT_STATE.READ_MASTER;
                     return 0;
                 }
 
@@ -156,16 +170,24 @@ namespace ConvertDaiwaForBPF
                 {
                     switch (mState)
                     { 
-                        case 0:
+                        case CONVERT_STATE.READ_MASTER:
                             {
-                                mMasterSheets = ReadMasterFile(mPathInput);
+                                string filename = "\\master_v3.xlsm";
+
+                                mMasterSheets = ReadMasterFile(mPathInput + filename);
+                                if(mMasterSheets == null)
+                                {
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_READMASTER, mPathInput + filename);
+                                    mState = CONVERT_STATE.END;
+                                    break;
+                                }
 
                                 //次の処理へ
-                                mState++;
+                                mState = CONVERT_STATE.READ_HEADER;
                             }
                             break;
 
-                        case 1:
+                        case CONVERT_STATE.READ_HEADER:
                             {
                                 DataRow[] rows =
                                     mMasterSheets["config"].AsEnumerable()
@@ -186,21 +208,14 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                //次の処理へ
-                                mState++;
-                            }
-                            break;
-
-                        case 2:
-                            {
                                 SetColumnName(mHdr, mMasterSheets["DHPTV001HED"]);
 
                                 //次の処理へ
-                                mState++;
+                                mState = CONVERT_STATE.READ_DATA;
                             }
                             break;
 
-                        case 3:
+                        case CONVERT_STATE.READ_DATA:
                             {
                                 DataRow[] rows =
                                     mMasterSheets["config"].AsEnumerable()
@@ -220,23 +235,16 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                //次の処理へ
-                                mState++;
-                            }
-                            break;
-
-                        case 4:
-                            {
-
                                 SetColumnName(mTdl, mMasterSheets["DHPTV001DTL"]);
 
+
                                 //次の処理へ
-                                mState++;
+                                mState = CONVERT_STATE.CONVERT_GETUSER;
                             }
                             break;
 
 
-                        case 5:
+                        case CONVERT_STATE.CONVERT_GETUSER:
                             {
                                 //ヘッダーの削除フラグが0だけ抽出
                                 mHdrRows =
@@ -247,7 +255,7 @@ namespace ConvertDaiwaForBPF
                                 if (mHdrRows.Length <= 0)
                                 {
                                     Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_HEADER_IS_EMPTY);
-                                    mState++;
+                                    mState = CONVERT_STATE.END;
                                     break;
                                 }
 
@@ -279,26 +287,28 @@ namespace ConvertDaiwaForBPF
                                     csv.WriteFile(".\\重複ユーザー.csv", queryResult);
 
                                     //重複していたら終了
-                                    mState = 100;
+                                    mState = CONVERT_STATE.END;
                                     break;
                                 }
 
                                 //次の処理へ
                                 mHdrIndex = 0;
-                                mState++;
+
+                                if (mHdrIndex >= mHdrRows.Length)
+                                {
+                                    //次の処理へ
+                                    mState = CONVERT_STATE.END;
+                                    break;
+                                }
+
+
+                                mState = CONVERT_STATE.CONVERT_MAIN;
                             }
                             break;
 
                         //メモリが不足して正常に動作しない為、ヘッダーの一行毎に処理する
-                        case 6:
+                        case CONVERT_STATE.CONVERT_MAIN:
                             {
-                                if (mHdrIndex >= mHdrRows.Length)
-                                {
-                                    //次の処理へ
-                                    mState++;
-                                    break;
-                                }
-
                                 DataRow hrow = mHdrRows[mHdrIndex];
 
                                 DataTable hdt = new DataTable();
@@ -418,11 +428,14 @@ namespace ConvertDaiwaForBPF
                                 //コードマッピング
                                 //CodeMapping()
 
-
+                                //次のユーザー
                                 mHdrIndex++;
 
+                                //次のユーザー
+                                //mState = CONVERT_STATE.CONVERT_GETUSER;
+
                                 //テスト用の為、１ユーザー分で終了
-                                mState++;
+                                mState = CONVERT_STATE.END;
                             }
                             break;
 
