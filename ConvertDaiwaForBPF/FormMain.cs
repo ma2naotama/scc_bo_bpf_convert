@@ -49,15 +49,16 @@ namespace ConvertDaiwaForBPF
             }
         }
 
+        private string mOutputFileName = "";
 
         private void FormMain_Load(object sender, EventArgs e)
         {
 
             DateTime dt = DateTime.Now;
 
-            string name = String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+            mOutputFileName = ".\\"+String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
 
-            textBox3.Text = name;
+            textBox3.Text = mOutputFileName;
         }
 
 
@@ -152,7 +153,7 @@ namespace ConvertDaiwaForBPF
 
             DateTime dt = DateTime.Now;
 
-            sfd.FileName = String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+            sfd.FileName = mOutputFileName;       // デフォルトファイル名
 
             if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {

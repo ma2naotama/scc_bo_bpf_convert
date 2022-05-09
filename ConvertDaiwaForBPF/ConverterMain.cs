@@ -28,11 +28,10 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "config",             2, 1, true),
                 new ExcelOption ( "DHPTV001HED",        2, 1, true),
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
-                new ExcelOption ( "JLAC10変換",         2, 1, true),
                 new ExcelOption ( "項目マッピング",     2, 1, true),
                 new ExcelOption ( "コードマッピング",   2, 1, true),
-                new ExcelOption ( "ロジックマッピング", 2, 1, true),
                 new ExcelOption ( "オーダーマッピング", 2, 1, true),
+                new ExcelOption ( "出力ヘッダー",       2, 1, true),
             };
 
             excel.SetExcelOptionArray(optionarray);
@@ -344,9 +343,9 @@ namespace ConvertDaiwaForBPF
                                             KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
                                             KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
                                             KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
-                                            Value = d.Field<string>("結果値").Trim(),
-                                            //KenshinkikanName = h.Field<string>("健診実施機関名称"),
-                                            Comment = d.Field<string>("コメント").Trim(),
+                                            Value = (d.Field<string>("結果値データタイプ").Trim() == "4") ? d.Field<string>("コメント").Trim():d.Field<string>("結果値").Trim(),
+                                            //KenshinkikanName = h.Field<string>("健診実施機関名称"), //出力時にヘッダから参照する。
+                                            //Comment = d.Field<string>("コメント").Trim(),
                                         };
 
                                 if (query.Count() <= 0)
@@ -413,7 +412,7 @@ namespace ConvertDaiwaForBPF
                                             KenshinmeisaiNo = m.KenshinmeisaiNo,
                                             Value = m.Value,
                                             //KenshinkikanName = h.Field<string>("健診実施機関名称"),
-                                            Comment = m.Comment,
+                                            //Comment = m.Comment,
                                             MItemName = t.Field<string>("項目名"),
                                             MAttribute = t.Field<string>("属性"),
                                             MCodeID = t.Field<string>("コードID"),
@@ -423,7 +422,7 @@ namespace ConvertDaiwaForBPF
                                         };
 
                                 UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(".\\MergeMappedcsv", csv.CreateDataTable(mergeMapped));
+                                csv.WriteFile(mPathOutput, csv.CreateDataTable(mergeMapped));
 
                                 //コードマッピング
                                 //CodeMapping()
