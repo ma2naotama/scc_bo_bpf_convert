@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,6 +19,23 @@ namespace ConvertDaiwaForBPF
         public FormProgressDialog()
         {
             InitializeComponent();
+
+            //EnableMenuItem(GetSystemMenu(form.Handle, false), 0xF060, 1);
+
+        }
+
+        protected override CreateParams CreateParams
+        {
+            [SecurityPermission(SecurityAction.Demand,
+                Flags = SecurityPermissionFlag.UnmanagedCode)]
+            get
+            {
+                const int CS_NOCLOSE = 0x200;
+                CreateParams cp = base.CreateParams;
+                cp.ClassStyle = cp.ClassStyle | CS_NOCLOSE;
+
+                return cp;
+            }
         }
 
         protected override void OnLoad(EventArgs e)
@@ -66,8 +84,6 @@ namespace ConvertDaiwaForBPF
 
                 Dbg.Log("timer1_Tick Cancel:" + _base.Cancel);
 
-                //_base.MultiThreadCancel();
-
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
                 return;
@@ -89,14 +105,17 @@ namespace ConvertDaiwaForBPF
         //フォームを閉じた時に呼ばれる。（フォームの×ボタンでもthis.Close()を実行でも呼ばれる）
         private void FormProgressDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason == CloseReason.UserClosing)
+                e.Cancel = true;
         }
+
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             //Dbg.Log("From Close");
             if (!_base.Completed)
             {
-                Dbg.Log("変換キャンセル");
+                //Dbg.Log("buttonCancel_Click");
                 _base.MultiThreadCancel();
             }
         }

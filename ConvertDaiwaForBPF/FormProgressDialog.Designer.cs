@@ -66,9 +66,10 @@
             this.ClientSize = new System.Drawing.Size(445, 172);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.progressBar1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "FormProgressDialog";
             this.Text = "変換中ダイアログ";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormProgressDialog_FormClosing);
             this.Load += new System.EventHandler(this.FormProgressDialog_Load);
             this.ResumeLayout(false);
 

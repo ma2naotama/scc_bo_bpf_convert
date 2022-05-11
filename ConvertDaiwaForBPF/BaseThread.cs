@@ -64,7 +64,8 @@ namespace ConvertDaiwaForBPF
 
         public virtual void MultiThreadCancel()
         {
-            if(_tokenSource != null)
+            Dbg.Log("変換キャンセル");
+            if (_tokenSource != null)
             {
                 _tokenSource.Cancel();
                 _tokenSource = null;
