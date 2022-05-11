@@ -477,22 +477,14 @@ namespace ConvertDaiwaForBPF
 
         void SetColumnName(DataTable dt, DataTable sheet)
         {
-            DataRow[] rows =
-            sheet.AsEnumerable()
+            DataRow[] rows = sheet.AsEnumerable()
                 .Where(x => x["項目"].ToString() != "")
                 .ToArray();
 
             int n = dt.Columns.Count;
-
             for (int i=0; i< rows.Count(); i++)
             {
                 //Dbg.Log(rows[i][0].ToString());
-
-                if (Cancel)
-                {
-                   return;
-                }
-
                 if(i<n)
                 {
                     dt.Columns[""+(i+1)].ColumnName = rows[i][0].ToString();
@@ -502,8 +494,8 @@ namespace ConvertDaiwaForBPF
                     dt.Columns.Add(rows[i][0].ToString());
                 }
             }
-        }
 
+        }
 
         /// <summary>
         /// DataTableから重複しているデータを取得する
