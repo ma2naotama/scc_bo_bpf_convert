@@ -181,7 +181,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.textBox_Log);
             this.Name = "FormMain";
-            this.Text = "FormMain";
+            this.Text = "健診メイン";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

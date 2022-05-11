@@ -89,12 +89,16 @@ namespace ConvertDaiwaForBPF
         //フォームを閉じた時に呼ばれる。（フォームの×ボタンでもthis.Close()を実行でも呼ばれる）
         private void FormProgressDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Dbg.Log("From Close");
+        }
+
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            //Dbg.Log("From Close");
             if (!_base.Completed)
             {
                 Dbg.Log("変換キャンセル");
                 _base.MultiThreadCancel();
-            } 
+            }
         }
     }
 }
