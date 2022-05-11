@@ -11,13 +11,13 @@ namespace ConvertDaiwaForBPF
 {
     internal class ConverterMain : BaseThread
     {
-        private Dictionary<string, DataTable> mMasterSheets = null;
+        private DataSet  mMasterSheets = null;
 
         public ConverterMain()
         {
         }
 
-        private Dictionary<string, DataTable> ReadMasterFile(string path)
+        private DataSet ReadMasterFile(string path)
         {
             //Dbg.Log("master.xlsx 読み込み中...");
 
@@ -36,7 +36,7 @@ namespace ConvertDaiwaForBPF
 
             excel.SetExcelOptionArray(optionarray);
 
-            Dictionary<string, DataTable> master = excel.ReadAllSheets(path);
+            DataSet master = excel.ReadAllSheets(path); 
             if(master == null)
             {
                 return null;
@@ -191,7 +191,7 @@ namespace ConvertDaiwaForBPF
                         case CONVERT_STATE.READ_HEADER:
                             {
                                 DataRow[] rows =
-                                    mMasterSheets["config"].AsEnumerable()
+                                    mMasterSheets.Tables["config"].AsEnumerable()
                                       .Where(x => x["受信ファイル名"].ToString() != "")
                                       .ToArray();
 
@@ -209,7 +209,7 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                SetColumnName(mHdrTbl, mMasterSheets["DHPTV001HED"]);
+                                SetColumnName(mHdrTbl, mMasterSheets.Tables["DHPTV001HED"]);
 
                                 //次の処理へ
                                 mState = CONVERT_STATE.READ_DATA;
@@ -219,7 +219,7 @@ namespace ConvertDaiwaForBPF
                         case CONVERT_STATE.READ_DATA:
                             {
                                 DataRow[] rows =
-                                    mMasterSheets["config"].AsEnumerable()
+                                    mMasterSheets.Tables["config"].AsEnumerable()
                                       .Where(x => x["受信ファイル名"].ToString() != "")
                                       .ToArray();
 
@@ -236,7 +236,7 @@ namespace ConvertDaiwaForBPF
                                     return 0;
                                 }
 
-                                SetColumnName(mTdlTbl, mMasterSheets["DHPTV001DTL"]);
+                                SetColumnName(mTdlTbl, mMasterSheets.Tables["DHPTV001DTL"]);
 
 
                                 //次の処理へ
@@ -399,7 +399,7 @@ namespace ConvertDaiwaForBPF
                                 */
 
                                 //項目マッピング
-                                DataTable itemSheet = mMasterSheets["項目マッピング"];
+                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
 
                                 var mergeMapped =
                                         from m in query.AsEnumerable()

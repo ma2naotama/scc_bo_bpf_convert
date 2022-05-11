@@ -232,9 +232,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="filepath">開くファイルのパス</param>
         /// <returns>全シート分のDataTable</returns>
-        public Dictionary<string, DataTable> ReadAllSheets(string path)
+        public DataSet ReadAllSheets(string path)
         {
-            Dictionary<string, DataTable> dataTables = null;
+            DataSet dataSet = new DataSet();
 
             //既にエクセルが開いている場合でも読める様にする
             FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -243,9 +243,6 @@ namespace ConvertDaiwaForBPF
             //XLEventTracking.Disabled 追跡を無効
             using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
             {
-                dataTables = new Dictionary<string, DataTable>();
-                DataSet dataSet = new DataSet();
-
                 //Dbg.Log("sheeet count:" + workbook.Worksheets.Count);
 
                 for (int sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
@@ -334,13 +331,11 @@ namespace ConvertDaiwaForBPF
                         dt.Rows.Add(r);
                     }
 
-                    //１シート分を保存
-                    dataTables.Add(sheeetname, dt);
                 }
             }
 
             //全シート分のDataTableを返す
-            return dataTables;
+            return dataSet;
         }
 
 
