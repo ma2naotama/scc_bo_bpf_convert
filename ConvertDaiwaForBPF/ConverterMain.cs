@@ -173,7 +173,7 @@ namespace ConvertDaiwaForBPF
                     { 
                         case CONVERT_STATE.READ_MASTER:
                             {
-                                string filename = "\\master_v3.xlsm";
+                                string filename = "\\master_v4.xlsm";
 
                                 mMasterSheets = ReadMasterFile(mPathInput + filename);
                                 if(mMasterSheets == null)
