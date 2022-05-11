@@ -30,7 +30,7 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     2, 1, true),
                 new ExcelOption ( "コードマッピング",   2, 1, true),
-                new ExcelOption ( "オーダーマッピング", 2, 1, true),
+                //new ExcelOption ( "オーダーマッピング", 2, 1, true),
                 //new ExcelOption ( "出力ヘッダー",       2, 1, true),
             };
 
@@ -110,16 +110,16 @@ namespace ConvertDaiwaForBPF
         private void PurgeLoadedMemory()
         {
             //メモリ解放
-            if(mHdr != null)
+            if(mHdrTbl != null)
             {
-                mHdr.Clear();
-                mHdr = null;
+                mHdrTbl.Clear();
+                mHdrTbl = null;
             }
 
-            if (mTdl != null)
+            if (mTdlTbl != null)
             {
-                mTdl.Clear();
-                mTdl = null;
+                mTdlTbl.Clear();
+                mTdlTbl = null;
             }
 
             if (mHdrRows != null)
@@ -131,8 +131,8 @@ namespace ConvertDaiwaForBPF
         }
 
         //スレッド内の処理（これ自体をキャンセルはできない）
-        private DataTable mHdr = null;
-        private DataTable mTdl = null;
+        private DataTable mHdrTbl = null;
+        private DataTable mTdlTbl = null;
         private DataRow[] mHdrRows = null;
         private int mHdrIndex = 0;
 
@@ -158,15 +158,17 @@ namespace ConvertDaiwaForBPF
             while (loop)
             {
                 //キャンセル処理
-                if (Cancel)
-                {
-                    PurgeLoadedMemory();
-                    mState = CONVERT_STATE.READ_MASTER;
-                    return 0;
-                }
+                //if (Cancel)
+                //{
+                //    PurgeLoadedMemory();
+                //    mState = CONVERT_STATE.READ_MASTER;
+                //    return 0;
+                //}
 
                 try
                 {
+                    Dbg.Log("mState:"+ mState);
+
                     switch (mState)
                     { 
                         case CONVERT_STATE.READ_MASTER:
@@ -195,19 +197,19 @@ namespace ConvertDaiwaForBPF
 
                                 Dbg.Log(""+ rows[0][0]);
 
-                                mHdr = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYE.SJIS);
-                                if (mHdr == null)
+                                mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYE.SJIS);
+                                if (mHdrTbl == null)
                                 {
                                     return 0;
 
                                 }
 
-                                if (mHdr.Rows.Count == 0)
+                                if (mHdrTbl.Rows.Count == 0)
                                 {
                                     return 0;
                                 }
 
-                                SetColumnName(mHdr, mMasterSheets["DHPTV001HED"]);
+                                SetColumnName(mHdrTbl, mMasterSheets["DHPTV001HED"]);
 
                                 //次の処理へ
                                 mState = CONVERT_STATE.READ_DATA;
@@ -223,18 +225,18 @@ namespace ConvertDaiwaForBPF
 
                                 Dbg.Log("" + rows[1][0]);
 
-                                mTdl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYE.SJIS);
-                                if (mTdl == null)
+                                mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYE.SJIS);
+                                if (mTdlTbl == null)
                                 {
                                     return 0;
                                 }
 
-                                if (mTdl.Rows.Count == 0)
+                                if (mTdlTbl.Rows.Count == 0)
                                 {
                                     return 0;
                                 }
 
-                                SetColumnName(mTdl, mMasterSheets["DHPTV001DTL"]);
+                                SetColumnName(mTdlTbl, mMasterSheets["DHPTV001DTL"]);
 
 
                                 //次の処理へ
@@ -247,7 +249,7 @@ namespace ConvertDaiwaForBPF
                             {
                                 //ヘッダーの削除フラグが0だけ抽出
                                 mHdrRows =
-                                    mHdr.AsEnumerable()
+                                    mHdrTbl.AsEnumerable()
                                     .Where(x => x["削除フラグ"].ToString() == "0")
                                     .ToArray();
 
@@ -329,7 +331,7 @@ namespace ConvertDaiwaForBPF
                                 //結合して取得
                                 var query =
                                         from h in hdt.AsEnumerable()
-                                        join d in mTdl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
+                                        join d in mTdlTbl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
                                     where
                                         h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
                                         && d.Field<string>("削除フラグ").Trim() == "0"

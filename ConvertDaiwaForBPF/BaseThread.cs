@@ -12,11 +12,6 @@ namespace ConvertDaiwaForBPF
         public bool Cancel { get; set; }            //キャンセルフラグ
         public bool Completed { get; set; }         //完了フラグ
 
-        //private CancellationTokenSource mCanceToken;
-
-        //public delegate void CallbackMultiThreadMethod();
-
-        //private CallbackMultiThreadMethod callbackMethod = null;
 
         //コンストラクタ
         public BaseThread()
@@ -31,29 +26,28 @@ namespace ConvertDaiwaForBPF
 
 
         //非同期処理開始
-        public async void RunMultiThreadAsync()
+        public void RunMultiThreadAsync()
         {
             //変数初期化
             Cancel = false;
             Completed = false;
 
-            // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
-            //mCanceToken = new CancellationTokenSource();
-            //var token = mCanceToken.Token;
+             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
+            if (_tokenSource == null) 
+                _tokenSource = new CancellationTokenSource();
 
             //非同期処理（マルチスレッド）開始
-
-            if (_tokenSource == null) _tokenSource = new CancellationTokenSource();
-            var token = _tokenSource.Token;
-
-            Task<int> task = null;
-
             try
             {
                 Dbg.Log("RunMultiThread");
-                //MultiThreadMethod();
-                task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);
-                int result = await task; // スレッドの処理の結果を「待ち受け」する
+
+                var task = Task.Factory.StartNew(() =>
+                {
+                    MultiThreadMethod();
+                }, _tokenSource.Token);
+
+                //task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);
+                //int result = await task; // スレッドの処理の結果を「待ち受け」する
             }
             catch (TaskCanceledException ex)
             {
@@ -73,6 +67,7 @@ namespace ConvertDaiwaForBPF
             if(_tokenSource != null)
             {
                 _tokenSource.Cancel();
+                _tokenSource = null;
             } 
 
             Cancel = true;
