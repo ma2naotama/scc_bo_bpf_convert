@@ -354,8 +354,8 @@ namespace ConvertDaiwaForBPF
                                     break;
                                 }
 
-
-                                //項目マッピング
+                                //項目マッピング処理
+                                //項目マッピングから該当する検査項目コード一覧を抽出
                                 DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
 
                                 var mergeMapped =
@@ -378,9 +378,17 @@ namespace ConvertDaiwaForBPF
                                             MOutputFormat = t.Field<string>("出力文字フォーマット"),
                                         };
 
+                                //TODO:オーダーマッピング（特定の検査項目コードの絞込）
+                                //OrderMapping(itemSheet, mergeMapped);
 
-                                //コードマッピング
+
+                                //TODO:コードマッピング（属性が「コード」の場合、値の置換）
                                 //CodeMapping(itemSheet, mergeMapped);
+
+
+                                //TODO:アウトプット用にセット（「★列番号」及び「ヘッダ項目名」、出力文字フォーマット、人事情報）
+                                //CsvMapping(itemSheet, mergeMapped, humanInfo);
+
 
                                 //後処理
                                 hdt.Clear();
@@ -495,7 +503,15 @@ namespace ConvertDaiwaForBPF
             return dt_overlap;
         }
 
+        private IEnumerable OrderMapping(DataTable itemMapped, IEnumerable merged)
+        {
+            return null;
+        }
         private IEnumerable CodeMapping(DataTable itemMapped, IEnumerable merged)
+        {
+            return null;
+        }
+        private IEnumerable CsvMapping(DataTable itemMapped, IEnumerable merged, IEnumerable humanInfo)
         {
             return null;
         }
