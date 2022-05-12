@@ -164,7 +164,7 @@ namespace ConvertDaiwaForBPF
             public string MAttribute { get; set; }          //属性
             public string MCodeID { get; set; }             //コードID
             public string MOutputIndex { get; set; }        //★列番号
-            public string MOutputHeader { get; set; }       //ヘッダ項目名
+            //public string MOutputHeader { get; set; }       //ヘッダ項目名
             public string MOutputFormat { get; set; }       //出力文字フォーマット
         }
 
@@ -435,7 +435,7 @@ namespace ConvertDaiwaForBPF
                                             MAttribute = t.Field<string>("属性"),
                                             MCodeID = t.Field<string>("コードID"),
                                             MOutputIndex = t.Field<string>("★列番号"),
-                                            MOutputHeader = t.Field<string>("ヘッダ項目名"),
+                                            //MOutputHeader = t.Field<string>("ヘッダ項目名"),
                                             MOutputFormat = t.Field<string>("出力文字フォーマット"),
                                         };
 
