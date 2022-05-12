@@ -144,6 +144,7 @@ namespace ConvertDaiwaForBPF
             READ_DATA,
             CONVERT_GETUSER,
             CONVERT_MAIN,
+            CONVERT_OUTPUT,
             END = 100,
         }
 
@@ -158,16 +159,16 @@ namespace ConvertDaiwaForBPF
             while (loop)
             {
                 //キャンセル処理
-                //if (Cancel)
-                //{
-                //    PurgeLoadedMemory();
-                //    mState = CONVERT_STATE.READ_MASTER;
-                //    return 0;
-                //}
+                if (Cancel)
+                {
+                    PurgeLoadedMemory();
+                    mState = CONVERT_STATE.READ_MASTER;
+                    return 0;
+                }
 
                 try
                 {
-                    Dbg.Log("mState:"+ mState);
+                    //Dbg.Log("mState:"+ mState);
 
                     switch (mState)
                     { 
@@ -241,6 +242,8 @@ namespace ConvertDaiwaForBPF
 
                                 //次の処理へ
                                 mState = CONVERT_STATE.CONVERT_GETUSER;
+
+                                mHdrIndex = 0;
                             }
                             break;
 
@@ -293,16 +296,6 @@ namespace ConvertDaiwaForBPF
                                 }
 
                                 //次の処理へ
-                                mHdrIndex = 0;
-
-                                if (mHdrIndex >= mHdrRows.Length)
-                                {
-                                    //次の処理へ
-                                    mState = CONVERT_STATE.END;
-                                    break;
-                                }
-
-
                                 mState = CONVERT_STATE.CONVERT_MAIN;
                             }
                             break;
@@ -324,6 +317,8 @@ namespace ConvertDaiwaForBPF
                                         hrow["健診実施日"].ToString().Trim(),
                                         hrow["個人番号"].ToString().Trim()
                                     );
+
+                                Dbg.Log("個人番号:"+hrow["個人番号"].ToString());
 
                                 //UtilCsv csv = new UtilCsv();
                                 //csv.WriteFile(".\\HEADER.csv", dt);
@@ -355,48 +350,10 @@ namespace ConvertDaiwaForBPF
                                     //結合した結果データが無い
                                     Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_BODY_IS_NOUSERDATA, 
                                         hrow["個人番号"].ToString());
-                                    mState++;
+                                    mState = CONVERT_STATE.END;
                                     break;
                                 }
 
-                                //var merge = query.ToArray();
-
-
-                                //結合テーブルの作成
-                                //DataTable merge = CreateDataTable(query);
-
-                                //UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(".\\結合.csv", merge);
-
-                                /*
-                                //重複の確認　TODO:ユーザー毎の重複となるので、ユーザーが重複してても分からない
-                                var dr_array = from row in merge.AsEnumerable()
-                                                where (
-                                                    from _row in merge.AsEnumerable()
-                                                    where
-                                                    row["PersonNo"].ToString() == _row["PersonNo"].ToString()
-                                                    && row["KenshinNo"].ToString() == _row["KenshinNo"].ToString()
-                                                    && row["KenshinDate"].ToString() == _row["KenshinDate"].ToString()
-                                                    && row["KensakoumokuCode"].ToString() == _row["KensakoumokuCode"].ToString()
-                                                    && row["KenshinmeisaiNo"].ToString() == _row["KenshinmeisaiNo"].ToString()
-                                                    select _row["PersonNo"]
-                                                ).Count() > 1 //重複していたら、２つ以上見つかる
-                                                select row;
-
-                                //DataTableが大きすぎるとここで処理が終わらない事がある。
-                                //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
-                                int overlapcount = dr_array.Count();
-                                Dbg.Log("重複件数：" + overlapcount);
-
-                                if (overlapcount > 0)
-                                {
-                                    DataTable queryResult = new DataTable();
-                                    queryResult = dr_array.CopyToDataTable();
-
-                                    UtilCsv csv = new UtilCsv();
-                                    csv.WriteFile(".\\重複.csv", queryResult);
-                                }
-                                */
 
                                 //項目マッピング
                                 DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
@@ -421,19 +378,36 @@ namespace ConvertDaiwaForBPF
                                             MOutputFormat = t.Field<string>("出力文字フォーマット"),
                                         };
 
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(mPathOutput, csv.CreateDataTable(mergeMapped));
 
                                 //コードマッピング
-                                //CodeMapping()
+                                //CodeMapping(itemSheet, mergeMapped);
+
+                                //後処理
+                                hdt.Clear();
+                                hdt = null;
+
+                                mergeMapped = null;
 
                                 //次のユーザー
                                 mHdrIndex++;
+                                if (mHdrIndex >= mHdrRows.Length)
+                                {
+                                    mState = CONVERT_STATE.CONVERT_OUTPUT;
+                                    break;
+                                }
 
-                                //次のユーザー
-                                //mState = CONVERT_STATE.CONVERT_GETUSER;
 
                                 //テスト用の為、１ユーザー分で終了
+                                //mState = CONVERT_STATE.END;
+                            }
+                            break;
+
+                        case CONVERT_STATE.CONVERT_OUTPUT:
+                            {
+                                //UtilCsv csv = new UtilCsv();
+                                //csv.WriteFile(mPathOutput, csv.CreateDataTable(mergeMapped));
+                                Dbg.Log("TODO: csvへ書き出す。mHdrIndex：" + mHdrIndex);
+
                                 mState = CONVERT_STATE.END;
                             }
                             break;
@@ -521,7 +495,7 @@ namespace ConvertDaiwaForBPF
             return dt_overlap;
         }
 
-        private IEnumerable CodeMapping(DataTable masterSheet, IEnumerable merged)
+        private IEnumerable CodeMapping(DataTable itemMapped, IEnumerable merged)
         {
             return null;
         }

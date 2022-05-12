@@ -28,9 +28,6 @@ namespace ConvertDaiwaForBPF
             }
 
             main.WriteLog(logText);
-
-            _logger.Debug(logText);
-
         }
 
 
@@ -41,7 +38,11 @@ namespace ConvertDaiwaForBPF
 
         public static void ErrorLog(GlobalVariables.ERRORCOSE errorcode, params string[] args)
         {
-            Log(GlobalVariables.GetErrorMsg(errorcode, args));
+            string logText = GlobalVariables.GetErrorMsg(errorcode, args);
+
+            Log(logText);
+
+            _logger.Error(logText);
         }
 
     }
