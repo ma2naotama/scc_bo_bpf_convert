@@ -137,6 +137,8 @@ namespace ConvertDaiwaForBPF
         private int mHdrIndex = 0;
 
 
+        private DataTable mOutputCsv = null;
+
         private enum CONVERT_STATE
         {
             READ_MASTER = 0,
@@ -146,6 +148,24 @@ namespace ConvertDaiwaForBPF
             CONVERT_MAIN,
             CONVERT_OUTPUT,
             END = 100,
+        }
+
+        private class ItemMap
+        {
+            public string KensakoumokuCode { get; set; }
+
+            public string KensakoumokuName { get; set; }
+
+            public string KenshinmeisaiNo { get; set; }
+
+            public string Value { get; set; }
+
+            public string MItemName { get; set; }           //項目名
+            public string MAttribute { get; set; }          //属性
+            public string MCodeID { get; set; }             //コードID
+            public string MOutputIndex { get; set; }        //★列番号
+            public string MOutputHeader { get; set; }       //ヘッダ項目名
+            public string MOutputFormat { get; set; }       //出力文字フォーマット
         }
 
         private CONVERT_STATE mState = CONVERT_STATE.READ_MASTER;
@@ -182,6 +202,45 @@ namespace ConvertDaiwaForBPF
                                     Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_READMASTER, mPathInput + filename);
                                     mState = CONVERT_STATE.END;
                                     break;
+                                }
+
+
+                                //出力用CSVの初期化
+                                DataRow[] rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                                      .Where(x => x["項目名"].ToString() != "")
+                                      .ToArray();
+
+                                mOutputCsv = new DataTable();
+
+                                //予めカラム名に同じカラム名はセットできないので、番号をセットしておく
+                                int i = 1;
+                                foreach (var row in rows)
+                                {
+                                    if(row.Field<string>("★列番号") == "")
+                                    {
+                                        continue;
+                                    }
+
+                                    string colname = row.Field<string>("ヘッダ項目名") == "" ? row.Field<string>("項目名"): row.Field<string>("ヘッダ項目名");
+                                    if(colname == "-")
+                                    {
+                                        colname = "" +i;
+                                    }
+
+                                    //出力ヘッダーのカラム名で重複がある
+                                    try
+                                    {
+                                        mOutputCsv.Columns.Add(colname, typeof(string));
+                                    }
+                                    catch (DuplicateNameException ex)
+                                    {
+                                        //カラム名の２重登録
+                                        Dbg.Log("["+colname + "] は既に登録されています。");
+
+                                        mOutputCsv.Columns.Add("" + i, typeof(string));
+                                    }
+
+                                    i++;
                                 }
 
                                 //次の処理へ
@@ -361,7 +420,7 @@ namespace ConvertDaiwaForBPF
                                 var mergeMapped =
                                         from m in query.AsEnumerable()
                                         join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
-                                        select new
+                                        select new ItemMap
                                         {
                                             //PersonNo = m.PersonNo,
                                             //KenshinNo = m.KenshinNo,
@@ -387,8 +446,25 @@ namespace ConvertDaiwaForBPF
 
 
                                 //TODO:アウトプット用にセット（「★列番号」及び「ヘッダ項目名」、出力文字フォーマット、人事情報）
-                                //CsvMapping(itemSheet, mergeMapped, humanInfo);
+                                DataRow r = mOutputCsv.NewRow();
 
+                                foreach(var item in mergeMapped)
+                                {
+                                    //if(item.MOutputFormat != "")
+                                    //{
+                                    //    r[item.MOutputIndex] = string.Format(item.MOutputFormat, item.Value);
+                                    //}
+                                    //else
+                                    //{
+                                    //    r[item.MOutputIndex] = item.Value;
+                                    //}
+                                    int index = int.Parse(item.MOutputIndex);
+
+                                    //カラム番号に対して、値をセットする
+                                    r[index] = item.Value;
+                                }
+
+                                mOutputCsv.Rows.Add(r);
 
                                 //後処理
                                 hdt.Clear();
@@ -398,7 +474,7 @@ namespace ConvertDaiwaForBPF
 
                                 //次のユーザー
                                 mHdrIndex++;
-                                if (mHdrIndex >= mHdrRows.Length)
+                                if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 10)
                                 {
                                     mState = CONVERT_STATE.CONVERT_OUTPUT;
                                     break;
@@ -412,9 +488,10 @@ namespace ConvertDaiwaForBPF
 
                         case CONVERT_STATE.CONVERT_OUTPUT:
                             {
-                                //UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(mPathOutput, csv.CreateDataTable(mergeMapped));
-                                Dbg.Log("TODO: csvへ書き出す。mHdrIndex：" + mHdrIndex);
+                                Dbg.Log("csvへ書き出す。mHdrIndex：" + mHdrIndex);
+
+                                UtilCsv csv = new UtilCsv();
+                                csv.WriteFile(mPathOutput, mOutputCsv, true);
 
                                 mState = CONVERT_STATE.END;
                             }
@@ -511,9 +588,15 @@ namespace ConvertDaiwaForBPF
         {
             return null;
         }
-        private IEnumerable CsvMapping(DataTable itemMapped, IEnumerable merged, IEnumerable humanInfo)
+        /*
+        private IEnumerable CsvMapping(DataTable dst, IEnumerable<ItemMap> merged, DataTable hdr, DataTable humanInfo)
         {
+            Dictionary<string, string> dic = merged.ToDictionary();
+
+            dst.Rows[]
+
             return null;
         }
+        */
     }
 }

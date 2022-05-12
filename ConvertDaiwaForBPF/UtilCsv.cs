@@ -144,7 +144,7 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public void WriteFile(string path, DataTable dt)
+        public void WriteFile(string path, DataTable dt, bool overwriteColumnName = false)
         {
 
             try
@@ -154,6 +154,18 @@ namespace ConvertDaiwaForBPF
                     StringBuilder sb = new StringBuilder();
 
                     string[] columnNames = dt.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToArray();
+
+                    if (overwriteColumnName)
+                    {
+                        //ハイフンで上書きする（DataTableでは同じ名前のカラム名がセットできない為ここで書き換える）
+                        for (int i = 0; i < columnNames.Length; i++)
+                        {
+                            if(columnNames[i].All(char.IsDigit))
+                            { 
+                                columnNames[i] = "-";
+                            }
+                        }
+                    }
 
                     sb.AppendLine(string.Join(",", columnNames));
 
