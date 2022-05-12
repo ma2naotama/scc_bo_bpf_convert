@@ -144,7 +144,7 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public void WriteFile(string path, DataTable dt, bool overwriteColumnName = false)
+        public void WriteFile(string path, DataTable dt, List<string>overwriteColumnName = null)
         {
 
             try
@@ -155,19 +155,26 @@ namespace ConvertDaiwaForBPF
 
                     string[] columnNames = dt.Columns.Cast<DataColumn>().Select(column => column.ColumnName).ToArray();
 
-                    if (overwriteColumnName)
+                    if (overwriteColumnName != null)
                     {
-                        //ハイフンで上書きする（DataTableでは同じ名前のカラム名がセットできない為ここで書き換える）
-                        for (int i = 0; i < columnNames.Length; i++)
+                        try
                         {
-                            if(columnNames[i].All(char.IsDigit))
-                            { 
-                                columnNames[i] = "-";
+                            if (columnNames.Length != overwriteColumnName.Count)
+                            {
+                                throw new MyException("ヘッダーの数が合っていません。");
                             }
                         }
-                    }
+                        catch (Exception ex)
+                        {
+                           Dbg.Error(ex.ToString());
+                        }
 
-                    sb.AppendLine(string.Join(",", columnNames));
+                        sb.AppendLine(string.Join(",", overwriteColumnName));
+                    }
+                    else
+                    { 
+                        sb.AppendLine(string.Join(",", columnNames));
+                    }
 
                     foreach (DataRow row in dt.Rows)
                     {
@@ -191,7 +198,7 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                Dbg.FileLog(ex.ToString());
+                Dbg.Error(ex.ToString());
                 throw ex;
             }
         }

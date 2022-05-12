@@ -369,7 +369,7 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                Dbg.FileLog(ex.ToString());
+                Dbg.Error(ex.ToString());
                 throw ex;
             }
         }

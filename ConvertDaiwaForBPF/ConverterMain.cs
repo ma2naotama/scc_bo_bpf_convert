@@ -31,7 +31,7 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "項目マッピング",     2, 1, true),
                 new ExcelOption ( "コードマッピング",   2, 1, true),
                 //new ExcelOption ( "オーダーマッピング", 2, 1, true),
-                //new ExcelOption ( "出力ヘッダー",       2, 1, true),
+                new ExcelOption ( "出力ヘッダー",       2, 1, true),
             };
 
             excel.SetExcelOptionArray(optionarray);
@@ -206,8 +206,8 @@ namespace ConvertDaiwaForBPF
 
 
                                 //出力用CSVの初期化
-                                DataRow[] rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
-                                      .Where(x => x["項目名"].ToString() != "")
+                                DataRow[] rows = mMasterSheets.Tables["出力ヘッダー"].AsEnumerable()
+                                      .Where(x => x["列名"].ToString() != "")
                                       .ToArray();
 
                                 mOutputCsv = new DataTable();
@@ -216,6 +216,7 @@ namespace ConvertDaiwaForBPF
                                 int i = 1;
                                 foreach (var row in rows)
                                 {
+                                    /*
                                     if(row.Field<string>("★列番号") == "")
                                     {
                                         continue;
@@ -239,7 +240,8 @@ namespace ConvertDaiwaForBPF
 
                                         mOutputCsv.Columns.Add("" + i, typeof(string));
                                     }
-
+                                    */
+                                    mOutputCsv.Columns.Add("" + i, typeof(string));
                                     i++;
                                 }
 
@@ -490,8 +492,22 @@ namespace ConvertDaiwaForBPF
                             {
                                 Dbg.Log("csvへ書き出す。mHdrIndex：" + mHdrIndex);
 
+                                //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
+                                var rows = mMasterSheets.Tables["出力ヘッダー"].AsEnumerable()
+                                      .Where(x => x["列名"].ToString() != "")
+                                      .ToArray();
+
+                                //var str_arry = rows.Select(c => c.ToString()).ToArray();
+
+                                //最適化できそう
+                                List<string> str_arry = new List<string>();
+                                foreach(var r in rows)
+                                {
+                                    str_arry.Add(r.Field<string>("列名"));
+                                }
+
                                 UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(mPathOutput, mOutputCsv, true);
+                                csv.WriteFile(mPathOutput, mOutputCsv, str_arry);
 
                                 mState = CONVERT_STATE.END;
                             }
