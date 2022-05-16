@@ -24,6 +24,7 @@ namespace ConvertDaiwaForBPF
             MERGED_DATA_IS_EMPTY,
             NO_USERDATA,
             NO_TDLDATA,
+            DUPLICATE_USER,
         };
 
 
@@ -36,7 +37,8 @@ namespace ConvertDaiwaForBPF
             {ERRORCODE.TDL_IS_EMPTY,                "健診データが空です。"},
             {ERRORCODE.MERGED_DATA_IS_EMPTY,        "結合したデータが空です。"},
             {ERRORCODE.NO_USERDATA,                 "人事データに該当ユーザーがいません。個人番号：{1}"},
-            {ERRORCODE.NO_TDLDATA,                  "健診データに該当ユーザーがいません。個人番号：{1}"}
+            {ERRORCODE.NO_TDLDATA,                  "健診データに該当ユーザーがいません。個人番号：{1}"},
+            {ERRORCODE.DUPLICATE_USER,              "健診データが重複しています。個人番号：{1},受信日：{2}"}
         };
 
 
