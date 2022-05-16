@@ -36,12 +36,12 @@ namespace ConvertDaiwaForBPF
         /// <param name="path">ファイルパス</param>
         /// <param name="delimiters">区切り文字</param>
         /// <param name="encoding">エンコード指定。Encoding.GetEncoding("shift-jis")等</param>
-        public DataTable ReadFile(string path, string delimiters = ",", GlobalVariables.ENCORDTYE encode = GlobalVariables.ENCORDTYE.UTF8)
+        public DataTable ReadFile(string path, string delimiters = ",", GlobalVariables.ENCORDTYPE encode = GlobalVariables.ENCORDTYPE.UTF8)
         {
             Encoding encoding;
 
             //	指定が無ければUTF-8
-            if (encode == GlobalVariables.ENCORDTYE.SJIS)
+            if (encode == GlobalVariables.ENCORDTYPE.SJIS)
             {
                 encoding = Encoding.GetEncoding("Shift_JIS");
             }

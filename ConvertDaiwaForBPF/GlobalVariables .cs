@@ -8,34 +8,37 @@ namespace ConvertDaiwaForBPF
 {
     public class GlobalVariables
     {
-        public enum ENCORDTYE
+        public enum ENCORDTYPE
         {
             SJIS,
             UTF8
         };
 
-        public enum ERRORCOSE
+        public enum ERRORCODE
         {
-            ERROR_NONE = 0,
-            ERROR_READMASTER,
-            ERROR_MASTER_IS_NOTMATCH,
-            ERROR_HEADER_IS_EMPTY,
-            ERROR_BODY_IS_EMPTY,
-            ERROR_BODY_IS_NOUSERDATA,
+            READFAILED_MASTER  = 10001,
+            READFAILED_HDR,
+            READFAILED_TDL,
+            HDR_IS_EMPTY,
+            TDL_IS_EMPTY,
+            MERGED_DATA_IS_EMPTY,
+            NO_USERDATA,
         };
 
 
-        private static Dictionary<ERRORCOSE, string> ERRORMSG = new Dictionary<ERRORCOSE, string>(){
-            {ERRORCOSE.ERROR_NONE,                  "ERROR_NONE"},
-            {ERRORCOSE.ERROR_READMASTER,            "マスターファイルが読めませんでした。"},
-            {ERRORCOSE.ERROR_MASTER_IS_NOTMATCH,    "マスターファイルが異常です。"},
-            {ERRORCOSE.ERROR_HEADER_IS_EMPTY,       "受信ヘッダーが空です。"},
-            {ERRORCOSE.ERROR_BODY_IS_EMPTY,         "受信データが空です。"},
-            {ERRORCOSE.ERROR_BODY_IS_NOUSERDATA,    "受信データに該当ユーザーがいません{1}。"}
+        private static Dictionary<ERRORCODE, string> ERRORMSG = new Dictionary<ERRORCODE, string>()
+        {
+            {ERRORCODE.READFAILED_MASTER,           "設定ファイルが読めませんでした。"},
+            {ERRORCODE.READFAILED_HDR,              "健診ヘッダーが読めませんでした。"},
+            {ERRORCODE.READFAILED_TDL,              "健診データが読めませんでした。"},
+            {ERRORCODE.HDR_IS_EMPTY,                "健診ヘッダーが空です。"},
+            {ERRORCODE.TDL_IS_EMPTY,                "健診データが空です。"},
+            {ERRORCODE.MERGED_DATA_IS_EMPTY,        "結合したデータが空です。"},
+            {ERRORCODE.NO_USERDATA,                 "人事データに該当ユーザーがいません{1}。"}
         };
 
 
-        public static string GetErrorMsg(ERRORCOSE errorcode, params string[] args)
+        public static string GetErrorMsg(ERRORCODE errorcode, params string[] args)
         {
             return string.Format(ERRORMSG[errorcode].ToString(), args);
         }

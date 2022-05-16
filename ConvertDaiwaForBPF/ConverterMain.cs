@@ -199,7 +199,7 @@ namespace ConvertDaiwaForBPF
                                 mMasterSheets = ReadMasterFile(mPathInput + filename);
                                 if(mMasterSheets == null)
                                 {
-                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_READMASTER, mPathInput + filename);
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCODE.READFAILED_MASTER, mPathInput + filename);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -259,7 +259,7 @@ namespace ConvertDaiwaForBPF
 
                                 Dbg.Log(""+ rows[0][0]);
 
-                                mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYE.SJIS);
+                                mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mHdrTbl == null)
                                 {
                                     return 0;
@@ -287,7 +287,7 @@ namespace ConvertDaiwaForBPF
 
                                 Dbg.Log("" + rows[1][0]);
 
-                                mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYE.SJIS);
+                                mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mTdlTbl == null)
                                 {
                                     return 0;
@@ -319,7 +319,7 @@ namespace ConvertDaiwaForBPF
 
                                 if (mHdrRows.Length <= 0)
                                 {
-                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_HEADER_IS_EMPTY);
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCODE.HDR_IS_EMPTY);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -411,8 +411,7 @@ namespace ConvertDaiwaForBPF
                                 if (query.Count() <= 0)
                                 {
                                     //結合した結果データが無い
-                                    Dbg.ErrorLog(GlobalVariables.ERRORCOSE.ERROR_BODY_IS_NOUSERDATA, 
-                                        hrow["個人番号"].ToString());
+                                    Dbg.ErrorLog(GlobalVariables.ERRORCODE.MERGED_DATA_IS_EMPTY);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }

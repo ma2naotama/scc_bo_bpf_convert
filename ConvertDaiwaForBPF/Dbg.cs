@@ -46,7 +46,7 @@ namespace ConvertDaiwaForBPF
             _logger.Info(logText);
         }
 
-        public static void ErrorLog(GlobalVariables.ERRORCOSE errorcode, params string[] args)
+        public static void ErrorLog(GlobalVariables.ERRORCODE errorcode, params string[] args)
         {
             string logText = GlobalVariables.GetErrorMsg(errorcode, args);
 
