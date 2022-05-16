@@ -16,13 +16,14 @@ namespace ConvertDaiwaForBPF
 
         public enum ERRORCODE
         {
-            READFAILED_MASTER  = 10001,
+            READFAILED_MASTER  = 101,
             READFAILED_HDR,
             READFAILED_TDL,
             HDR_IS_EMPTY,
             TDL_IS_EMPTY,
             MERGED_DATA_IS_EMPTY,
             NO_USERDATA,
+            NO_TDLDATA,
         };
 
 
@@ -34,7 +35,8 @@ namespace ConvertDaiwaForBPF
             {ERRORCODE.HDR_IS_EMPTY,                "健診ヘッダーが空です。"},
             {ERRORCODE.TDL_IS_EMPTY,                "健診データが空です。"},
             {ERRORCODE.MERGED_DATA_IS_EMPTY,        "結合したデータが空です。"},
-            {ERRORCODE.NO_USERDATA,                 "人事データに該当ユーザーがいません{1}。"}
+            {ERRORCODE.NO_USERDATA,                 "人事データに該当ユーザーがいません。個人番号：{1}"},
+            {ERRORCODE.NO_TDLDATA,                  "健診データに該当ユーザーがいません。個人番号：{1}"}
         };
 
 
