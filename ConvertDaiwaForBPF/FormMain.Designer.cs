@@ -181,7 +181,7 @@
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.textBox_Log);
             this.Name = "FormMain";
-            this.Text = "健診メイン";
+            this.Text = "健診結果取込フォーマット作成ツール";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

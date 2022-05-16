@@ -194,7 +194,7 @@ namespace ConvertDaiwaForBPF
                     { 
                         case CONVERT_STATE.READ_MASTER:
                             {
-                                string filename = "\\master_v4.xlsm";
+                                string filename = "\\master_v5.xlsx";
 
                                 mMasterSheets = ReadMasterFile(mPathInput + filename);
                                 if(mMasterSheets == null)
@@ -324,6 +324,7 @@ namespace ConvertDaiwaForBPF
                                     break;
                                 }
 
+                                /*
                                 //重複の確認(何をもって重複とするか検討)
                                 var dr_array = from row in mHdrRows.AsEnumerable()
                                                where (
@@ -355,6 +356,7 @@ namespace ConvertDaiwaForBPF
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
+                                */
 
                                 //次の処理へ
                                 mState = CONVERT_STATE.CONVERT_MAIN;

@@ -69,7 +69,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FormProgressDialog";
-            this.Text = "変換中ダイアログ";
+            this.Text = "変換中";
             this.Load += new System.EventHandler(this.FormProgressDialog_Load);
             this.ResumeLayout(false);
 
