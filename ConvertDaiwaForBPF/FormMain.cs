@@ -232,11 +232,11 @@ namespace ConvertDaiwaForBPF
                 //プログレスバーの表示とマルチスレッドスタート
                 if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
-                    MessageBox.Show("完了しました。");
+                    MessageBox.Show(Properties.Resources.MSG_CONVERT_FINISHED.ToString());
                 }
                 else
                 {
-                    MessageBox.Show("キャンセルしました。");
+                    //MessageBox.Show("キャンセルしました。");
                     return;
                 }
 

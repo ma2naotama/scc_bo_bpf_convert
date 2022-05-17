@@ -18,8 +18,10 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public static void Log(String logText)
+        public static void Log(String msg, params string[] args)
         {
+            string logText = string.Format(msg, args);
+
             FormMain main = FormMain.GetInstance();
             if(main == null)
             {
@@ -46,9 +48,9 @@ namespace ConvertDaiwaForBPF
             _logger.Info(logText);
         }
 
-        public static void ErrorLog(GlobalVariables.ERRORCODE errorcode, params string[] args)
+        public static void ErrorLog(string errormsg, params string[] args)
         {
-            string logText = GlobalVariables.GetErrorMsg(errorcode, args);
+            string logText = string.Format(errormsg, args);
 
             Log(logText);
 
