@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -522,18 +523,44 @@ namespace ConvertDaiwaForBPF
 
                                 foreach(var item in mergeMapped)
                                 {
-                                    //if(item.MOutputFormat != "")
-                                    //{
-                                    //    r[item.MOutputIndex] = string.Format(item.MOutputFormat, item.Value);
-                                    //}
-                                    //else
-                                    //{
-                                    //    r[item.MOutputIndex] = item.Value;
-                                    //}
                                     int index = int.Parse(item.OutputHdrIndex);
 
                                     //カラム番号に対して、値をセットする
-                                    r[index] = item.Value;
+                                    if (item.OutputFormat != "")
+                                    {
+                                        /*
+                                        int i;
+                                        float f;
+                                        DateTime d;
+
+                                        if (DateTime.TryParseExact(item.Value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                                        {
+                                            //日付
+                                            r[index] = d.ToString(item.OutputFormat);
+                                        }
+                                        else if (int.TryParse(item.Value, out i))
+                                        {
+                                            //整数
+                                            r[index] = string.Format(item.OutputFormat, i).ToString();
+                                        }
+                                        else if (float.TryParse(item.Value, out f))
+                                        { 
+                                            //少数
+                                            r[index] = string.Format(item.OutputFormat, f).ToString();
+                                        }
+                                        else
+                                        {
+                                            //文字列
+                                            r[index] = string.Format(item.OutputFormat, item.Value).ToString();
+                                        }
+                                        */
+                                    }
+                                    else
+                                    {
+                                        r[index] = item.Value;
+                                    }
+
+                                    //r[index] = item.Value;
                                 }
 
                                 mOutputCsv.Rows.Add(r);
