@@ -1,17 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Comment CommentText="バックグラウンドとして実行">
-    <Position X="5.417" Y="2.167" Height="0.417" Width="1.606" />
+    <Position X="6.959" Y="2.375" Height="0.417" Width="1.606" />
+  </Comment>
+  <Comment CommentText="実行ボタン押下">
+    <Position X="2.167" Y="2.261" Height="0.417" Width="1.096" />
   </Comment>
   <Class Name="ConvertDaiwaForBPF.BaseThread" Collapsed="true">
-    <Position X="7.25" Y="0.75" Width="1.5" />
+    <Position X="6.5" Y="0.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAQAAAAAIAAAAEBAAAAAAAAQAAAAAABAAAAAA=</HashCode>
       <FileName>BaseThread.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ConvertDaiwaForBPF.ConverterMain" Collapsed="true">
-    <Position X="7.25" Y="1.75" Width="1.5" />
+    <Position X="6.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAADAAAAAIwgAAMpAAACAABBAAAAgAALABAgAA=</HashCode>
       <FileName>ConverterMain.cs</FileName>

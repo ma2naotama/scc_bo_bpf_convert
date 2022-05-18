@@ -364,158 +364,54 @@ namespace ConvertDaiwaForBPF
                         case CONVERT_STATE.CONVERT_MAIN:
                             {
                                 DataRow hrow = mHdrRows[mHdrIndex];
+                                Dbg.Log("個人番号:" + hrow["個人番号"].ToString());
 
-                                DataTable hdt = new DataTable();
-                                hdt.Columns.Add("組合C", typeof(string));
-                                hdt.Columns.Add("健診基本情報管理番号", typeof(string));
-                                hdt.Columns.Add("健診実施日", typeof(string));
-                                hdt.Columns.Add("個人番号", typeof(string));
-
-                                hdt.Rows.Add(
-                                        hrow["組合C"].ToString().Trim(), 
-                                        hrow["健診基本情報管理番号"].ToString().Trim(),
-                                        hrow["健診実施日"].ToString().Trim(),
-                                        hrow["個人番号"].ToString().Trim()
-                                    );
-
-                                Dbg.Log("個人番号:"+hrow["個人番号"].ToString());
-
-                                //UtilCsv csv = new UtilCsv();
+                                UtilCsv csv = new UtilCsv();
                                 //csv.WriteFile(".\\HEADER.csv", dt);
 
                                 //TDLとHDRを結合して取得
-                                var merged =
-                                        from h in hdt.AsEnumerable()
-                                        join d in mTdlTbl.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
-                                    where
-                                        h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
-                                        && d.Field<string>("削除フラグ").Trim() == "0"
-                                        && d.Field<string>("未実施FLG").Trim() == "0"
-                                        && d.Field<string>("測定不能FLG").Trim() == "0"
-                                        select new 
-                                        {
-                                            //ヘッダー情報は、人事データ結合時に処理する。
-                                            KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
-                                            KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
-                                            KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
-                                            Value = (d.Field<string>("結果値データタイプ").Trim() == "4") ? d.Field<string>("コメント").Trim():d.Field<string>("結果値").Trim(),
-                                        };
+                                var merged = MergeHdrWithTdl(hrow, mTdlTbl);
 
-                                /*
-                                .Join(
-                                      結合するテーブル,
-                                      結合する側の結合条件（TeamTable）,
-                                      結合される側の結合条件（PersonTable）,
-                                      (（結合する側を指す範囲変数）, （結合される側を指す範囲変数）)
-　　　                                 => new
-                                      {
-                                         （結合後のテーブル）
-                                      }) 
-                                */
-
-                                var response = new DataTable();
-
-                                var rows = hdt.AsEnumerable()
-                                      .Join(mTdlTbl.AsEnumerable(),
-                                      t => new { a = t.Field<string>("組合C"), b = t.Field<string>("健診基本情報管理番号") },
-                                      o => new { a = o.Field<string>("組合C"), b = o.Field<string>("健診基本情報管理番号") },
-                                      (t, o) => new
-                                      {
-                                          a = t.Field<string>("健診基本情報管理番号"),
-                                          b = o.Field<string>("健診明細情報管理番号"),
-                                          c = o.Field<string>("結果値データタイプ"),
-                                          d = o.Field<string>("コメント").Trim(),
-                                          e = o.Field<string>("結果値"),
-                                          f = o.Field<string>("削除フラグ"),
-                                          j = o.Field<string>("未実施FLG"),
-                                          h = o.Field<string>("測定不能FLG"),
-                                      })
-                                     .Where( x =>
-                                        //x.Field<string>("健診基本情報管理番号") == x.Field<string>("健診基本情報管理番号")
-                                        x.f == "0"
-                                        && x.j == "0"
-                                        && x.h == "0"
-                                      )
-                                      .Select(j =>
-                                      {
-                                          var row = response.NewRow();
-                                          row.ItemArray = new[] { j.a, j.b, j.c, j.d, j.e };
-                                          return row;
-                                      });
-
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(".\\rows.csv", rows.CopyToDataTable());
-
-
-                                /*
-                                 var rows = targetDt.AsEnumerable()
-                                    .Join(otherDt.AsEnumerable(),
-                                    t => new { a = t.Field<string>("A"), b = t.Field<string>("B") },
-                                    o => new { a = o.Field<string>("A"), b = o.Field<string>("B") },
-                                    (t, o) => new
-                                    {
-                                        a = t.Field<string>("A"),
-                                        b = t.Field<string>("B"),
-                                        c = t.Field<string>("C"),
-                                        d = o.Field<string>("D")
-                                    })
-                                    .Where(w => w.bookId == xxxxxx && w.userId == yyyyyy)
-                                    .Select(j =>
-                                    {
-                                        var row = response.NewRow();
-                                        row.ItemArray = new[] { j.a, j.b, j.c, j.d };
-                                        return row;
-                                    });
-                                */
-
+                                csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
 
                                 if (merged.Count() <= 0)
                                 {
                                     //結合した結果データが無い
                                     Dbg.ErrorLog(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
-                                    mState = CONVERT_STATE.END;
+                                    mHdrIndex++;
+                                    if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 10)
+                                    {
+                                        mState = CONVERT_STATE.CONVERT_OUTPUT;
+                                    }
                                     break;
                                 }
                                 
-                                /*
-                                //検査項目コードの重複の確認(何をもって重複とするか検討)
-                                var dr_array = from row in merged.AsEnumerable()
+                                //検査項目コードの重複の確認
+                                var dr_overlaped = from row in merged.AsEnumerable()
                                                where (
                                                    from _row in merged.AsEnumerable()
                                                    where
-                                                   row.KensakoumokuCode == _row.KensakoumokuCode
-                                                   && row.KensakoumokuName == _row.KensakoumokuName
+                                                   row.KensakoumokuCode == _row.KensakoumokuCode        //検査項目コード
+                                                   && row.KensakoumokuName == _row.KensakoumokuName     //検査項目名
+                                                   && row.Value == _row.Value                           //値
                                                    select _row.KensakoumokuCode
                                                ).Count() > 1 //重複していたら、２つ以上見つかる
                                                select row;
 
-                                int overlapcount = dr_array.Count();
+                                int overlapcount = dr_overlaped.Count();
                                 Dbg.Log("検査項目コードの重複件数：" + overlapcount);
 
                                 if (overlapcount > 0)
                                 {
-                                    foreach (var row in dr_array)
+                                    foreach (var row in dr_overlaped)
                                     {
                                         Dbg.Log("重複検査項目コード：{1} 検査項目名称:{2}"
                                           , row.KensakoumokuCode
                                           , row.KensakoumokuName);
                                     }
-
-
-                                    DataTable queryResult = new DataTable();
-                                    queryResult = dr_array.CopyToDataTable();
-
-                                    UtilCsv csv = new UtilCsv();
-                                    csv.WriteFile(".\\重複検査項目コード"
-                                        + "_" + hrow["個人番号"].ToString() 
-                                        + "_" + hrow["健診実施日"].ToString()
-                                        + ".csv", queryResult);
-
-                                    //重複していたら終了
-                                    mState = CONVERT_STATE.END;
-                                    break;
                                 }
-                                */
+
+                                //TODO:人事データ結合
 
 
                                 //項目マッピング処理
@@ -523,7 +419,7 @@ namespace ConvertDaiwaForBPF
                                 DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
 
                                 //複数の検査項目コードも抽出される
-                                var mergeMapped =
+                                var itemMapped =
                                         from m in merged.AsEnumerable()
                                         join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
                                         select new ItemMap
@@ -539,26 +435,25 @@ namespace ConvertDaiwaForBPF
                                             Attribute = t.Field<string>("属性"),
                                             CodeID = t.Field<string>("コードID"),
                                             OutputHdrIndex = t.Field<string>("★列番号"),
-                                            //OutputHdrName = t.Field<string>("ヘッダ項目名"),
                                             OutputFormat = t.Field<string>("出力文字フォーマット"),
                                         };
 
                                 //UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(".\\結合.csv", csv.CreateDataTable(mergeMapped));
+                                //csv.WriteFile(".\\項目.csv", csv.CreateDataTable(itemMapped));
 
                                 //TODO:オーダーマッピング（特定の検査項目コードの絞込）
-                                //OrderMapping(itemSheet, mergeMapped);
+                                //OrderMapping(itemSheet, itemMapped);
 
 
                                 //TODO:コードマッピング（属性が「コード」の場合、値の置換）
-                                //CodeMapping(itemSheet, mergeMapped);
+                                //CodeMapping(itemSheet, itemMapped);
 
 
-                                //TODO:アウトプット用にセット（「★列番号」及び「ヘッダ項目名」、出力文字フォーマット、人事情報）
+                                //TODO:アウトプット用にセット(必要な検査項目コード分)
                                 /*
                                 DataRow r = mOutputCsv.NewRow();
 
-                                foreach(var item in mergeMapped)
+                                foreach(var item in itemMapped)
                                 {
                                     int index = int.Parse(item.OutputHdrIndex);
 
@@ -601,11 +496,9 @@ namespace ConvertDaiwaForBPF
                                 mOutputCsv.Rows.Add(r);
                                 */
 
-                                //後処理
-                                hdt.Clear();
-                                hdt = null;
 
-                                mergeMapped = null;
+                                //TODO:アウトプット用にセット(検査項目に該当しないその他の処理)
+
 
                                 //次のユーザー
                                 mHdrIndex++;
@@ -736,6 +629,7 @@ namespace ConvertDaiwaForBPF
         {
             return null;
         }
+
         /*
         private IEnumerable CsvMapping(DataTable dst, IEnumerable<ItemMap> merged, DataTable hdr, DataTable humanInfo)
         {
@@ -747,49 +641,52 @@ namespace ConvertDaiwaForBPF
         }
         */
 
-        private DataTable dtJoiner(DataTable targetDt, DataTable otherDt)
+        private IEnumerable<MergedMap> MergeHdrWithTdl(DataRow hrow, DataTable tdlTable)
         {
-            var response = new DataTable();
             /*
-            new List<string> { "A", "B", "C", "D" }
-                .ForEach(c => response.Columns.Add(c, typeof(string)));
-
-            var rows = targetDt.AsEnumerable()
-                .Join(otherDt.AsEnumerable(),
-                t => new { a = t.Field<string>("A"), b = t.Field<string>("B") },
-                o => new { a = o.Field<string>("A"), b = o.Field<string>("B") },
-                (t, o) =>
-                {
-                    var row = response.NewRow();
-                    row.ItemArray = new[] { t.Field<string>("A"), t.Field<string>("B"), t.Field<string>("C"), o.Field<string>("D") };
-                    return row;
-                });
-
-            foreach (var row in rows)
-            {
-                response.Rows.Add(row);
-            }
+            .Join(
+                  結合するテーブル,
+                  結合する側の結合条件（TeamTable）,
+                  結合される側の結合条件（PersonTable）,
+                  (（結合する側を指す範囲変数）, （結合される側を指す範囲変数）)
+　　　                                 => new
+                  {
+                     （結合後のテーブル）
+                  }) 
             */
 
-            var rows = targetDt.AsEnumerable()
-                .Join(otherDt.AsEnumerable(),
-                t => new { a = t.Field<string>("A"), b = t.Field<string>("B") },
-                o => new { a = o.Field<string>("A"), b = o.Field<string>("B") },
-                (t, o) => new
-                {
-                    a = t.Field<string>("A"),
-                    b = t.Field<string>("B"),
-                    c = t.Field<string>("C"),
-                    d = o.Field<string>("D")
-                })
-                .Select(j =>
-                {
-                    var row = response.NewRow();
-                    row.ItemArray = new[] { j.a, j.b, j.c, j.d };
-                    return row;
-                });
+            DataTable hdt = new DataTable();
+            hdt.Columns.Add("組合C", typeof(string));
+            hdt.Columns.Add("健診基本情報管理番号", typeof(string));
+            hdt.Columns.Add("健診実施日", typeof(string));
+            hdt.Columns.Add("個人番号", typeof(string));
 
-            return response;
+            hdt.Rows.Add(
+                    hrow["組合C"].ToString().Trim(),
+                    hrow["健診基本情報管理番号"].ToString().Trim(),
+                    hrow["健診実施日"].ToString().Trim(),
+                    hrow["個人番号"].ToString().Trim()
+                );
+
+            //TDLとHDRを結合して取得
+            var merged =
+                    from h in hdt.AsEnumerable()
+                    join d in tdlTable.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
+                    where
+                        h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
+                        && d.Field<string>("削除フラグ").Trim() == "0"
+                        && d.Field<string>("未実施FLG").Trim() == "0"
+                        && d.Field<string>("測定不能FLG").Trim() == "0"
+                    select new MergedMap
+                    {
+                        //ヘッダー情報は、人事データ結合時に処理する。
+                        KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
+                        KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
+                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
+                        Value = (d.Field<string>("結果値データタイプ").Trim() == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
+                    };
+
+            return merged;
         }
     }
 }
