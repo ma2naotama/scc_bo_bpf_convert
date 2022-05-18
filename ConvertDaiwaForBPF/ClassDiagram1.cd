@@ -1,92 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="バックグラウンドとして実行">
+    <Position X="5.417" Y="2.167" Height="0.417" Width="1.606" />
+  </Comment>
   <Class Name="ConvertDaiwaForBPF.BaseThread" Collapsed="true">
-    <Position X="0.5" Y="0.5" Width="1.5" />
+    <Position X="7.25" Y="0.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAQAAAAAIAAAAEBAAAAAAAAQAAAAAABAAAAAA=</HashCode>
       <FileName>BaseThread.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ConvertDaiwaForBPF.ConverterMain" Collapsed="true">
-    <Position X="0.5" Y="1.75" Width="1.5" />
+    <Position X="7.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAADAAAAAIwgAAMhAAACAABBAAAAgAALABAgAA=</HashCode>
+      <HashCode>AAAAAAAADAAAAAIwgAAMpAAACAABBAAAAgAALABAgAA=</HashCode>
       <FileName>ConverterMain.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="ConvertDaiwaForBPF.Dbg" Collapsed="true">
-    <Position X="3" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAYAAAAAAAAAAIAgAAAAAAAQAAEAAAAA=</HashCode>
-      <FileName>Dbg.cs</FileName>
-    </TypeIdentifier>
-  </Class>
   <Class Name="ConvertDaiwaForBPF.FormMain" Collapsed="true">
-    <Position X="6.5" Y="0.5" Width="1.5" />
+    <Position X="0.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>ECEQABAAACAAABCAAECACABCBAA4AIgAEPAUEkAABAA=</HashCode>
       <FileName>FormMain.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ConvertDaiwaForBPF.FormProgressDialog" Collapsed="true">
-    <Position X="8.25" Y="0.5" Width="1.5" />
+    <Position X="3.5" Y="1.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AgQAAAAQACAAAAQAAACABCACEAAAYAAAAAAIAAAAAAA=</HashCode>
       <FileName>FormProgressDialog.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.GlobalVariables" Collapsed="true">
-    <Position X="3" Y="1.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>GlobalVariables .cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.MyException" Collapsed="true">
-    <Position X="4.75" Y="1.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>MyException.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.Program" Collapsed="true">
-    <Position X="6.5" Y="1.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
-      <FileName>Program.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.UtilCsv" Collapsed="true">
-    <Position X="4.75" Y="2.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAQAAAQAABAAAAAAAAAAAEAAAAAAAACAAAAAA=</HashCode>
-      <FileName>UtilCsv.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.ExcelOption" Collapsed="true">
-    <Position X="4.75" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAACAAAAAAACAAAABAAAAAABQAAAAAAAEAACAA=</HashCode>
-      <FileName>UtilExcel.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.UtilExcel" Collapsed="true">
-    <Position X="6.5" Y="2.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>CAAAAAAAQAAAAAABAIAAACAAAAAQAAAAAEAACACAAAA=</HashCode>
-      <FileName>UtilExcel.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.Properties.Resources" Collapsed="true">
-    <Position X="8.25" Y="1.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAABEAAAAQAAAAAAAAAAAAAAAIA=</HashCode>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ConvertDaiwaForBPF.Properties.Settings" Collapsed="true">
-    <Position X="3" Y="2.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAABAAAAAAAAAAAAAAA=</HashCode>
     </TypeIdentifier>
   </Class>
   <Font Name="Yu Gothic UI" Size="9" />
