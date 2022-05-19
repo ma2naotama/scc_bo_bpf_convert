@@ -152,8 +152,13 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        //健診ヘッダーと健診データの結合用
         private class MergedMap
         {
+            //public string userId { get; set; }                  //個人番号
+
+            //public string date_of_consult { get; set; }         //受診日
+
             public string KensakoumokuCode { get; set; }
 
             public string KensakoumokuName { get; set; }
@@ -164,23 +169,15 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        //設定ファイルの項目マッピングから、検査項目コードで抽出した結果
         private class ItemMap
         {
-            public string KensakoumokuCode { get; set; }
-
-            public string KensakoumokuName { get; set; }
-
-            public string KenshinmeisaiNo { get; set; }
-
-            public string Value { get; set; }
-
-            public string ItemName { get; set; }           //項目名
+            public string KensakoumokuCode { get; set; }   //検査項目コード
+            public string OutputHdrIndex { get; set; }     //列順(出力先の列番号)
             public string Attribute { get; set; }          //属性
             public string CodeID { get; set; }             //コードID
-            public string OutputHdrIndex { get; set; }     //★列番号
-
-            //public string OutputHdrName { get; set; }    //ヘッダ項目名
-            public string OutputFormat { get; set; }       //出力文字フォーマット
+            public string Type { get; set; }               //種別
+            public string Value { get; set; }              //検査値
         }
 
         private CONVERT_STATE mState = CONVERT_STATE.READ_MASTER;
@@ -219,23 +216,27 @@ namespace ConvertDaiwaForBPF
                                     break;
                                 }
 
-                                /*
                                 //出力用CSVの初期化
-                                DataRow[] rows = mMasterSheets.Tables["出力ヘッダー"].AsEnumerable()
-                                      .Where(x => x["列名"].ToString() != "")
+                                DataRow[] rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                                      .Where(x => x["列順"].ToString() != "")
                                       .ToArray();
+
+                                //項目マッピングの順列の最大値と項目数（個数）の確認
+                                if (rows.Length != rows.Max(r => int.Parse(r["列順"].ToString())))
+                                {
+                                    Dbg.ErrorLog(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
+                                    mState = CONVERT_STATE.END;
+                                    break;
+                                }
 
                                 mOutputCsv = new DataTable();
 
-                                //予めカラム名に同じカラム名はセットできないので、番号をセットしておく
-                                int i = 1;
+                                //同じ列名（カラム名）はセットできないので、列順をセットしておく
                                 foreach (var row in rows)
                                 {
-                                    mOutputCsv.Columns.Add("" + i, typeof(string));
-                                    i++;
+                                    //Dbg.Log("" + row["列順"]);
+                                    mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
                                 }
-                                */
-
 
                                 //次の処理へ
                                 mState = CONVERT_STATE.READ_HEADER;
@@ -303,7 +304,7 @@ namespace ConvertDaiwaForBPF
 
                         case CONVERT_STATE.CONVERT_GETUSER:
                             {
-                                //ヘッダーの削除フラグが0だけ抽出
+                                //健診ヘッダーの削除フラグが0だけ抽出
                                 mHdrRows =
                                     mHdrTbl.AsEnumerable()
                                     .Where(x => x["削除フラグ"].ToString() == "0")
@@ -316,7 +317,7 @@ namespace ConvertDaiwaForBPF
                                     break;
                                 }
 
-                                //ヘッダーの重複の確認(何をもって重複とするか検討)
+                                //健診ヘッダーの重複の確認(何をもって重複とするか検討)
                                 var dr_array = from row in mHdrRows.AsEnumerable()
                                                where (
                                                    from _row in mHdrRows.AsEnumerable()
@@ -331,28 +332,17 @@ namespace ConvertDaiwaForBPF
                                 //DataTableが大きすぎるとここで処理が終わらない事がある。
                                 //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
                                 int overlapcount = dr_array.Count();
-                                Dbg.Log("受診者の重複件数：" + overlapcount);
 
                                 if (overlapcount > 0)
                                 {
-                                    foreach(var row in dr_array )
+                                    Dbg.Warn("受診者の重複件数：" + overlapcount);
+                                    foreach (var row in dr_array )
                                     {
-                                        Dbg.Log("重複個人番号：{1} 健診実施日:{2} 健診実施機関名称:{3}"
+                                        Dbg.Warn("重複個人番号：{1} 健診実施日:{2} 健診実施機関名称:{3}"
                                             ,row["個人番号"].ToString()
                                             ,row["健診実施日"].ToString()
                                             ,row["健診実施機関名称"].ToString());
                                     }
-
-
-                                    DataTable queryResult = new DataTable();
-                                    queryResult = dr_array.CopyToDataTable();
-
-                                    UtilCsv csv = new UtilCsv();
-                                    csv.WriteFile(".\\重複受診者.csv", queryResult);
-
-                                    //重複していたら終了
-                                    mState = CONVERT_STATE.END;
-                                    break;
                                 }
 
                                 //次の処理へ
@@ -364,20 +354,16 @@ namespace ConvertDaiwaForBPF
                         case CONVERT_STATE.CONVERT_MAIN:
                             {
                                 DataRow hrow = mHdrRows[mHdrIndex];
-                                Dbg.Log("個人番号:" + hrow["個人番号"].ToString());
-
-                                UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(".\\HEADER.csv", dt);
+                                //Dbg.Log("個人番号:" + hrow["個人番号"].ToString());
 
                                 //TDLとHDRを結合して取得
-                                var merged = MergeHdrWithTdl(hrow, mTdlTbl);
-
-                                csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
-
+                                var merged = JoinHdrWithTdl(hrow, mTdlTbl);
                                 if (merged.Count() <= 0)
                                 {
                                     //結合した結果データが無い
                                     Dbg.ErrorLog(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+
+                                    //次のユーザーへ
                                     mHdrIndex++;
                                     if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 10)
                                     {
@@ -385,7 +371,25 @@ namespace ConvertDaiwaForBPF
                                     }
                                     break;
                                 }
-                                
+
+                                DataRow outputrow = mOutputCsv.NewRow();
+
+                                //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
+
+                                //指定の列順に値をセット
+                                outputrow[6]  = hrow["個人番号"].ToString();
+
+                                DateTime d;
+                                if (DateTime.TryParseExact(hrow["健診実施日"].ToString(), "yyyyMMdd", null, DateTimeStyles.None, out d))
+                                {
+                                    //日付
+                                    outputrow[13] = d.ToString("yyyy/MM/dd");
+                                }
+                                else
+                                {
+                                    //TODO: エラー表示
+                                }
+
                                 //検査項目コードの重複の確認
                                 var dr_overlaped = from row in merged.AsEnumerable()
                                                where (
@@ -399,110 +403,56 @@ namespace ConvertDaiwaForBPF
                                                select row;
 
                                 int overlapcount = dr_overlaped.Count();
-                                Dbg.Log("検査項目コードの重複件数：" + overlapcount);
-
                                 if (overlapcount > 0)
                                 {
+                                    Dbg.Warn("個人番号 :{1} 検査項目コードの重複件数：{2}",
+                                        hrow["個人番号"].ToString(),
+                                        overlapcount.ToString());
+
                                     foreach (var row in dr_overlaped)
                                     {
-                                        Dbg.Log("重複検査項目コード：{1} 検査項目名称:{2}"
+                                        Dbg.Warn("重複検査項目コード：{1} 検査項目名称:{2} 検査値:{3}"
                                           , row.KensakoumokuCode
-                                          , row.KensakoumokuName);
+                                          , row.KensakoumokuName
+                                          , row.Value);
                                     }
                                 }
 
-                                //TODO:人事データ結合
-
-
-                                //項目マッピング処理
-                                //項目マッピングから該当する検査項目コード一覧を抽出
-                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
-
-                                //複数の検査項目コードも抽出される
-                                var itemMapped =
-                                        from m in merged.AsEnumerable()
-                                        join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
-                                        select new ItemMap
-                                        {
-                                            //PersonNo = m.PersonNo,
-                                            //KenshinNo = m.KenshinNo,
-                                            //KenshinDate = m.KenshinDate,
-                                            KensakoumokuCode = m.KensakoumokuCode,
-                                            KensakoumokuName = m.KensakoumokuName,
-                                            KenshinmeisaiNo = m.KenshinmeisaiNo,
-                                            Value = m.Value,
-                                            ItemName = t.Field<string>("項目名"),
-                                            Attribute = t.Field<string>("属性"),
-                                            CodeID = t.Field<string>("コードID"),
-                                            OutputHdrIndex = t.Field<string>("★列番号"),
-                                            OutputFormat = t.Field<string>("出力文字フォーマット"),
-                                        };
-
-                                //UtilCsv csv = new UtilCsv();
-                                //csv.WriteFile(".\\項目.csv", csv.CreateDataTable(itemMapped));
 
                                 //TODO:オーダーマッピング（特定の検査項目コードの絞込）
                                 //OrderMapping(itemSheet, itemMapped);
+
+                                //項目マッピング処理
+                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
+
+                                //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
+                                var itemMapped = JoinMergedMapWithItemMap(merged, itemSheet);
 
 
                                 //TODO:コードマッピング（属性が「コード」の場合、値の置換）
                                 //CodeMapping(itemSheet, itemMapped);
 
+                                //TODO:種別のチェック
+                                //TypeMapping(itemSheet, itemMapped);
 
-                                //TODO:アウトプット用にセット(必要な検査項目コード分)
-                                /*
-                                DataRow r = mOutputCsv.NewRow();
 
-                                foreach(var item in itemMapped)
+                                //アウトプット用にセット(必要な検査項目コード分ループ)
+                                foreach (var row in itemMapped)
                                 {
-                                    int index = int.Parse(item.OutputHdrIndex);
+                                    //Dbg.Log(row.OutputHdrIndex + " " + row.Value);
 
-                                    //カラム番号に対して、値をセットする
-                                    if (item.OutputFormat != "")
-                                    {
-                                        //int i;
-                                        //float f;
-                                        //DateTime d;
-
-                                        //if (DateTime.TryParseExact(item.Value, "yyyyMMdd", null, DateTimeStyles.None, out d))
-                                        //{
-                                        //    日付
-                                        //    r[index] = d.ToString(item.OutputFormat);
-                                        //}
-                                        //else if (int.TryParse(item.Value, out i))
-                                        //{
-                                        //    整数
-                                        //    r[index] = string.Format(item.OutputFormat, i).ToString();
-                                        //}
-                                        //else if (float.TryParse(item.Value, out f))
-                                        //{ 
-                                        //    少数
-                                        //    r[index] = string.Format(item.OutputFormat, f).ToString();
-                                        //}
-                                        //else
-                                        //{
-                                        //    文字列
-                                        //    r[index] = string.Format(item.OutputFormat, item.Value).ToString();
-                                        //}
-                                    }
-                                    else
-                                    {
-                                        r[index] = item.Value;
-                                    }
-
-                                    //r[index] = item.Value;
+                                    //指定列順に値をセット
+                                    outputrow[row.OutputHdrIndex] = row.Value;
                                 }
-
-                                mOutputCsv.Rows.Add(r);
-                                */
-
 
                                 //TODO:アウトプット用にセット(検査項目に該当しないその他の処理)
 
+                                // CSV出力情報に追加
+                                mOutputCsv.Rows.Add(outputrow);
 
                                 //次のユーザー
                                 mHdrIndex++;
-                                if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 10)
+                                if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 1)
                                 {
                                     mState = CONVERT_STATE.CONVERT_OUTPUT;
                                     break;
@@ -519,17 +469,26 @@ namespace ConvertDaiwaForBPF
                                 Dbg.Log("csvへ書き出す。mHdrIndex：" + mHdrIndex);
 
                                 //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
-                                var rows = mMasterSheets.Tables["出力ヘッダー"].AsEnumerable()
-                                      .Where(x => x["列名"].ToString() != "")
+                                var rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                                      .Where(x => x["列順"].ToString() != "")
                                       .ToArray();
 
                                 //var str_arry = rows.Select(c => c.ToString()).ToArray();
+
+                                //
+                                //int max = rows.Max(r => int.Parse(r["列順"].ToString()));
+                                int max = rows.Length;
 
                                 //最適化できそう
                                 List<string> str_arry = new List<string>();
                                 foreach(var r in rows)
                                 {
-                                    str_arry.Add(r.Field<string>("列名"));
+                                    str_arry.Add("-");
+                                }
+
+                                foreach (var r in rows)
+                                {
+                                    str_arry[int.Parse(r.Field<string>("列順"))-1] = r.Field<string>("項目名");
                                 }
 
                                 UtilCsv csv = new UtilCsv();
@@ -641,7 +600,7 @@ namespace ConvertDaiwaForBPF
         }
         */
 
-        private IEnumerable<MergedMap> MergeHdrWithTdl(DataRow hrow, DataTable tdlTable)
+        private IEnumerable<MergedMap> JoinHdrWithTdl(DataRow hrow, DataTable tdlTable)
         {
             /*
             .Join(
@@ -685,8 +644,33 @@ namespace ConvertDaiwaForBPF
                         KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
                         Value = (d.Field<string>("結果値データタイプ").Trim() == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
                     };
+            //UtilCsv csv = new UtilCsv();
+            //csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
 
             return merged;
+        }
+
+
+
+        private IEnumerable<ItemMap> JoinMergedMapWithItemMap(IEnumerable<MergedMap> merged, DataTable itemSheet)
+        {
+            var itemMapped =
+                    from m in merged.AsEnumerable()
+                    join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
+                    select new ItemMap
+                    {
+                        KensakoumokuCode = m.KensakoumokuCode,      //検査項目コード
+                        OutputHdrIndex = t.Field<string>("列順"),
+                        Attribute = t.Field<string>("属性"),
+                        CodeID = t.Field<string>("コードID"),
+                        Type = t.Field<string>("種別"),             //半角英数等
+                        Value = m.Value,                            //検査値
+                    };
+
+            //UtilCsv csv = new UtilCsv();
+            //csv.WriteFile(".\\項目.csv", csv.CreateDataTable(itemMapped));
+
+            return itemMapped;
         }
     }
 }

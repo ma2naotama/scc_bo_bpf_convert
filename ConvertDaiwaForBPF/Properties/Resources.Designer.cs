@@ -79,6 +79,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   項目マッピングの順列の最大値と項目数（個数）が合っていません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_ITEMMAPPING_INDEX_FAILE {
+            get {
+                return ResourceManager.GetString("E_ITEMMAPPING_INDEX_FAILE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   結合したデータが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MERGED_DATA_IS_EMPTY {

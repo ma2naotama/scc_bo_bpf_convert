@@ -33,19 +33,28 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public static void Error(String logText)
+        public static void Error(String msg, params string[] args)
         {
+            string logText = string.Format(msg, args);
             _logger.Error(logText);
         }
 
-        public static void Debug(String logText)
+        public static void Debug(String msg, params string[] args)
         {
+            string logText = string.Format(msg, args);
             _logger.Debug(logText);
         }
 
-        public static void Info(String logText)
+        public static void Info(String msg, params string[] args)
         {
+            string logText = string.Format(msg, args);
             _logger.Info(logText);
+        }
+
+        public static void Warn(String msg, params string[] args)
+        {
+            string logText = string.Format(msg, args);
+            _logger.Warn(logText);
         }
 
         public static void ErrorLog(string errormsg, params string[] args)
