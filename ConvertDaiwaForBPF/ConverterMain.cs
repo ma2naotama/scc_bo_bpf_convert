@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
@@ -180,8 +181,8 @@ namespace ConvertDaiwaForBPF
             public string Attribute { get; set; }          //属性
             public string CodeID { get; set; }             //コードID
             public string Type { get; set; }               //種別
-            public string Rate { get; set; }               //倍率
-            public string StringFormat { get; set; }       //文字フォーマット
+            //public string Rate { get; set; }               //倍率
+            //public string StringFormat { get; set; }       //文字フォーマット
             public string Value { get; set; }              //検査値
         }
 
@@ -372,7 +373,7 @@ namespace ConvertDaiwaForBPF
                                 DataRow hrow = mHdrRows[mHdrIndex];
                                 //Dbg.Log("個人番号:" + hrow["個人番号"].ToString());
 
-                                //TDLとHDRを結合して取得
+                                //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
                                 var merged = JoinHdrWithTdl(hrow, mTdlTbl);
                                 if (merged.Count() <= 0)
                                 {
@@ -450,12 +451,11 @@ namespace ConvertDaiwaForBPF
                                 {
                                     //Dbg.Log(itemrow.OutputHdrIndex + " " + itemrow.Value);
 
+                                    //TODO:種別のチェック
+                                    string value = CheckTypeMapping(itemrow);
+
                                     //TODO:コードマッピング（属性が「コード」の場合、値の置換）
                                     //CodeMapping(itemMapped,itemSheet);
-
-                                    //TODO:種別のチェック
-                                    string value = TypeMapping(outputrow[itemrow.OutputHdrIndex], itemrow);
-
 
                                     //出力情報に指定列順で値をセット
                                     outputrow[itemrow.OutputHdrIndex] = value;
@@ -616,6 +616,12 @@ namespace ConvertDaiwaForBPF
         }
         */
 
+        /// <summary>
+        /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
+        /// </summary>
+        /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
+        /// <param name="DataTable">健診データ</param>
+        /// <returns>１ユーザー分の検査項目一覧</returns>
         private IEnumerable<MergedMap> JoinHdrWithTdl(DataRow hrow, DataTable tdlTable)
         {
             /*
@@ -667,6 +673,12 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        /// <summary>
+        /// 項目マッピングから該当する検査項目コード一覧を抽出
+        /// </summary>
+        /// <param name="ItemMap">１ユーザー分の検査項目一覧</param>
+        /// <param name="itemSheet">シート「項目マッピング」</param>
+        /// <returns>項目マッピングの一覧</returns>
 
         private IEnumerable<ItemMap> JoinMergedMapWithItemMap(IEnumerable<MergedMap> merged, DataTable itemSheet)
         {
@@ -681,8 +693,8 @@ namespace ConvertDaiwaForBPF
                         Attribute = t.Field<string>("属性"),
                         CodeID = t.Field<string>("コードID"),
                         Type = t.Field<string>("種別"),             //半角英数等
-                        Rate = t.Field<string>("倍率"),
-                        StringFormat = t.Field<string>("文字フォーマット"),
+                        //Rate = t.Field<string>("倍率"),
+                        //StringFormat = t.Field<string>("文字フォーマット"),
                         Value = m.Value,                            //検査値
                     };
 
@@ -692,12 +704,28 @@ namespace ConvertDaiwaForBPF
             return itemMapped;
         }
 
-        private string TypeMapping(object output, ItemMap itemMap)
+        /// <summary>
+        /// 文字列が符号ありの小数かどうかを判定します
+        /// </summary>
+        /// <param name="target">対象の文字列</param>
+        /// <returns>文字列が符号ありの小数の場合はtrue、それ以外はfalse</returns>
+        public static bool IsDecimal(string target)
         {
-            string ret = "";
+            return new Regex("^[-+]?[0-9]*\\.?[0-9]+$").IsMatch(target);
+        }
 
-            switch(itemMap.Attribute)
+        /// <summary>
+        /// 種別と検査値の判定をします
+        /// </summary>
+        /// <param name="ItemMap">抽出した項目マッピングの行</param>
+        /// <returns>検査値</returns>
+        private string CheckTypeMapping(ItemMap itemMap)
+        {
+            string ret = itemMap.Value;
+
+            switch (itemMap.Type)
             {
+                /*
                 case "数字":
                     {
                         try
@@ -714,6 +742,25 @@ namespace ConvertDaiwaForBPF
                         }
 
                         ret = itemMap.Value;
+                    }
+                    break;
+                */
+
+                case "半角数字":
+                case "数値":
+                    {
+                        int i = 0;
+                        if(!int.TryParse(ret, out i))
+                        {
+                            float f = 0.0f;
+                            if (!float.TryParse(ret, out f))
+                            { 
+                                Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, itemMap.ItemName, itemMap.Type, ret);
+
+                                //エラーの場合空白として出力
+                                return "";
+                            }
+                        }
                     }
                     break;
             }

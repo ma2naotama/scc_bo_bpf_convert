@@ -61,7 +61,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   健診データが重複しています。個人番号：{0},受信日：{1} に類似しているローカライズされた文字列を検索します。
+        ///   健診データが重複しています。個人番号：{0}　受信日：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USER {
             get {
@@ -75,6 +75,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_HDR_IS_EMPTY {
             get {
                 return ResourceManager.GetString("E_HDR_IS_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   検査値が種別と合っていません。 項目名：{0}　種別：{1}　 検査値：{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_ITEM_TYPE_MISMATCH {
+            get {
+                return ResourceManager.GetString("E_ITEM_TYPE_MISMATCH", resourceCulture);
             }
         }
         
@@ -138,15 +147,6 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_READFAILED_TDL {
             get {
                 return ResourceManager.GetString("E_READFAILED_TDL", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   文字フォーマットの変換に失敗しました。 項目名：{0},検査値：{1} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_STRING_FORMAT_FAILE {
-            get {
-                return ResourceManager.GetString("E_STRING_FORMAT_FAILE", resourceCulture);
             }
         }
         
