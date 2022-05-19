@@ -171,7 +171,7 @@ namespace ConvertDaiwaForBPF
             public string Value { get; set; }
         }
 
-
+        /*
         //設定ファイルの項目マッピングから、検査項目コードで抽出した結果
         private class ItemMap
         {
@@ -185,6 +185,7 @@ namespace ConvertDaiwaForBPF
             //public string StringFormat { get; set; }       //文字フォーマット
             public string Value { get; set; }              //検査値
         }
+        */
 
         private CONVERT_STATE mState = CONVERT_STATE.READ_MASTER;
 
@@ -371,7 +372,7 @@ namespace ConvertDaiwaForBPF
                         case CONVERT_STATE.CONVERT_MAIN:
                             {
                                 DataRow hrow = mHdrRows[mHdrIndex];
-                                //Dbg.Log("個人番号:" + hrow["個人番号"].ToString());
+                                Dbg.ViewLog("個人番号:" + hrow["個人番号"].ToString());
 
                                 //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
                                 var merged = JoinHdrWithTdl(hrow, mTdlTbl);
@@ -390,139 +391,136 @@ namespace ConvertDaiwaForBPF
                                 }
 
                                 //出力情報の一行分作成
-                                DataRow outputrow = mOutputCsv.NewRow();
+                                DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
                                 //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
 
                                 //TODO:個人番号をセット
-                                outputrow[6]  = hrow["個人番号"].ToString();    //仮
+                                outputrow[5] = hrow["個人番号"].ToString();    //仮
 
                                 //項目マッピング処理
                                 DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
-
-                                //出力情報に固定値をセット
-                                var fixvalue = itemSheet.AsEnumerable()
-                                     .Where(x => x["固定値"].ToString() != "");
-
-                                foreach (var row in fixvalue)
-                                {
-                                    int index = int.Parse(row.Field<string>("列順"));
-
-                                    outputrow[index] = row.Field<string>("固定値");
-                                }
-
-                                /*
-                                //必須項目に値がセットされているか確認
-                                var datearray = itemSheet.AsEnumerable()
-                                    .Where(x => x["種別"].ToString().Trim() == "年月日");
-
-                                foreach (var row in datearray)
-                                {
-                                    int index = int.Parse(row.Field<string>("列順"));
-                                    string value = hrow["健診実施日"].ToString();
-
-                                    //年月日の変換
-                                    DateTime d;
-                                    if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
-                                    {
-                                        //日付
-                                        outputrow[index] = d.ToString("yyyy/MM/dd");
-                                    }
-                                    else
-                                    {
-                                        //TODO: エラー表示
-                                    }
-                                }
-                                */
-
-                                //必須項目に値がセットされているか確認
-                                var required = itemSheet.AsEnumerable()
-                                    .Where(x => x["必須"].ToString().Trim() == "○");
-
-                                foreach (var row in required)
-                                {
-                                    int index = int.Parse(row.Field<string>("列順"));
-                                    string value = outputrow[index].ToString();
-
-                                    if (value == "-")
-                                    {
-                                        Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
-
-                                        //必須項目に値が無い場合は、そのデータを作成しない。
-                                        return 1;
-                                    }
-
-                                    //種別のチェック
-                                    if (!CheckMappingType(row.Field<string>("種別"), value))
-                                    {
-                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), row.Field<string>("種別"), value);
-
-                                        //必須項目に値が無い場合は、そのデータを作成しない。
-                                        return 1;
-                                    }
-
-                                }
-
-
-                                //検査項目コードの重複の確認
-                                var dr_overlaped = from row in merged.AsEnumerable()
-                                               where (
-                                                   from _row in merged.AsEnumerable()
-                                                   where
-                                                   row.KensakoumokuCode == _row.KensakoumokuCode        //検査項目コード
-                                                   && row.KensakoumokuName == _row.KensakoumokuName     //検査項目名
-                                                   && row.Value == _row.Value                           //値
-                                                   select _row.KensakoumokuCode
-                                               ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               select row;
-
-                                int overlapcount = dr_overlaped.Count();
-                                if (overlapcount > 0)
-                                {
-                                    Dbg.Warn("個人番号 :{0} 検査項目コードの重複件数：{1}",
-                                        hrow["個人番号"].ToString(),
-                                        overlapcount.ToString());
-
-                                    foreach (var row in dr_overlaped)
-                                    {
-                                        Dbg.Warn("重複検査項目コード：{0} 検査項目名称:{1} 検査値:{2}"
-                                          , row.KensakoumokuCode
-                                          , row.KensakoumokuName
-                                          , row.Value);
-                                    }
-                                }
-
 
                                 //TODO:オーダーマッピング（特定の検査項目コードの絞込）
                                 //OrderMapping(itemSheet, itemMapped);
 
                                 //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
-                                var itemMapped = JoinItemMapWithMergedMap(itemSheet, merged);
-
+                                var itemMapped = itemSheet.AsEnumerable()
+                                     .Where(x => x["列順"].ToString() != "");
 
                                 //必要な検査項目コード分ループ
-                                foreach (var itemrow in itemMapped)
+                                foreach (var row in itemMapped)
                                 {
-                                    //Dbg.Log(itemrow.OutputHdrIndex + " " + itemrow.Value);
+                                    int index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
+
+                                    string value = null;
+
+                                    //固定値
+                                    string fixvalue = row.Field<string>("固定値").Trim();
+                                    if (fixvalue != "")
+                                    {
+                                        value = fixvalue;
+                                    }
+
+                                    //13列目は、必ず受診日が入る
+                                    if(index == 13)
+                                    {
+                                        value = hrow["健診実施日"].ToString();
+                                    }
+
+                                    //検査項目コードの検索
+                                    if(value == null)
+                                    { 
+                                        if (row.Field<string>("検査項目コード") == "")
+                                        {
+                                            continue;
+                                        }
+
+                                        //ユーザーデータから抽出
+                                        var userdataArray = merged.AsEnumerable()
+                                                .Where(x => x.KensakoumokuCode.ToString() == row.Field<string>("検査項目コード"))
+                                                .ToArray();
+
+                                        if(userdataArray == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        if (userdataArray.Length == 0)
+                                        {
+                                            continue;
+                                        }
+
+                                        var useritem = userdataArray[0];
+
+                                        //検査値
+                                        value = useritem.Value;
+                                        //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
+                                    }
+
 
                                     //種別のチェック
-                                    string value = itemrow.Value;
-                                    if (!CheckMappingType(itemrow.Type, value))
-                                    {
-                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, itemrow.ItemName, itemrow.Type, value);
+                                    string type = row.Field<string>("種別");
 
+                                    if (value != null && !CheckMappingType(type, value))
+                                    {
+                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+
+                                        //エラーの場合空にする
                                         value = "";
+                                    }
+
+                                    //日付の変更
+                                    if (value != null && type == "年月日")
+                                    {
+                                        //年月日の変換
+                                        DateTime d;
+                                        if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                                        {
+                                            //日付
+                                            value = d.ToString("yyyy/MM/dd");
+                                        }
+                                        else
+                                        {
+                                            //エラー表示
+                                            Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+
+                                            //エラーの場合空にする
+                                            value = "";
+                                        }
                                     }
 
                                     //TODO:コードマッピング（属性が「コード」の場合、値の置換）
                                     //CodeMapping(itemMapped,itemSheet);
 
+                                    //必須項目確認
+                                    if(row.Field<string>("必須").ToString().Trim() == "〇")
+                                    {
+                                        if(value == null)
+                                        {
+                                            //必須項目に値が無い場合は、そのデータを作成しない。
+                                            Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
+                                            outputrow = null;
+
+                                            //次のユーザー
+                                            mHdrIndex++;
+                                            if (mHdrIndex >= mHdrRows.Length)
+                                            {
+                                                mState = CONVERT_STATE.CONVERT_OUTPUT;
+                                            }
+
+                                            return 1;
+                                        }
+                                    }
+
                                     //出力情報に指定列順で値をセット
-                                    outputrow[itemrow.OutputHdrIndex] = value;
+                                    outputrow[index-1] = value;
                                 }
 
                                 // CSV出力情報に追加
                                 mOutputCsv.Rows.Add(outputrow);
+
+                                outputrow = null;
 
                                 //次のユーザー
                                 mHdrIndex++;
@@ -531,7 +529,6 @@ namespace ConvertDaiwaForBPF
                                     mState = CONVERT_STATE.CONVERT_OUTPUT;
                                     break;
                                 }
-
 
                                 //テスト用の為、１ユーザー分で終了
                                 //mState = CONVERT_STATE.END;
@@ -731,7 +728,7 @@ namespace ConvertDaiwaForBPF
         }
 
 
-
+        /*
         /// <summary>
         /// 項目マッピングから該当する必須項目一覧を抽出
         /// </summary>
@@ -761,7 +758,7 @@ namespace ConvertDaiwaForBPF
 
             return itemMapped;
         }
-
+        */
  
         /// <summary>
         /// 文字列が符号ありの小数かどうかを判定します
