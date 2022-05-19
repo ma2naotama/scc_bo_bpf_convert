@@ -157,7 +157,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include=".editorconfig" />
     <None Include="AppSettings.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

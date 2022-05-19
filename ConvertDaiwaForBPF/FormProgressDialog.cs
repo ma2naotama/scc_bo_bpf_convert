@@ -82,7 +82,7 @@ namespace ConvertDaiwaForBPF
                 //タイマーの停止
                 this.timer1.Stop();
 
-                Dbg.Log("timer1_Tick Cancel:" + _base.Cancel);
+                //Dbg.ViewLog("timer1_Tick Cancel:" + _base.Cancel);
 
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();

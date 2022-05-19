@@ -52,19 +52,19 @@ namespace ConvertDaiwaForBPF
             catch (TaskCanceledException ex)
             {
                 // キャンセルされた場合の例外処理
-                //Dbg.Log("RunMultiThread キャンセル：" + ex.ToString());
+                Dbg.Debug("RunMultiThread キャンセル：" + ex.ToString());
             }
             catch (Exception ex)
             {
                 // 異常終了した場合の例外処理
-                Dbg.Log("RunMultiThread エラー：" + ex.ToString());
+                Dbg.ErrorWithView("RunMultiThread エラー：" + ex.ToString());
             }
 
         }
 
         public virtual void MultiThreadCancel()
         {
-            Dbg.Log("変換キャンセル");
+            Dbg.ViewLog("変換キャンセル");
             if (_tokenSource != null)
             {
                 _tokenSource.Cancel();

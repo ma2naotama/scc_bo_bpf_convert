@@ -18,7 +18,8 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        public static void Log(String msg, params string[] args)
+        //ログ画面への表示のみ
+        public static void ViewLog(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
 
@@ -33,35 +34,40 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        //error log への書き出し
         public static void Error(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
             _logger.Error(logText);
         }
 
+        //debug log への書き出し
         public static void Debug(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
             _logger.Debug(logText);
         }
 
+        //info log ファイルへの書き出し
         public static void Info(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
             _logger.Info(logText);
         }
 
+        //warning log ファイルへの書き出し
         public static void Warn(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
             _logger.Warn(logText);
         }
 
-        public static void ErrorLog(string errormsg, params string[] args)
+        //ログ画面への表示とerror log ファイルへの書き出し
+        public static void ErrorWithView(string errormsg, params string[] args)
         {
             string logText = string.Format(errormsg, args);
 
-            Log(logText);
+            ViewLog(logText);
 
             _logger.Error(logText);
         }

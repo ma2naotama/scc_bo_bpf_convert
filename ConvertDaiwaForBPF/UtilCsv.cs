@@ -71,7 +71,7 @@ namespace ConvertDaiwaForBPF
                     //一旦リストに変換
                     if(parser.EndOfData)
                     {
-                        Dbg.Log("データがありません。"+ path);
+                        Dbg.ViewLog("データがありません。"+ path);
                         return null;
                     }
 
@@ -79,7 +79,7 @@ namespace ConvertDaiwaForBPF
 
                     //シート名保存
                     string fileName = Path.GetFileName(path);
-                    Dbg.Log("CSVの読み込み:" + fileName);
+                    Dbg.ViewLog("CSVの読み込み:" + fileName);
 
                     dt = new DataTable();
                     dt.TableName = fileName;
@@ -106,7 +106,7 @@ namespace ConvertDaiwaForBPF
                     {
                         if (mbCancel)
                         {
-                            Dbg.Log("cancel:" + path);
+                            Dbg.ViewLog("CSVファイルの読み込みキャンセル:" + path);
                             dt.Clear();
                             break;
                         }
@@ -125,7 +125,7 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                Dbg.Log(ex.ToString());
+                Dbg.ViewLog(ex.ToString());
                 throw ex;
             }
 
@@ -139,7 +139,7 @@ namespace ConvertDaiwaForBPF
         {
             int lines = File.ReadLines(path).Count();
 
-            Dbg.Log("GetFileMaxLines:" + lines);
+            Dbg.ViewLog("GetFileMaxLines:" + lines);
             return lines;
         }
 

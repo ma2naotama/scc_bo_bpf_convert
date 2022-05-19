@@ -259,7 +259,7 @@ namespace ConvertDaiwaForBPF
                     int columnNum = worksheet.LastColumnUsed().ColumnNumber();
                     if (columnNum < 0)
                     {
-                        Dbg.Log("データがありません。sheeetname:" + sheeetname);
+                        Dbg.ViewLog("データがありません。sheeetname:" + sheeetname);
                         continue;
                     }
 
@@ -267,7 +267,7 @@ namespace ConvertDaiwaForBPF
                     int RowsMax = worksheet.LastRowUsed().RowNumber();
                     if (RowsMax <=0)
                     {
-                        Dbg.Log("データがありません。sheeetname:" + sheeetname);
+                        Dbg.ViewLog("データがありません。sheeetname:" + sheeetname);
                         continue;
                     }
 
@@ -311,7 +311,7 @@ namespace ConvertDaiwaForBPF
                     {
                         if (mbCancel)
                         {
-                            Dbg.Log("cancel:" + path);
+                            Dbg.ViewLog("エクセルファイルの読み込みキャンセル:" + path);
                             break;
                         }
 
@@ -354,7 +354,7 @@ namespace ConvertDaiwaForBPF
                 lines = worksheet.LastRowUsed().RowNumber();
             }
 
-            Dbg.Log("GetFileMaxLines:" + lines);
+            Dbg.ViewLog("GetFileMaxLines:" + lines);
             return lines;
         }
 

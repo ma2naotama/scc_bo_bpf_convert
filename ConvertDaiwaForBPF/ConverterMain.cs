@@ -186,7 +186,7 @@ namespace ConvertDaiwaForBPF
 
         public override int MultiThreadMethod()
         {
-            Dbg.Log("変換中...");
+            Dbg.ViewLog("変換中...");
 
             bool loop = true;
 
@@ -214,12 +214,12 @@ namespace ConvertDaiwaForBPF
                                 NameValueCollection appSettings = (NameValueCollection) ConfigurationManager.GetSection("appSettings");
 
                                 string path = appSettings["SettingPath"] + filename;
-                                Dbg.Log("設定ファイルの読み込み:"+ path);
+                                Dbg.ViewLog("設定ファイルの読み込み:"+ path);
 
                                 mMasterSheets = ReadMasterFile(path);
                                 if(mMasterSheets == null)
                                 {
-                                    Dbg.ErrorLog(Properties.Resources.E_READFAILED_MASTER, path);
+                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -232,7 +232,7 @@ namespace ConvertDaiwaForBPF
                                 //項目マッピングの順列の最大値と項目数（個数）の確認
                                 if (rows.Length != rows.Max(r => int.Parse(r["列順"].ToString())))
                                 {
-                                    Dbg.ErrorLog(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
+                                    Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -251,6 +251,7 @@ namespace ConvertDaiwaForBPF
                             }
                             break;
 
+                        //健診ヘッダーの読み込み
                         case CONVERT_STATE.READ_HEADER:
                             {
                                 DataRow[] rows =
@@ -261,12 +262,15 @@ namespace ConvertDaiwaForBPF
                                 mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mHdrTbl == null)
                                 {
+                                    //中断
+                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
                                     return 0;
-
                                 }
 
                                 if (mHdrTbl.Rows.Count == 0)
                                 {
+                                    //中断
+                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
                                     return 0;
                                 }
 
@@ -277,6 +281,7 @@ namespace ConvertDaiwaForBPF
                             }
                             break;
 
+                        //健診データの読み込み
                         case CONVERT_STATE.READ_DATA:
                             {
                                 DataRow[] rows =
@@ -287,11 +292,15 @@ namespace ConvertDaiwaForBPF
                                 mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mTdlTbl == null)
                                 {
+                                    //中断
+                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                                     return 0;
                                 }
 
                                 if (mTdlTbl.Rows.Count == 0)
                                 {
+                                    //中断
+                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                                     return 0;
                                 }
 
@@ -316,7 +325,7 @@ namespace ConvertDaiwaForBPF
 
                                 if (mHdrRows.Length <= 0)
                                 {
-                                    Dbg.ErrorLog(Properties.Resources.E_HDR_IS_EMPTY);
+                                    Dbg.ErrorWithView(Properties.Resources.E_HDR_IS_EMPTY);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -365,7 +374,7 @@ namespace ConvertDaiwaForBPF
                                 if (merged.Count() <= 0)
                                 {
                                     //結合した結果データが無い
-                                    Dbg.ErrorLog(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+                                    Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
 
                                     //次のユーザーへ
                                     mHdrIndex++;
@@ -470,7 +479,7 @@ namespace ConvertDaiwaForBPF
 
                         case CONVERT_STATE.CONVERT_OUTPUT:
                             {
-                                Dbg.Log("CSV作成中...（件数{0})", mHdrIndex.ToString());
+                                Dbg.ViewLog("CSV作成中...（件数{0})", mHdrIndex.ToString());
 
                                 //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
                                 var rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
@@ -505,7 +514,7 @@ namespace ConvertDaiwaForBPF
                         //終了
                         default:
                             {
-                                Dbg.Log("state:"+ mState);
+                                //Dbg.Log("終了");
                                 PurgeLoadedMemory();
                                 loop = false;
                                 break;
@@ -516,8 +525,8 @@ namespace ConvertDaiwaForBPF
                 catch(Exception ex)
                 {
                     MultiThreadCancel();
-                    Dbg.Log(ex.ToString());
-                    Dbg.Log("state:" + mState);
+                    Dbg.ErrorWithView("state:" + mState);
+                    Dbg.ErrorWithView(ex.ToString());
                     return 0;
                 }
 
