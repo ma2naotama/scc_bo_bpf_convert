@@ -79,13 +79,13 @@ namespace ConvertDaiwaForBPF
 
                     //シート名保存
                     string fileName = Path.GetFileName(path);
-                    Dbg.Log("fileName:" + fileName);
-                    dt = new DataTable();
+                    Dbg.Log("CSVの読み込み:" + fileName);
 
+                    dt = new DataTable();
                     dt.TableName = fileName;
 
                     int n = row.Count();    //カラム数取得
-                    Dbg.Log("カラム数:" + n);
+                    //Dbg.Log("カラム数:" + n);
                     for (int i = 0; i < n; i++)
                     {
                         //仮のカラム名を設定します。
@@ -129,7 +129,7 @@ namespace ConvertDaiwaForBPF
                 throw ex;
             }
 
-            Dbg.Log("dt.Rows.Count:"+dt.Rows.Count);
+            //Dbg.Log("dt.Rows.Count:"+dt.Rows.Count);
             return dt;
         }
 

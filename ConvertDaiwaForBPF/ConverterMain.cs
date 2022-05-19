@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.Linq;
@@ -206,12 +208,18 @@ namespace ConvertDaiwaForBPF
                     { 
                         case CONVERT_STATE.READ_MASTER:
                             {
-                                string filename = "\\master_v6.xlsx";
+                                string filename = "設定ファイル.xlsx";
 
-                                mMasterSheets = ReadMasterFile(mPathInput + filename);
+                                // 独自に設定した「appSettings」へのアクセス
+                                NameValueCollection appSettings = (NameValueCollection) ConfigurationManager.GetSection("appSettings");
+
+                                string path = appSettings["SettingPath"] + filename;
+                                Dbg.Log("設定ファイルの読み込み:"+ path);
+
+                                mMasterSheets = ReadMasterFile(path);
                                 if(mMasterSheets == null)
                                 {
-                                    Dbg.ErrorLog(Properties.Resources.E_READFAILED_MASTER, mPathInput + filename);
+                                    Dbg.ErrorLog(Properties.Resources.E_READFAILED_MASTER, path);
                                     mState = CONVERT_STATE.END;
                                     break;
                                 }
@@ -250,8 +258,6 @@ namespace ConvertDaiwaForBPF
                                       .Where(x => x["受信ファイル名"].ToString() != "")
                                       .ToArray();
 
-                                Dbg.Log(""+ rows[0][0]);
-
                                 mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mHdrTbl == null)
                                 {
@@ -277,8 +283,6 @@ namespace ConvertDaiwaForBPF
                                     mMasterSheets.Tables["config"].AsEnumerable()
                                       .Where(x => x["受信ファイル名"].ToString() != "")
                                       .ToArray();
-
-                                Dbg.Log("" + rows[1][0]);
 
                                 mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
                                 if (mTdlTbl == null)
@@ -338,7 +342,7 @@ namespace ConvertDaiwaForBPF
                                     Dbg.Warn("受診者の重複件数：" + overlapcount);
                                     foreach (var row in dr_array )
                                     {
-                                        Dbg.Warn("重複個人番号：{1} 健診実施日:{2} 健診実施機関名称:{3}"
+                                        Dbg.Warn("重複個人番号：{0} 健診実施日:{1} 健診実施機関名称:{2}"
                                             ,row["個人番号"].ToString()
                                             ,row["健診実施日"].ToString()
                                             ,row["健診実施機関名称"].ToString());
@@ -405,13 +409,13 @@ namespace ConvertDaiwaForBPF
                                 int overlapcount = dr_overlaped.Count();
                                 if (overlapcount > 0)
                                 {
-                                    Dbg.Warn("個人番号 :{1} 検査項目コードの重複件数：{2}",
+                                    Dbg.Warn("個人番号 :{0} 検査項目コードの重複件数：{1}",
                                         hrow["個人番号"].ToString(),
                                         overlapcount.ToString());
 
                                     foreach (var row in dr_overlaped)
                                     {
-                                        Dbg.Warn("重複検査項目コード：{1} 検査項目名称:{2} 検査値:{3}"
+                                        Dbg.Warn("重複検査項目コード：{0} 検査項目名称:{1} 検査値:{2}"
                                           , row.KensakoumokuCode
                                           , row.KensakoumokuName
                                           , row.Value);
@@ -466,26 +470,26 @@ namespace ConvertDaiwaForBPF
 
                         case CONVERT_STATE.CONVERT_OUTPUT:
                             {
-                                Dbg.Log("csvへ書き出す。mHdrIndex：" + mHdrIndex);
+                                Dbg.Log("CSV作成中...（件数{0})", mHdrIndex.ToString());
 
                                 //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
                                 var rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
                                       .Where(x => x["列順"].ToString() != "")
                                       .ToArray();
 
-                                //var str_arry = rows.Select(c => c.ToString()).ToArray();
-
-                                //
                                 //int max = rows.Max(r => int.Parse(r["列順"].ToString()));
-                                int max = rows.Length;
+                                //int max = rows.Length;
 
                                 //最適化できそう
                                 List<string> str_arry = new List<string>();
+
+                                //初期
                                 foreach(var r in rows)
                                 {
                                     str_arry.Add("-");
                                 }
 
+                                //列順の項目を書き換え
                                 foreach (var r in rows)
                                 {
                                     str_arry[int.Parse(r.Field<string>("列順"))-1] = r.Field<string>("項目名");

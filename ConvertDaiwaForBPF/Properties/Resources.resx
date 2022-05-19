@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="E_DUPLICATE_USER" xml:space="preserve">
-    <value>健診データが重複しています。個人番号：{1},受信日：{2}</value>
+    <value>健診データが重複しています。個人番号：{0},受信日：{1}</value>
   </data>
   <data name="E_HDR_IS_EMPTY" xml:space="preserve">
     <value>健診ヘッダーが空です。</value>
@@ -130,10 +130,10 @@
     <value>結合したデータが空です。</value>
   </data>
   <data name="E_NO_TDLDATA" xml:space="preserve">
-    <value>健診データに該当ユーザーがいません。個人番号：{1}</value>
+    <value>健診データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
   <data name="E_NO_USERDATA" xml:space="preserve">
-    <value>人事データに該当ユーザーがいません。個人番号：{1}</value>
+    <value>人事データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
   <data name="E_READFAILED_HDR" xml:space="preserve">
     <value>健診ヘッダーが読めませんでした。</value>

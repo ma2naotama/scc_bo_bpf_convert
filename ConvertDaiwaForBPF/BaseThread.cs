@@ -39,7 +39,7 @@ namespace ConvertDaiwaForBPF
             //非同期処理（マルチスレッド）開始
             try
             {
-                Dbg.Log("RunMultiThread");
+                //Dbg.Log("RunMultiThread");
 
                 var task = Task.Factory.StartNew(() =>
                 {
@@ -52,7 +52,7 @@ namespace ConvertDaiwaForBPF
             catch (TaskCanceledException ex)
             {
                 // キャンセルされた場合の例外処理
-                Dbg.Log("RunMultiThread キャンセル：" + ex.ToString());
+                //Dbg.Log("RunMultiThread キャンセル：" + ex.ToString());
             }
             catch (Exception ex)
             {
