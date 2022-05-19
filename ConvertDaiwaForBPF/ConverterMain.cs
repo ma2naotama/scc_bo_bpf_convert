@@ -176,9 +176,12 @@ namespace ConvertDaiwaForBPF
         {
             public string KensakoumokuCode { get; set; }   //検査項目コード
             public string OutputHdrIndex { get; set; }     //列順(出力先の列番号)
+            public string ItemName { get; set; }           //検査項目名
             public string Attribute { get; set; }          //属性
             public string CodeID { get; set; }             //コードID
             public string Type { get; set; }               //種別
+            public string Rate { get; set; }               //倍率
+            public string StringFormat { get; set; }       //文字フォーマット
             public string Value { get; set; }              //検査値
         }
 
@@ -442,20 +445,20 @@ namespace ConvertDaiwaForBPF
                                 var itemMapped = JoinMergedMapWithItemMap(merged, itemSheet);
 
 
-                                //TODO:コードマッピング（属性が「コード」の場合、値の置換）
-                                //CodeMapping(itemSheet, itemMapped);
-
-                                //TODO:種別のチェック
-                                //TypeMapping(itemSheet, itemMapped);
-
-
-                                //アウトプット用にセット(必要な検査項目コード分ループ)
-                                foreach (var row in itemMapped)
+                                //必要な検査項目コード分ループ
+                                foreach (var itemrow in itemMapped)
                                 {
-                                    //Dbg.Log(row.OutputHdrIndex + " " + row.Value);
+                                    //Dbg.Log(itemrow.OutputHdrIndex + " " + itemrow.Value);
 
-                                    //指定列順に値をセット
-                                    outputrow[row.OutputHdrIndex] = row.Value;
+                                    //TODO:コードマッピング（属性が「コード」の場合、値の置換）
+                                    //CodeMapping(itemMapped,itemSheet);
+
+                                    //TODO:種別のチェック
+                                    string value = TypeMapping(outputrow[itemrow.OutputHdrIndex], itemrow);
+
+
+                                    //出力情報に指定列順で値をセット
+                                    outputrow[itemrow.OutputHdrIndex] = value;
                                 }
 
                                 //TODO:アウトプット用にセット(検査項目に該当しないその他の処理)
@@ -674,9 +677,12 @@ namespace ConvertDaiwaForBPF
                     {
                         KensakoumokuCode = m.KensakoumokuCode,      //検査項目コード
                         OutputHdrIndex = t.Field<string>("列順"),
+                        ItemName = t.Field<string>("項目名"),
                         Attribute = t.Field<string>("属性"),
                         CodeID = t.Field<string>("コードID"),
                         Type = t.Field<string>("種別"),             //半角英数等
+                        Rate = t.Field<string>("倍率"),
+                        StringFormat = t.Field<string>("文字フォーマット"),
                         Value = m.Value,                            //検査値
                     };
 
@@ -684,6 +690,35 @@ namespace ConvertDaiwaForBPF
             //csv.WriteFile(".\\項目.csv", csv.CreateDataTable(itemMapped));
 
             return itemMapped;
+        }
+
+        private string TypeMapping(object output, ItemMap itemMap)
+        {
+            string ret = "";
+
+            switch(itemMap.Attribute)
+            {
+                case "数字":
+                    {
+                        try
+                        {
+                            if (itemMap.Rate != "")
+                            {
+                                float v = float.Parse(itemMap.Value) * float.Parse(itemMap.Rate);
+                                return string.Format(itemMap.StringFormat, v).ToString();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Dbg.ErrorWithView(Properties.Resources.E_STRING_FORMAT_FAILE, itemMap.ItemName, itemMap.Value);
+                        }
+
+                        ret = itemMap.Value;
+                    }
+                    break;
+            }
+
+            return ret;
         }
     }
 }

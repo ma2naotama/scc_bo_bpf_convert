@@ -144,6 +144,9 @@
   <data name="E_READFAILED_TDL" xml:space="preserve">
     <value>健診データが読めませんでした。</value>
   </data>
+  <data name="E_STRING_FORMAT_FAILE" xml:space="preserve">
+    <value>文字フォーマットの変換に失敗しました。 項目名：{0},検査値：{1}</value>
+  </data>
   <data name="E_TDL_IS_EMPTY" xml:space="preserve">
     <value>健診データが空です。</value>
   </data>

@@ -142,6 +142,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   文字フォーマットの変換に失敗しました。 項目名：{0},検査値：{1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_STRING_FORMAT_FAILE {
+            get {
+                return ResourceManager.GetString("E_STRING_FORMAT_FAILE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_TDL_IS_EMPTY {
