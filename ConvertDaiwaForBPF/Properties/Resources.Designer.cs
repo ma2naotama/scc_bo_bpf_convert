@@ -124,6 +124,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   必須項目に値がありません。項目名：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_NOT_REQUIRED_FIELD {
+            get {
+                return ResourceManager.GetString("E_NOT_REQUIRED_FIELD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診ヘッダーが読めませんでした。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_READFAILED_HDR {

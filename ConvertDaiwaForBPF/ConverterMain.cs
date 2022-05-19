@@ -389,23 +389,80 @@ namespace ConvertDaiwaForBPF
                                     break;
                                 }
 
+                                //出力情報の一行分作成
                                 DataRow outputrow = mOutputCsv.NewRow();
 
                                 //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
 
-                                //指定の列順に値をセット
-                                outputrow[6]  = hrow["個人番号"].ToString();
+                                //TODO:個人番号をセット
+                                outputrow[6]  = hrow["個人番号"].ToString();    //仮
 
-                                DateTime d;
-                                if (DateTime.TryParseExact(hrow["健診実施日"].ToString(), "yyyyMMdd", null, DateTimeStyles.None, out d))
+                                //項目マッピング処理
+                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
+
+                                //出力情報に固定値をセット
+                                var fixvalue = itemSheet.AsEnumerable()
+                                     .Where(x => x["固定値"].ToString() != "");
+
+                                foreach (var row in fixvalue)
                                 {
-                                    //日付
-                                    outputrow[13] = d.ToString("yyyy/MM/dd");
+                                    int index = int.Parse(row.Field<string>("列順"));
+
+                                    outputrow[index] = row.Field<string>("固定値");
                                 }
-                                else
+
+                                /*
+                                //必須項目に値がセットされているか確認
+                                var datearray = itemSheet.AsEnumerable()
+                                    .Where(x => x["種別"].ToString().Trim() == "年月日");
+
+                                foreach (var row in datearray)
                                 {
-                                    //TODO: エラー表示
+                                    int index = int.Parse(row.Field<string>("列順"));
+                                    string value = hrow["健診実施日"].ToString();
+
+                                    //年月日の変換
+                                    DateTime d;
+                                    if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                                    {
+                                        //日付
+                                        outputrow[index] = d.ToString("yyyy/MM/dd");
+                                    }
+                                    else
+                                    {
+                                        //TODO: エラー表示
+                                    }
                                 }
+                                */
+
+                                //必須項目に値がセットされているか確認
+                                var required = itemSheet.AsEnumerable()
+                                    .Where(x => x["必須"].ToString().Trim() == "○");
+
+                                foreach (var row in required)
+                                {
+                                    int index = int.Parse(row.Field<string>("列順"));
+                                    string value = outputrow[index].ToString();
+
+                                    if (value == "-")
+                                    {
+                                        Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
+
+                                        //必須項目に値が無い場合は、そのデータを作成しない。
+                                        return 1;
+                                    }
+
+                                    //種別のチェック
+                                    if (!CheckMappingType(row.Field<string>("種別"), value))
+                                    {
+                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), row.Field<string>("種別"), value);
+
+                                        //必須項目に値が無い場合は、そのデータを作成しない。
+                                        return 1;
+                                    }
+
+                                }
+
 
                                 //検査項目コードの重複の確認
                                 var dr_overlaped = from row in merged.AsEnumerable()
@@ -439,11 +496,8 @@ namespace ConvertDaiwaForBPF
                                 //TODO:オーダーマッピング（特定の検査項目コードの絞込）
                                 //OrderMapping(itemSheet, itemMapped);
 
-                                //項目マッピング処理
-                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
-
                                 //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
-                                var itemMapped = JoinMergedMapWithItemMap(merged, itemSheet);
+                                var itemMapped = JoinItemMapWithMergedMap(itemSheet, merged);
 
 
                                 //必要な検査項目コード分ループ
@@ -451,8 +505,14 @@ namespace ConvertDaiwaForBPF
                                 {
                                     //Dbg.Log(itemrow.OutputHdrIndex + " " + itemrow.Value);
 
-                                    //TODO:種別のチェック
-                                    string value = CheckTypeMapping(itemrow);
+                                    //種別のチェック
+                                    string value = itemrow.Value;
+                                    if (!CheckMappingType(itemrow.Type, value))
+                                    {
+                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, itemrow.ItemName, itemrow.Type, value);
+
+                                        value = "";
+                                    }
 
                                     //TODO:コードマッピング（属性が「コード」の場合、値の置換）
                                     //CodeMapping(itemMapped,itemSheet);
@@ -460,8 +520,6 @@ namespace ConvertDaiwaForBPF
                                     //出力情報に指定列順で値をセット
                                     outputrow[itemrow.OutputHdrIndex] = value;
                                 }
-
-                                //TODO:アウトプット用にセット(検査項目に該当しないその他の処理)
 
                                 // CSV出力情報に追加
                                 mOutputCsv.Rows.Add(outputrow);
@@ -673,14 +731,14 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        /// <summary>
-        /// 項目マッピングから該当する検査項目コード一覧を抽出
-        /// </summary>
-        /// <param name="ItemMap">１ユーザー分の検査項目一覧</param>
-        /// <param name="itemSheet">シート「項目マッピング」</param>
-        /// <returns>項目マッピングの一覧</returns>
 
-        private IEnumerable<ItemMap> JoinMergedMapWithItemMap(IEnumerable<MergedMap> merged, DataTable itemSheet)
+        /// <summary>
+        /// 項目マッピングから該当する必須項目一覧を抽出
+        /// </summary>
+        /// <param name="itemSheet">シート「項目マッピング」</param>
+        /// <param name="ItemMap">１ユーザー分の検査項目一覧</param>
+        /// <returns>項目マッピングの一覧</returns>
+        private IEnumerable<ItemMap> JoinItemMapWithMergedMap(DataTable itemSheet, IEnumerable<MergedMap> merged)
         {
             var itemMapped =
                     from m in merged.AsEnumerable()
@@ -704,6 +762,7 @@ namespace ConvertDaiwaForBPF
             return itemMapped;
         }
 
+ 
         /// <summary>
         /// 文字列が符号ありの小数かどうかを判定します
         /// </summary>
@@ -719,11 +778,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="ItemMap">抽出した項目マッピングの行</param>
         /// <returns>検査値</returns>
-        private string CheckTypeMapping(ItemMap itemMap)
+        private bool CheckMappingType(string type, string value)
         {
-            string ret = itemMap.Value;
-
-            switch (itemMap.Type)
+            switch (type)
             {
                 /*
                 case "数字":
@@ -750,22 +807,32 @@ namespace ConvertDaiwaForBPF
                 case "数値":
                     {
                         int i = 0;
-                        if(!int.TryParse(ret, out i))
+                        if(!int.TryParse(value, out i))
                         {
                             float f = 0.0f;
-                            if (!float.TryParse(ret, out f))
+                            if (!float.TryParse(value, out f))
                             { 
-                                Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, itemMap.ItemName, itemMap.Type, ret);
-
                                 //エラーの場合空白として出力
-                                return "";
+                                return false;
                             }
+                        }
+                    }
+                    break;
+
+                case "年月日":
+                    {
+                        DateTime d;
+
+                        if (!DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                        {
+                            //エラーの場合空白として出力
+                            return false;
                         }
                     }
                     break;
             }
 
-            return ret;
+            return true;
         }
     }
 }
