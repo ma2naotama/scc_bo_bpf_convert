@@ -15,144 +15,18 @@ namespace ConvertDaiwaForBPF
 {
     internal class ConverterMain : BaseThread
     {
-        private DataSet  mMasterSheets = null;
+        private string mPathInput;
+        private string mPathHR;
+        private string mPathOutput;
 
-        public ConverterMain()
-        {
-        }
+        //設定ファイル
+        private DataSet mMasterSheets = null;
 
-        private DataSet ReadMasterFile(string path)
-        {
-            //Dbg.Log("master.xlsx 読み込み中...");
+        //項目マッピングの行
+        private DataRow[] mItemMap = null;
 
-            UtilExcel excel = new UtilExcel();
-
-            ExcelOption[] optionarray = new ExcelOption[]
-            {
-                new ExcelOption ( "config",             2, 1, true),
-                new ExcelOption ( "DHPTV001HED",        2, 1, true),
-                new ExcelOption ( "DHPTV001DTL",        2, 1, true),
-                new ExcelOption ( "項目マッピング",     4, 1, true),
-                new ExcelOption ( "コードマッピング",   3, 1, true),
-                new ExcelOption ( "オーダーマッピング", 2, 1, true),
-                //new ExcelOption ( "出力ヘッダー",       2, 1, true),
-            };
-
-            excel.SetExcelOptionArray(optionarray);
-
-            DataSet master = excel.ReadAllSheets(path); 
-            if(master == null)
-            {
-                return null;
-            }
-
-
-            //検索のサンプル
-            /*
-            DataTable sheet = master["項目マッピング"];
-            DataRow[] rows =
-                sheet.AsEnumerable()
-                  .Where(x => x["★列番号"].ToString() != "")
-                  .ToArray();
-
-            foreach (DataRow row in rows)
-                Dbg.Log(row["★列番号"].ToString());
-            */
-
-            /*
-            DataTable sheet = master["項目マッピング"];
-            DataRow[] rows =
-                sheet.AsEnumerable()
-                  .Where(x => x["テスト項目"].ToString() != "")
-                  .ToArray();
-
-            foreach (DataRow row in rows)
-                Dbg.Log(row["テスト項目"].ToString());
-            */
-
-            return master;
-        }
-
-        public override void MultiThreadCancel()
-        {
-            if (mCsvHDR != null)
-            {
-                mCsvHDR.Cancel();
-            }
-
-            if (mCsvDTL != null)
-            {
-                mCsvDTL.Cancel();
-            }
-
-            base.MultiThreadCancel();
-        }
-
-
-        string mPathInput;
-        string mPathHR;
-        string mPathOutput;
-
-        private UtilCsv mCsvHDR = null;
-        private UtilCsv mCsvDTL = null;
-
-        public void InitConvert(string pathInput, string pathHR, string pathOutput)
-        {
-            mPathInput = pathInput;
-            mPathHR = pathHR;
-            mPathOutput = pathOutput;
-
-            mCsvHDR = new UtilCsv();
-            mCsvDTL = new UtilCsv();
-
-            Cancel = false;
-            mState = CONVERT_STATE.READ_MASTER;
-        }
-
-
-        //読み込んだCSVデータの解放
-        private void PurgeLoadedMemory()
-        {
-            //メモリ解放
-            if(mHdrTbl != null)
-            {
-                mHdrTbl.Clear();
-                mHdrTbl = null;
-            }
-
-            if (mTdlTbl != null)
-            {
-                mTdlTbl.Clear();
-                mTdlTbl = null;
-            }
-
-            if (mHdrRows != null)
-            {
-                mHdrRows = null;
-            }
-
-            GC.Collect();
-        }
-
-        //スレッド内の処理（これ自体をキャンセルはできない）
-        private DataTable mHdrTbl = null;
-        private DataTable mTdlTbl = null;
-        private DataRow[] mHdrRows = null;
-        private int mHdrIndex = 0;
-
-
+        //出力情報
         private DataTable mOutputCsv = null;
-
-        private enum CONVERT_STATE
-        {
-            READ_MASTER = 0,
-            READ_HEADER,
-            READ_DATA,
-            CONVERT_GETUSER,
-            CONVERT_MAIN,
-            CONVERT_OUTPUT,
-            END = 100,
-        }
 
 
         //健診ヘッダーと健診データの結合用
@@ -187,424 +61,489 @@ namespace ConvertDaiwaForBPF
         }
         */
 
-        private CONVERT_STATE mState = CONVERT_STATE.READ_MASTER;
+        public ConverterMain()
+        {
+        }
 
+        private DataSet ReadMasterFile(string path)
+        {
+            //Dbg.Log("master.xlsx 読み込み中...");
+
+            UtilExcel excel = new UtilExcel();
+
+            ExcelOption[] optionarray = new ExcelOption[]
+            {
+                new ExcelOption ( "config",             2, 1, true),
+                new ExcelOption ( "DHPTV001HED",        2, 1, true),
+                new ExcelOption ( "DHPTV001DTL",        2, 1, true),
+                new ExcelOption ( "項目マッピング",     4, 1, true),
+                new ExcelOption ( "コードマッピング",   3, 1, true),
+                new ExcelOption ( "オーダーマッピング", 2, 1, true),
+                //new ExcelOption ( "出力ヘッダー",       2, 1, true),
+            };
+
+            excel.SetExcelOptionArray(optionarray);
+
+            DataSet master = excel.ReadAllSheets(path); 
+            if(master == null)
+            {
+                return null;
+            }
+
+            return master;
+        }
+
+        public override void MultiThreadCancel()
+        {
+            base.MultiThreadCancel();
+        }
+
+        /// <summary>
+        /// 各パスの設定（実行ボタン押下で呼ばれる）
+        /// </summary>
+        /// <param name="pathInput"></param>
+        /// <param name="pathHR"></param>
+        /// <param name="pathOutput"></param>
+        public void InitConvert(string pathInput, string pathHR, string pathOutput)
+        {
+            mPathInput = pathInput;
+            mPathHR = pathHR;
+            mPathOutput = pathOutput;
+
+            mItemMap = null;
+            mOutputCsv = null;
+
+            Cancel = false;
+        }
+
+
+        //スレッド内の処理（これ自体をキャンセルはできない）
         public override int MultiThreadMethod()
         {
             Dbg.ViewLog("変換中...");
-
-            bool loop = true;
-
-            while (loop)
+            try
             {
-                //キャンセル処理
-                if (Cancel)
+                //初期化と設定ファイルの読み込み
+                if (!Init())
                 {
-                    PurgeLoadedMemory();
-                    mState = CONVERT_STATE.READ_MASTER;
                     return 0;
                 }
 
-                try
+                //健診ヘッダーの読み込み
+                DataTable hdrTbl = ReadHelthHeder();
+                if (hdrTbl == null)
                 {
-                    //Dbg.Log("mState:"+ mState);
-
-                    switch (mState)
-                    { 
-                        case CONVERT_STATE.READ_MASTER:
-                            {
-                                string filename = "設定ファイル.xlsx";
-
-                                // 独自に設定した「appSettings」へのアクセス
-                                NameValueCollection appSettings = (NameValueCollection) ConfigurationManager.GetSection("appSettings");
-
-                                string path = appSettings["SettingPath"] + filename;
-                                Dbg.ViewLog("設定ファイルの読み込み:"+ path);
-
-                                mMasterSheets = ReadMasterFile(path);
-                                if(mMasterSheets == null)
-                                {
-                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
-                                    mState = CONVERT_STATE.END;
-                                    break;
-                                }
-
-                                //出力用CSVの初期化
-                                DataRow[] rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
-                                      .Where(x => x["列順"].ToString() != "")
-                                      .ToArray();
-
-                                //項目マッピングの順列の最大値と項目数（個数）の確認
-                                if (rows.Length != rows.Max(r => int.Parse(r["列順"].ToString())))
-                                {
-                                    Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
-                                    mState = CONVERT_STATE.END;
-                                    break;
-                                }
-
-                                mOutputCsv = new DataTable();
-
-                                //同じ列名（カラム名）はセットできないので、列順をセットしておく
-                                foreach (var row in rows)
-                                {
-                                    //Dbg.Log("" + row["列順"]);
-                                    mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
-                                }
-
-                                //次の処理へ
-                                mState = CONVERT_STATE.READ_HEADER;
-                            }
-                            break;
-
-                        //健診ヘッダーの読み込み
-                        case CONVERT_STATE.READ_HEADER:
-                            {
-                                DataRow[] rows =
-                                    mMasterSheets.Tables["config"].AsEnumerable()
-                                      .Where(x => x["受信ファイル名"].ToString() != "")
-                                      .ToArray();
-
-                                mHdrTbl = mCsvHDR.ReadFile(mPathInput + "\\" +rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
-                                if (mHdrTbl == null)
-                                {
-                                    //中断
-                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
-                                    return 0;
-                                }
-
-                                if (mHdrTbl.Rows.Count == 0)
-                                {
-                                    //中断
-                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
-                                    return 0;
-                                }
-
-                                SetColumnName(mHdrTbl, mMasterSheets.Tables["DHPTV001HED"]);
-
-                                //次の処理へ
-                                mState = CONVERT_STATE.READ_DATA;
-                            }
-                            break;
-
-                        //健診データの読み込み
-                        case CONVERT_STATE.READ_DATA:
-                            {
-                                DataRow[] rows =
-                                    mMasterSheets.Tables["config"].AsEnumerable()
-                                      .Where(x => x["受信ファイル名"].ToString() != "")
-                                      .ToArray();
-
-                                mTdlTbl = mCsvDTL.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
-                                if (mTdlTbl == null)
-                                {
-                                    //中断
-                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                                    return 0;
-                                }
-
-                                if (mTdlTbl.Rows.Count == 0)
-                                {
-                                    //中断
-                                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                                    return 0;
-                                }
-
-                                SetColumnName(mTdlTbl, mMasterSheets.Tables["DHPTV001DTL"]);
-
-
-                                //次の処理へ
-                                mState = CONVERT_STATE.CONVERT_GETUSER;
-
-                                mHdrIndex = 0;
-                            }
-                            break;
-
-
-                        case CONVERT_STATE.CONVERT_GETUSER:
-                            {
-                                //健診ヘッダーの削除フラグが0だけ抽出
-                                mHdrRows =
-                                    mHdrTbl.AsEnumerable()
-                                    .Where(x => x["削除フラグ"].ToString() == "0")
-                                    .ToArray();
-
-                                if (mHdrRows.Length <= 0)
-                                {
-                                    Dbg.ErrorWithView(Properties.Resources.E_HDR_IS_EMPTY);
-                                    mState = CONVERT_STATE.END;
-                                    break;
-                                }
-
-                                //健診ヘッダーの重複の確認(何をもって重複とするか検討)
-                                var dr_array = from row in mHdrRows.AsEnumerable()
-                                               where (
-                                                   from _row in mHdrRows.AsEnumerable()
-                                                   where
-                                                   row["個人番号"].ToString() == _row["個人番号"].ToString()
-                                                   && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
-                                                   && row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
-                                                   select _row["個人番号"]
-                                               ).Count() > 1 //重複していたら、２つ以上見つかる
-                                               select row;
-
-                                //DataTableが大きすぎるとここで処理が終わらない事がある。
-                                //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
-                                int overlapcount = dr_array.Count();
-
-                                if (overlapcount > 0)
-                                {
-                                    Dbg.Warn("受診者の重複件数：" + overlapcount);
-                                    foreach (var row in dr_array )
-                                    {
-                                        Dbg.Warn("重複個人番号：{0} 健診実施日:{1} 健診実施機関名称:{2}"
-                                            ,row["個人番号"].ToString()
-                                            ,row["健診実施日"].ToString()
-                                            ,row["健診実施機関名称"].ToString());
-                                    }
-                                }
-
-                                //次の処理へ
-                                mState = CONVERT_STATE.CONVERT_MAIN;
-                            }
-                            break;
-
-                        //メモリが不足して正常に動作しない為、ヘッダーの一行毎に処理する
-                        case CONVERT_STATE.CONVERT_MAIN:
-                            {
-                                DataRow hrow = mHdrRows[mHdrIndex];
-                                Dbg.ViewLog("個人番号:" + hrow["個人番号"].ToString());
-
-                                //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-                                var merged = JoinHdrWithTdl(hrow, mTdlTbl);
-                                if (merged.Count() <= 0)
-                                {
-                                    //結合した結果データが無い
-                                    Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
-
-                                    //次のユーザーへ
-                                    mHdrIndex++;
-                                    if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 10)
-                                    {
-                                        mState = CONVERT_STATE.CONVERT_OUTPUT;
-                                    }
-                                    break;
-                                }
-
-                                //出力情報の一行分作成
-                                DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
-
-                                //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
-
-                                //TODO:個人番号をセット
-                                outputrow[5] = hrow["個人番号"].ToString();    //仮
-
-                                //項目マッピング処理
-                                DataTable itemSheet = mMasterSheets.Tables["項目マッピング"];
-
-                                //TODO:オーダーマッピング（特定の検査項目コードの絞込）
-                                //OrderMapping(itemSheet, itemMapped);
-
-                                //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
-                                var itemMapped = itemSheet.AsEnumerable()
-                                     .Where(x => x["列順"].ToString() != "");
-
-                                //必要な検査項目コード分ループ
-                                foreach (var row in itemMapped)
-                                {
-                                    int index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
-
-                                    string value = null;
-
-                                    //固定値
-                                    string fixvalue = row.Field<string>("固定値").Trim();
-                                    if (fixvalue != "")
-                                    {
-                                        value = fixvalue;
-                                    }
-
-                                    //13列目は、必ず受診日が入る
-                                    if(index == 13)
-                                    {
-                                        value = hrow["健診実施日"].ToString();
-                                    }
-
-                                    //検査項目コードの検索
-                                    if(value == null)
-                                    { 
-                                        if (row.Field<string>("検査項目コード") == "")
-                                        {
-                                            continue;
-                                        }
-
-                                        //ユーザーデータから抽出
-                                        var userdataArray = merged.AsEnumerable()
-                                                .Where(x => x.KensakoumokuCode.ToString() == row.Field<string>("検査項目コード"))
-                                                .ToArray();
-
-                                        if(userdataArray == null)
-                                        {
-                                            continue;
-                                        }
-
-                                        if (userdataArray.Length == 0)
-                                        {
-                                            continue;
-                                        }
-
-                                        var useritem = userdataArray[0];
-
-                                        //検査値
-                                        value = useritem.Value;
-                                        //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
-                                    }
-
-
-                                    //種別のチェック
-                                    string type = row.Field<string>("種別");
-
-                                    if (value != null && !CheckMappingType(type, value))
-                                    {
-                                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
-
-                                        //エラーの場合空にする
-                                        value = "";
-                                    }
-
-                                    //日付の変更
-                                    if (value != null && type == "年月日")
-                                    {
-                                        //年月日の変換
-                                        DateTime d;
-                                        if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
-                                        {
-                                            //日付
-                                            value = d.ToString("yyyy/MM/dd");
-                                        }
-                                        else
-                                        {
-                                            //エラー表示
-                                            Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
-
-                                            //エラーの場合空にする
-                                            value = "";
-                                        }
-                                    }
-
-                                    //TODO:コードマッピング（属性が「コード」の場合、値の置換）
-                                    //CodeMapping(itemMapped,itemSheet);
-
-                                    //必須項目確認
-                                    if(row.Field<string>("必須").ToString().Trim() == "〇")
-                                    {
-                                        if(value == null)
-                                        {
-                                            //必須項目に値が無い場合は、そのデータを作成しない。
-                                            Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
-                                            outputrow = null;
-
-                                            //次のユーザー
-                                            mHdrIndex++;
-                                            if (mHdrIndex >= mHdrRows.Length)
-                                            {
-                                                mState = CONVERT_STATE.CONVERT_OUTPUT;
-                                            }
-
-                                            return 1;
-                                        }
-                                    }
-
-                                    //出力情報に指定列順で値をセット
-                                    outputrow[index-1] = value;
-                                }
-
-                                // CSV出力情報に追加
-                                mOutputCsv.Rows.Add(outputrow);
-
-                                outputrow = null;
-
-                                //次のユーザー
-                                mHdrIndex++;
-                                if (mHdrIndex >= mHdrRows.Length || mHdrIndex > 1)
-                                {
-                                    mState = CONVERT_STATE.CONVERT_OUTPUT;
-                                    break;
-                                }
-
-                                //テスト用の為、１ユーザー分で終了
-                                //mState = CONVERT_STATE.END;
-                            }
-                            break;
-
-                        case CONVERT_STATE.CONVERT_OUTPUT:
-                            {
-                                Dbg.ViewLog("CSV作成中...（件数{0})", mHdrIndex.ToString());
-
-                                //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
-                                var rows = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
-                                      .Where(x => x["列順"].ToString() != "")
-                                      .ToArray();
-
-                                //int max = rows.Max(r => int.Parse(r["列順"].ToString()));
-                                //int max = rows.Length;
-
-                                //最適化できそう
-                                List<string> str_arry = new List<string>();
-
-                                //初期
-                                foreach(var r in rows)
-                                {
-                                    str_arry.Add("-");
-                                }
-
-                                //列順の項目を書き換え
-                                foreach (var r in rows)
-                                {
-                                    str_arry[int.Parse(r.Field<string>("列順"))-1] = r.Field<string>("項目名");
-                                }
-
-                                UtilCsv csv = new UtilCsv();
-                                csv.WriteFile(mPathOutput, mOutputCsv, str_arry);
-
-                                mState = CONVERT_STATE.END;
-                            }
-                            break;
-
-                        //終了
-                        default:
-                            {
-                                //Dbg.Log("終了");
-                                PurgeLoadedMemory();
-                                loop = false;
-                                break;
-                            }
+                    return 0;
+                }
+
+                //健診データの読み込み
+                DataTable tdlTbl = ReadHelthData();
+                if (tdlTbl == null)
+                {
+                    return 0;
+                }
+
+                //健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
+                DataRow[] hdrRows = GetActiveUsers(hdrTbl);
+                if (hdrRows == null)
+                {
+                    return 0;
+                }
+
+                //一ユーザー毎に処理する
+                int i = 0;
+                foreach (var hrow in hdrRows)
+                {
+                    //キャンセル
+                    if (Cancel)
+                    {
+                        return 0;
                     }
 
+                    //変換処理
+                    Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
+
+                    if (!ConvertMain(hrow, tdlTbl))
+                    {
+                        return 0;
+                    }
+
+                    i++;
+                    //テスト用
+                    //break;
                 }
-                catch(Exception ex)
+
+                //出力情報から全レコードの書き出し
+                if (!WriteCsv())
                 {
-                    MultiThreadCancel();
-                    Dbg.ErrorWithView("state:" + mState);
-                    Dbg.ErrorWithView(ex.ToString());
                     return 0;
                 }
-
             }
-
-            /*
-            DataRow[] rows =
-            tdl.AsEnumerable()
-                .Where(x => x["組合C"].ToString() != "")
-                .ToArray();
-
-            foreach (DataRow row in rows)
-                Dbg.Log(row["組合C"].ToString());
-            */
+            catch (Exception ex)
+            {
+                MultiThreadCancel();
+                Dbg.ErrorWithView(ex.ToString());
+                return 0;
+            }
 
             //処理完了
             Completed = true;
             return 1;
         }
 
+
+        /// <summary>
+        /// 初期化と設定ファイルの読み込み
+        /// </summary>
+        /// <returns></returns>
+        bool Init()
+        {
+            string filename = "設定ファイル.xlsx";
+
+            // 独自に設定した「appSettings」へのアクセス
+            NameValueCollection appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
+
+            string path = appSettings["SettingPath"] + filename;
+            Dbg.ViewLog("設定ファイルの読み込み:" + path);
+
+            mMasterSheets = ReadMasterFile(path);
+            if (mMasterSheets == null)
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
+                return false;
+            }
+
+            //出力用CSVの初期化
+            mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                  .Where(x => x["列順"].ToString() != "")
+                  .ToArray();
+
+            //項目マッピングの順列の最大値と項目数（個数）の確認
+            if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
+                return false;
+            }
+
+            mOutputCsv = new DataTable();
+
+            //同じ列名（カラム名）はセットできないので、列順をセットしておく
+            foreach (var row in mItemMap)
+            {
+                //Dbg.Log("" + row["列順"]);
+                mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
+            }
+
+            //次の処理へ
+            return true;
+        }
+
+        /// <summary>
+        /// 健診ヘッダーの読み込み
+        /// </summary>
+        /// <returns></returns>
+        DataTable ReadHelthHeder()
+        {
+            DataRow[] rows =
+                mMasterSheets.Tables["config"].AsEnumerable()
+                  .Where(x => x["受信ファイル名"].ToString() != "")
+                  .ToArray();
+
+            UtilCsv　csv = new UtilCsv();
+            DataTable tbl = csv.ReadFile(mPathInput + "\\" + rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
+            if (tbl == null)
+            {
+                //中断
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
+                return null;
+            }
+
+            if (tbl.Rows.Count == 0)
+            {
+                //中断
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
+                return null;
+            }
+
+            SetColumnName(tbl, mMasterSheets.Tables["DHPTV001HED"]);
+
+            //次の処理へ
+            return tbl;
+        }
+
+        /// <summary>
+        /// 健診データの読み込み
+        /// </summary>
+        /// <returns></returns>
+        DataTable ReadHelthData()
+        {
+            DataRow[] rows =
+                mMasterSheets.Tables["config"].AsEnumerable()
+                    .Where(x => x["受信ファイル名"].ToString() != "")
+                    .ToArray();
+
+            UtilCsv csv = new UtilCsv();
+
+            DataTable tbl = csv.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
+            if (tbl == null)
+            {
+                //中断
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
+                return null;
+            }
+
+            if (tbl.Rows.Count == 0)
+            {
+                //中断
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
+                return null;
+            }
+
+            SetColumnName(tbl, mMasterSheets.Tables["DHPTV001DTL"]);
+            return tbl;
+        }
+
+        /// <summary>
+        /// 有効なユーザーの一覧取得
+        /// </summary>
+        /// <param name="HdrTbl"></param>
+        /// <returns></returns>
+        DataRow[] GetActiveUsers(DataTable HdrTbl)
+        {
+            //健診ヘッダーの削除フラグが0だけ抽出
+            DataRow[] hdrRows =
+                HdrTbl.AsEnumerable()
+                .Where(x => x["削除フラグ"].ToString() == "0")
+                .ToArray();
+
+            if (hdrRows.Length <= 0)
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_HDR_IS_EMPTY);
+                return null;
+            }
+
+            //健診ヘッダーの重複の確認(何をもって重複とするか検討)
+            var dr_array = from row in hdrRows.AsEnumerable()
+                           where (
+                               from _row in hdrRows.AsEnumerable()
+                               where
+                               row["個人番号"].ToString() == _row["個人番号"].ToString()
+                               && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
+                               && row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
+                               select _row["個人番号"]
+                           ).Count() > 1 //重複していたら、２つ以上見つかる
+                           select row;
+
+            //DataTableが大きすぎるとここで処理が終わらない事がある。
+            //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+            int overlapcount = dr_array.Count();
+
+            if (overlapcount > 0)
+            {
+                Dbg.Warn("受診者の重複件数：" + overlapcount);
+                foreach (var row in dr_array)
+                {
+                    Dbg.Warn("重複個人番号：{0} 健診実施日:{1} 健診実施機関名称:{2}"
+                        , row["個人番号"].ToString()
+                        , row["健診実施日"].ToString()
+                        , row["健診実施機関名称"].ToString());
+                }
+            }
+
+            //次の処理へ
+            return hdrRows;
+        }
+
+        /// <summary>
+        /// 変換処理メイン
+        /// </summary>
+        /// <param name="hrow"></param>
+        /// <param name="TdlTbl"></param>
+        /// <returns></returns>
+        bool ConvertMain(DataRow hrow, DataTable TdlTbl)
+        {
+            //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
+            var merged = JoinHdrWithTdl(hrow, TdlTbl);
+            if (merged.Count() <= 0)
+            {
+                //結合した結果データが無い
+                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+
+                //次のユーザーへ
+                return true;
+            }
+
+            //出力情報の一行分作成
+            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+
+            //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
+
+            //TODO:個人番号をセット
+            outputrow[5] = hrow["個人番号"].ToString();    //仮
+
+            //項目マッピング処理
+
+            //TODO:オーダーマッピング（特定の検査項目コードの絞込）
+            //OrderMapping(itemSheet, itemMapped);
+
+            //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
+
+            //必要な検査項目コード分ループ
+            foreach (var row in mItemMap)
+            {
+                string request = row.Field<string>("必須").Trim();
+                if (request == "入力禁止")
+                {
+                    continue;
+                }
+
+                int index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
+
+                string value = null;
+
+                //固定値
+                string fixvalue = row.Field<string>("固定値").Trim();
+                if (fixvalue != "")
+                {
+                    value = fixvalue;
+                }
+
+                //13列目は、必ず受診日が入る
+                if (index == 13)
+                {
+                    value = hrow["健診実施日"].ToString();
+                }
+
+                //検査項目コードの検索
+                if (value == null)
+                {
+                    if (row.Field<string>("検査項目コード") == "")
+                    {
+                        continue;
+                    }
+
+                    //ユーザーデータから抽出
+                    var userdataArray = merged.AsEnumerable()
+                            .Where(x => x.KensakoumokuCode == row.Field<string>("検査項目コード"));
+                            //.ToArray();
+
+                    if (userdataArray == null)
+                    {
+                        continue;
+                    }
+
+                    if (userdataArray.Count() == 0)
+                    {
+                        continue;
+                    }
+
+                    var useritem = userdataArray.First();
+
+                    //検査値
+                    value = useritem.Value;
+                    //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
+                }
+
+
+                //種別のチェック
+                string type = row.Field<string>("種別").Trim();
+
+                if (value != null && !CheckMappingType(type, value))
+                {
+                    Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+
+                    //エラーの場合空にする
+                    value = "";
+                }
+
+                //日付の変更
+                if (value != null && type == "年月日")
+                {
+                    //年月日の変換
+                    DateTime d;
+                    if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                    {
+                        //日付
+                        value = d.ToString("yyyy/MM/dd");
+                    }
+                    else
+                    {
+                        //エラー表示
+                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+
+                        //エラーの場合空にする
+                        value = "";
+                    }
+                }
+
+                //TODO:コードマッピング（属性が「コード」の場合、値の置換）
+                //CodeMapping(itemMapped,itemSheet);
+
+                //必須項目確認
+                if (request == "〇")
+                {
+                    if (value == null)
+                    {
+                        //必須項目に値が無い場合は、そのデータを作成しない。
+                        Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
+                        outputrow = null;
+
+                        //次のユーザー
+                        return true;
+                    }
+                }
+
+                //出力情報に指定列順で値をセット
+                outputrow[index - 1] = value;
+            }
+
+            // CSV出力情報に追加
+            mOutputCsv.Rows.Add(outputrow);
+
+            outputrow = null;
+
+            //次のユーザー
+            return true;
+        }
+
+        /// <summary>
+        /// CSVの書き出し
+        /// </summary>
+        /// <returns></returns>
+        bool WriteCsv()
+        {
+            Dbg.ViewLog("CSV作成中...（件数{0})", mOutputCsv.Rows.Count.ToString());
+
+            //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
+            //int max = rows.Max(r => int.Parse(r["列順"].ToString()));
+            //int max = rows.Length;
+
+            //最適化できそう
+            List<string> str_arry = new List<string>();
+
+            //初期
+            foreach (var r in mItemMap)
+            {
+                str_arry.Add("-");
+            }
+
+            //列順の項目を書き換え
+            foreach (var r in mItemMap)
+            {
+                str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
+            }
+
+            UtilCsv csv = new UtilCsv();
+            csv.WriteFile(mPathOutput, mOutputCsv, str_arry);
+
+            return true;
+        }
+
+        /// <summary>
+        /// 列名（カラム名）を付け加える
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="sheet"></param>
         void SetColumnName(DataTable dt, DataTable sheet)
         {
             DataRow[] rows = sheet.AsEnumerable()
@@ -627,49 +566,16 @@ namespace ConvertDaiwaForBPF
 
         }
 
-        /// <summary>
-        /// DataTableから重複しているデータを取得する
-        /// </summary>
-        /// <param name="dt">DataTable</param>
-        /// <param name="columnName">重複をチェックするカラム名</param>
-        private DataTable GetOverlapedRow(DataTable dt, string columnName)
-        {
-            var dr_array = from row in dt.AsEnumerable()
-                           where (
-                               from _row in dt.AsEnumerable()
-                               where row[columnName].ToString() == _row[columnName].ToString()
-                               select _row[columnName]
-                           ).Count() > 1 //重複していたら、２つ以上見つかる
-                           select row;
-
-            DataTable dt_overlap = new DataTable();
-            if (dr_array.Count() > 0)
-            {
-                dt_overlap = dr_array.CopyToDataTable();
-            }
-
-            return dt_overlap;
-        }
-
         private IEnumerable OrderMapping(DataTable itemMapped, IEnumerable merged)
         {
             return null;
         }
+
         private IEnumerable CodeMapping(DataTable itemMapped, IEnumerable merged)
         {
             return null;
         }
 
-        /*
-        private IEnumerable CsvMapping(DataTable dst, IEnumerable<ItemMap> merged, DataTable hdr, DataTable humanInfo)
-        {
-            Dictionary<string, string> dic = merged.ToDictionary();
-
-            dst.Rows[]
-
-            return null;
-        }
-        */
 
         /// <summary>
         /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
@@ -698,28 +604,28 @@ namespace ConvertDaiwaForBPF
             hdt.Columns.Add("個人番号", typeof(string));
 
             hdt.Rows.Add(
-                    hrow["組合C"].ToString().Trim(),
-                    hrow["健診基本情報管理番号"].ToString().Trim(),
-                    hrow["健診実施日"].ToString().Trim(),
-                    hrow["個人番号"].ToString().Trim()
+                    hrow["組合C"].ToString(),
+                    hrow["健診基本情報管理番号"].ToString(),
+                    hrow["健診実施日"].ToString(),
+                    hrow["個人番号"].ToString()
                 );
 
             //TDLとHDRを結合して取得
             var merged =
                     from h in hdt.AsEnumerable()
-                    join d in tdlTable.AsEnumerable() on h.Field<string>("組合C").Trim() equals d.Field<string>("組合C").Trim()
+                    join d in tdlTable.AsEnumerable() on h.Field<string>("組合C") equals d.Field<string>("組合C")
                     where
-                        h.Field<string>("健診基本情報管理番号").Trim() == d.Field<string>("健診基本情報管理番号").Trim()
-                        && d.Field<string>("削除フラグ").Trim() == "0"
-                        && d.Field<string>("未実施FLG").Trim() == "0"
-                        && d.Field<string>("測定不能FLG").Trim() == "0"
+                        h.Field<string>("健診基本情報管理番号") == d.Field<string>("健診基本情報管理番号")
+                        && d.Field<string>("削除フラグ") == "0"
+                        && d.Field<string>("未実施FLG") == "0"
+                        && d.Field<string>("測定不能FLG") == "0"
                     select new MergedMap
                     {
                         //ヘッダー情報は、人事データ結合時に処理する。
-                        KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
-                        KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
-                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
-                        Value = (d.Field<string>("結果値データタイプ").Trim() == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
+                        KensakoumokuCode = d.Field<string>("検査項目コード"),
+                        KensakoumokuName = d.Field<string>("検査項目名称"),
+                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号"),
+                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値"),
                     };
             //UtilCsv csv = new UtilCsv();
             //csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
@@ -760,15 +666,6 @@ namespace ConvertDaiwaForBPF
         }
         */
  
-        /// <summary>
-        /// 文字列が符号ありの小数かどうかを判定します
-        /// </summary>
-        /// <param name="target">対象の文字列</param>
-        /// <returns>文字列が符号ありの小数の場合はtrue、それ以外はfalse</returns>
-        public static bool IsDecimal(string target)
-        {
-            return new Regex("^[-+]?[0-9]*\\.?[0-9]+$").IsMatch(target);
-        }
 
         /// <summary>
         /// 種別と検査値の判定をします
@@ -812,18 +709,6 @@ namespace ConvertDaiwaForBPF
                                 //エラーの場合空白として出力
                                 return false;
                             }
-                        }
-                    }
-                    break;
-
-                case "年月日":
-                    {
-                        DateTime d;
-
-                        if (!DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
-                        {
-                            //エラーの場合空白として出力
-                            return false;
                         }
                     }
                     break;
