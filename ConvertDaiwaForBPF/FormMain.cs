@@ -45,7 +45,7 @@ namespace ConvertDaiwaForBPF
                 textBox_Log.SelectionStart = textBox_Log.Text.Length;
                 textBox_Log.SelectionLength = 0;
                 textBox_Log.SelectedText = str;
-                Debug.WriteLine(str);
+                //Debug.WriteLine(str);
             }
         }
 

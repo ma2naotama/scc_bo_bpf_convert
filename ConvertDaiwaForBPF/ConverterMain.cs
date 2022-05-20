@@ -180,7 +180,7 @@ namespace ConvertDaiwaForBPF
                     i++;
 
                     //テスト用、１ユーザー分でやめる
-                    break;
+                    //break;
                 }
 
                 //出力情報から全レコードの書き出し
@@ -405,7 +405,7 @@ namespace ConvertDaiwaForBPF
             //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
 
             //TODO:個人番号をセット
-            outputrow[5] = hrow["個人番号"].ToString();    //仮
+            outputrow[5] = userID;    //仮
 
             //項目マッピング処理
 
@@ -519,6 +519,8 @@ namespace ConvertDaiwaForBPF
                     }
                     catch(Exception ex)
                     {
+                        Dbg.Error(ex.ToString());
+
                         //エラー表示
                         Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
                             , userID
@@ -855,5 +857,41 @@ namespace ConvertDaiwaForBPF
 
             return true;
         }
+
+
+        bool TestConvertMain(DataRow hrow, DataTable TdlTbl)
+        {
+            var userID = hrow["個人番号"].ToString();
+
+            //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
+            var userdata = JoinHdrWithTdl(hrow, TdlTbl)
+                        .ToArray();
+
+            if (userdata.Count() <= 0)
+            {
+                //結合した結果データが無い
+                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+
+                //次のユーザーへ
+                return true;
+            }
+
+            //出力情報の一行分作成
+            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+
+            //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
+
+            //TODO:個人番号をセット
+            outputrow[5] = userID;    //仮
+
+            // CSV出力情報に追加
+            mOutputCsv.Rows.Add(outputrow);
+
+            outputrow = null;
+
+            //次のユーザー
+            return true;
+        }
+
     }
 }
