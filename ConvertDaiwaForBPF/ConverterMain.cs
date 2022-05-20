@@ -446,7 +446,7 @@ namespace ConvertDaiwaForBPF
             //項目マッピング処理
 
             //オーダーマッピング（特定の検査項目コードの絞込）
-            userdata = OrderMapping(ref userdata, mOrderMap, userID);
+            userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
 
             bool requestFiledError = false;
 
@@ -661,7 +661,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="ordermap"></param>
         /// <param name="userID"></param>
         /// <returns></returns>
-        private MergedMap[] OrderMapping(ref MergedMap[] merged, DataRow[] ordermap, string userID)
+        private MergedMap[] OrderMapping(ref MergedMap[] merged, ref DataRow[] ordermap, string userID)
         {
             /* -------
              * 元のSQL
