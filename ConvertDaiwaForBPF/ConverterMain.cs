@@ -655,6 +655,14 @@ namespace ConvertDaiwaForBPF
 
         }
 
+        /// <summary>
+        /// オーダーマッピング処理
+        /// 優先度が高い検査項目コードだけ残す
+        /// </summary>
+        /// <param name="merged"></param>
+        /// <param name="ordermap"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>
         private MergedMap[] OrderMapping(ref MergedMap[] merged, DataRow[] ordermap, string userID)
         {
             /* -------
@@ -745,7 +753,10 @@ namespace ConvertDaiwaForBPF
                     }
 
                     //ユーザーデータから優先度の低いものを削除
-                    merged = merged.Except(remove).ToArray();
+                    if(remove.Count>0)
+                    {
+                        merged = merged.Except(remove).ToArray();
+                    }
                 }
                 catch (Exception ex)
                 {
