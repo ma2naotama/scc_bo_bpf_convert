@@ -30,13 +30,13 @@ namespace ConvertDaiwaForBPF
             return mInstance;
         }
 
-        public void WriteLog(String logText)
+        public void ViewLog(String logText)
         {
             if (textBox_Log.InvokeRequired)
             {
                 //別スレッドから呼び出されるとエラーになる為、スレッドセーフな処理にする
-                //メッセージに(THREAD)を付け足して、再起呼び出し
-                Action safeWrite = delegate { WriteLog($"{logText}"); };
+                //再起呼び出し
+                Action safeWrite = delegate { ViewLog($"{logText}"); };
                 textBox_Log.Invoke(safeWrite);
             }
             else

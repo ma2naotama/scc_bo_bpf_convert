@@ -30,7 +30,7 @@ namespace ConvertDaiwaForBPF
                 return;
             }
 
-            main.WriteLog(logText);
+            main.ViewLog(logText);
         }
 
 

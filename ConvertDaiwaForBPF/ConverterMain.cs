@@ -22,15 +22,21 @@ namespace ConvertDaiwaForBPF
         //設定ファイル
         private DataSet mMasterSheets = null;
 
-        //項目マッピングの行
+        //項目マッピング
         private DataRow[] mItemMap = null;
+
+        //オーダーマッピング
+        private DataRow[] mOrderMap = null;
+
+        //コードマッピング
+        private DataRow[] mCordMap = null;
 
         //出力情報
         private DataTable mOutputCsv = null;
 
 
         //健診ヘッダーと健診データの結合用
-        private class MergedMap
+        private class MergedMap// : object
         {
             //public string userId { get; set; }                  //個人番号
 
@@ -110,7 +116,10 @@ namespace ConvertDaiwaForBPF
             mPathHR = pathHR;
             mPathOutput = pathOutput;
 
-            mItemMap = null;
+            mItemMap  = null;
+            mOrderMap = null;
+            mCordMap  = null;
+
             mOutputCsv = null;
 
             Cancel = false;
@@ -144,15 +153,15 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
-                DataRow[] hdrRows = GetActiveUsers(hdrTbl);
-                if (hdrRows == null)
+                DataRow[] hdrUsers = GetActiveUsers(hdrTbl);
+                if (hdrUsers == null)
                 {
                     return 0;
                 }
 
                 //一ユーザー毎に処理する
                 int i = 0;
-                foreach (var hrow in hdrRows)
+                foreach (var hrow in hdrUsers)
                 {
                     //キャンセル
                     if (Cancel)
@@ -169,8 +178,9 @@ namespace ConvertDaiwaForBPF
                     }
 
                     i++;
-                    //テスト用
-                    //break;
+
+                    //テスト用、１ユーザー分でやめる
+                    break;
                 }
 
                 //出力情報から全レコードの書き出し
@@ -233,6 +243,18 @@ namespace ConvertDaiwaForBPF
                 //Dbg.Log("" + row["列順"]);
                 mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
             }
+
+
+            //オーダーマッピング初期化
+            mOrderMap = mMasterSheets.Tables["オーダーマッピング"].AsEnumerable()
+                  .Where(x => x["検査項目コード"].ToString() != "")
+                  .ToArray();
+
+
+            //コードマッピング初期化
+            mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
+                  .Where(x => x["コードID"].ToString() != "")
+                  .ToArray();
 
             //次の処理へ
             return true;
@@ -362,8 +384,12 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         bool ConvertMain(DataRow hrow, DataTable TdlTbl)
         {
+            var userID = hrow["個人番号"].ToString();
+
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var merged = JoinHdrWithTdl(hrow, TdlTbl);
+            var merged = JoinHdrWithTdl(hrow, TdlTbl)
+                        .ToArray();
+
             if (merged.Count() <= 0)
             {
                 //結合した結果データが無い
@@ -383,8 +409,8 @@ namespace ConvertDaiwaForBPF
 
             //項目マッピング処理
 
-            //TODO:オーダーマッピング（特定の検査項目コードの絞込）
-            //OrderMapping(itemSheet, itemMapped);
+            //オーダーマッピング（特定の検査項目コードの絞込）
+            var newmerged = OrderMapping(ref merged, mOrderMap, userID);
 
             //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
 
@@ -566,12 +592,107 @@ namespace ConvertDaiwaForBPF
 
         }
 
-        private IEnumerable OrderMapping(DataTable itemMapped, IEnumerable merged)
+        private MergedMap[] OrderMapping(ref MergedMap[] merged, DataRow[] ordermap, string userID)
         {
-            return null;
+            /* -------
+             * 元のSQL
+             * -------
+                select
+                    top 1 値 
+                from
+                    10_検査結果 
+                where
+                    組合C = h.組合C 
+                    and 健診基本情報管理番号 = h.健診基本情報管理番号 
+                    and JLAC10 in ( 
+                        '9A751000000000001'
+                        , '9A752000000000001'
+                        , '9A755000000000001'
+                    ) 
+                order by
+                    JLAC10
+             */
+
+            /*
+            var inOrder = new string[][] {
+                 new string[]{
+                    "9A751000000000001",    //血圧 収縮期 1回目
+                    "9A752000000000001",    //血圧 収縮期 2回目
+                    "9A755000000000001"     //血圧 収縮期 3回目
+                 }
+                ,
+                new string[] {
+                    "9A761000000000001",    //血圧 拡張期 1回目
+                    "9A762000000000001",    //血圧 拡張期 2回目
+                    "9A765000000000001"     //血圧 拡張期 3回目
+                 }
+            };
+            */
+
+            //上記、カテゴリー別のstring 配列を動的生成 
+            var inOrder = ordermap.AsEnumerable()
+                    .Where(x => x.Field<string>("検査項目コード") != "")
+                    .GroupBy( x => new
+                    {
+                        category = x.Field<string>("カテゴリー"),
+                    })
+                    .Select(x => new {
+                        category = x.Key.category,
+                        code = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
+                    });
+
+            foreach(var order in inOrder)
+            {
+                // IN句の条件
+                /*
+                var inCause = new string[] {
+                    "9A751000000000001",    //血圧 収縮期 1回目
+                    "9A752000000000001",    //血圧 収縮期 2回目
+                    "9A755000000000001"     //血圧 収縮期 3回目
+                    };
+                */
+
+                //IN句を動的生成
+                var inCause = order.code;
+
+                //ユーザーデータから抽出
+                try
+                {
+                    //Dbg.ViewLog("category:" + order.category);
+
+                    var userdataArray = merged.AsEnumerable()
+                        .Where(x => inCause.Contains(x.KensakoumokuCode))
+                        .OrderBy(x => x.KensakoumokuCode)
+                        .ToArray();
+
+                    var  remove = new List<MergedMap>();
+
+                    int i =0;
+                    foreach (var o in userdataArray)
+                    {
+                        if (i>=1)
+                        {
+                            //Dbg.ViewLog("code:" + o.KensakoumokuCode + " v:" + o.Value);
+                            remove.Add(o);
+                        }
+                        i++;
+                    }
+
+                    //ユーザーデータから優先度の低いものを削除
+                    merged = merged.Except(remove).ToArray();
+                }
+                catch (Exception ex)
+                {
+                    Dbg.ErrorWithView(Properties.Resources.E_ORDERMAPPING_FILED, userID);
+                    throw ex;
+                }
+            }
+
+
+            return merged;
         }
 
-        private IEnumerable CodeMapping(DataTable itemMapped, IEnumerable merged)
+        private IEnumerable CodeMapping(IEnumerable<MergedMap> merged, DataRow[] cordmap)
         {
             return null;
         }
@@ -622,11 +743,12 @@ namespace ConvertDaiwaForBPF
                     select new MergedMap
                     {
                         //ヘッダー情報は、人事データ結合時に処理する。
-                        KensakoumokuCode = d.Field<string>("検査項目コード"),
-                        KensakoumokuName = d.Field<string>("検査項目名称"),
-                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号"),
-                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値"),
+                        KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
+                        KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
+                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
+                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
                     };
+
             //UtilCsv csv = new UtilCsv();
             //csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
 

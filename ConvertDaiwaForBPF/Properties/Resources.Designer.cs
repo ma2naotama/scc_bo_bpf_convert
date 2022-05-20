@@ -133,6 +133,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_ORDERMAPPING_FILED {
+            get {
+                return ResourceManager.GetString("E_ORDERMAPPING_FILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診ヘッダーが読めませんでした。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_READFAILED_HDR {
