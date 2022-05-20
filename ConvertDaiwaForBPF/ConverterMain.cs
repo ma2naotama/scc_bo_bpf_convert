@@ -443,15 +443,12 @@ namespace ConvertDaiwaForBPF
 
             //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
 
-            //TODO:個人番号をセット
-            outputrow[5] = userID;    //仮
-
             //項目マッピング処理
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             userdata = OrderMapping(ref userdata, mOrderMap, userID);
 
-            //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
+            bool requestFiledError = false;
 
             //必要な検査項目コード分ループ
             foreach (var row in mItemMap)
@@ -466,6 +463,18 @@ namespace ConvertDaiwaForBPF
 
                 string value = "";
 
+                //6列目は、個人番号をセット（仮）
+                if (index == 6)
+                {
+                    value = userID;
+                }
+
+                //13列目は、必ず受診日が入る（仮）
+                if (index == 13)
+                {
+                    value = hrow["健診実施日"].ToString();
+                }
+
                 //固定値
                 string fixvalue = row.Field<string>("固定値").Trim();
                 if (fixvalue != "")
@@ -473,40 +482,28 @@ namespace ConvertDaiwaForBPF
                     value = fixvalue;
                 }
 
-                //13列目は、必ず受診日が入る
-                if (index == 13)
-                {
-                    value = hrow["健診実施日"].ToString();
-                }
-
                 //検査項目コードの検索
                 if (value == "")
                 {
-                    if (row.Field<string>("検査項目コード") == "")
+                    if (row.Field<string>("検査項目コード") != "")
                     {
-                        continue;
+                        //ユーザーデータから抽出
+                        var requestcord = userdata.AsEnumerable()
+                                .Where(x => x.KensakoumokuCode == row.Field<string>("検査項目コード"));
+                                //.ToArray();
+
+                        if (requestcord != null)
+                        {
+                            if (requestcord.Count() > 0)
+                            {
+                                var useritem = requestcord.First();
+
+                                //検査値
+                                value = useritem.Value;
+                                //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
+                            }
+                        }
                     }
-
-                    //ユーザーデータから抽出
-                    var requestcord = userdata.AsEnumerable()
-                            .Where(x => x.KensakoumokuCode == row.Field<string>("検査項目コード"));
-                            //.ToArray();
-
-                    if (requestcord == null)
-                    {
-                        continue;
-                    }
-
-                    if (requestcord.Count() == 0)
-                    {
-                        continue;
-                    }
-
-                    var useritem = requestcord.First();
-
-                    //検査値
-                    value = useritem.Value;
-                    //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
                 }
 
 
@@ -570,24 +567,25 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
-
                 //必須項目確認
-                if (request == "〇" && value == "")
+                if (request == "○" && value == "")
                 {
                     //必須項目に値が無い場合は、そのデータを作成しない。
                     Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
-                    outputrow = null;
 
-                    //次のユーザー
-                    return true;
+                    requestFiledError = true;
                 }
 
                 //出力情報に指定列順で値をセット
                 outputrow[index - 1] = value;
             }
 
-            // CSV出力情報に追加
-            mOutputCsv.Rows.Add(outputrow);
+            //必須項目にエラーがあるユーザーはデータを作成しない。
+            if (!requestFiledError)
+            {
+                // CSV出力情報に追加
+                mOutputCsv.Rows.Add(outputrow);
+            }
 
             outputrow = null;
 
