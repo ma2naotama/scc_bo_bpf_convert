@@ -58,6 +58,8 @@ namespace ConvertDaiwaForBPF
             {
                 // 異常終了した場合の例外処理
                 Dbg.ErrorWithView("RunMultiThread エラー：" + ex.ToString());
+
+                throw ex;
             }
 
         }

@@ -70,6 +70,24 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   受診者の重複があります。重複件数：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPICATE_USERS_COUNT {
+            get {
+                return ResourceManager.GetString("E_DUPICATE_USERS_COUNT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPICATE_USERS_INFO {
+            get {
+                return ResourceManager.GetString("E_DUPICATE_USERS_INFO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データが重複しています。個人番号：{0}　受信日：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USER {
@@ -88,7 +106,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査値が種別と合っていません。 項目名：{0}　種別：{1}　 検査値：{2} に類似しているローカライズされた文字列を検索します。
+        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_ITEM_TYPE_MISMATCH {
             get {
@@ -133,7 +151,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   必須項目に値がありません。項目名：{0} に類似しているローカライズされた文字列を検索します。
+        ///   必須項目に値がありません。個人番号：{0}　項目名：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NOT_REQUIRED_FIELD {
             get {

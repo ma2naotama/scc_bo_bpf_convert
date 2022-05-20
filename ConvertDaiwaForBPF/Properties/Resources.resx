@@ -120,6 +120,12 @@
   <data name="E_CORDMAPPING_FILED" xml:space="preserve">
     <value>コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1}</value>
   </data>
+  <data name="E_DUPICATE_USERS_COUNT" xml:space="preserve">
+    <value>受診者の重複があります。重複件数：{0}</value>
+  </data>
+  <data name="E_DUPICATE_USERS_INFO" xml:space="preserve">
+    <value>重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2}</value>
+  </data>
   <data name="E_DUPLICATE_USER" xml:space="preserve">
     <value>健診データが重複しています。個人番号：{0}　受信日：{1}</value>
   </data>
@@ -130,13 +136,13 @@
     <value>項目マッピングの順列の最大値と項目数（個数）が合っていません。</value>
   </data>
   <data name="E_ITEM_TYPE_MISMATCH" xml:space="preserve">
-    <value>検査値が種別と合っていません。 項目名：{0}　種別：{1}　 検査値：{2}</value>
+    <value>検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}</value>
   </data>
   <data name="E_MERGED_DATA_IS_EMPTY" xml:space="preserve">
     <value>結合したデータが空です。</value>
   </data>
   <data name="E_NOT_REQUIRED_FIELD" xml:space="preserve">
-    <value>必須項目に値がありません。項目名：{0}</value>
+    <value>必須項目に値がありません。個人番号：{0}　項目名：{1}</value>
   </data>
   <data name="E_NO_TDLDATA" xml:space="preserve">
     <value>健診データに該当ユーザーがいません。個人番号：{0}</value>

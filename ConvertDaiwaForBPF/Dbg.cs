@@ -1,6 +1,7 @@
 ﻿using ConvertDaiwaForBPF;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,11 +64,23 @@ namespace ConvertDaiwaForBPF
         }
 
         //ログ画面への表示とerror log ファイルへの書き出し
-        public static void ErrorWithView(string errormsg, params string[] args)
+        public static void ErrorWithView(string errormsg = null, string resourcename = null, params string[] args)
         {
-            string logText = string.Format(errormsg, args);
+            if(resourcename!=null)
+            { 
+                System.Resources.ResourceManager resource = Properties.Resources.ResourceManager;
 
-            ViewLog(logText);
+                errormsg = errormsg + "[" + resourcename +"]"+ resource.GetString(resourcename);
+            }
+
+            ViewLog(string.Format(errormsg, args));
+
+            var stackFrames = new StackTrace().GetFrames();
+            var callingframe = stackFrames.ElementAt(1);
+
+            var method = callingframe.GetMethod().Name;
+
+            string logText = string.Format("[" + method +"]"+ errormsg, args);
 
             _logger.Error(logText);
         }

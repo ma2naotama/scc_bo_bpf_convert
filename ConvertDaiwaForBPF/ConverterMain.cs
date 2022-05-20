@@ -229,7 +229,7 @@ namespace ConvertDaiwaForBPF
             mMasterSheets = ReadMasterFile(path);
             if (mMasterSheets == null)
             {
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
+                Dbg.ErrorWithView(null, "E_READFAILED_MASTER", path);
                 return false;
             }
 
@@ -241,7 +241,7 @@ namespace ConvertDaiwaForBPF
             //項目マッピングの順列の最大値と項目数（個数）の確認
             if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
             {
-                Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
+                Dbg.ErrorWithView(null, "E_ITEMMAPPING_INDEX_FAILE");
                 return false;
             }
 
@@ -315,14 +315,14 @@ namespace ConvertDaiwaForBPF
             if (tbl == null)
             {
                 //中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
+                Dbg.ErrorWithView(null, "E_READFAILED_HDR");
                 return null;
             }
 
             if (tbl.Rows.Count == 0)
             {
                 //中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
+                Dbg.ErrorWithView(null, "E_READFAILED_HDR");
                 return null;
             }
 
@@ -349,14 +349,14 @@ namespace ConvertDaiwaForBPF
             if (tbl == null)
             {
                 //中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
+                Dbg.ErrorWithView(null, "E_READFAILED_TDL");
                 return null;
             }
 
             if (tbl.Rows.Count == 0)
             {
                 //中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
+                Dbg.ErrorWithView(null, "E_READFAILED_TDL");
                 return null;
             }
 
@@ -379,7 +379,7 @@ namespace ConvertDaiwaForBPF
 
             if (hdrRows.Length <= 0)
             {
-                Dbg.ErrorWithView(Properties.Resources.E_HDR_IS_EMPTY);
+                Dbg.ErrorWithView(null, "E_HDR_IS_EMPTY");
                 return null;
             }
 
@@ -395,19 +395,19 @@ namespace ConvertDaiwaForBPF
                            ).Count() > 1 //重複していたら、２つ以上見つかる
                            select row;
 
-            //DataTableが大きすぎるとここで処理が終わらない事がある。
-            //※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+            //DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
             int overlapcount = dr_array.Count();
-
             if (overlapcount > 0)
             {
-                Dbg.Warn("受診者の重複件数：" + overlapcount);
+                Dbg.ErrorWithView(null, "E_DUPICATE_USERS_COUNT"
+                        , overlapcount.ToString());
+
                 foreach (var row in dr_array)
                 {
-                    Dbg.Warn("重複個人番号：{0} 健診実施日:{1} 健診実施機関名称:{2}"
+                    Dbg.ErrorWithView(null, "E_DUPICATE_USERS_INFO"
                         , row["個人番号"].ToString()
                         , row["健診実施日"].ToString()
-                        , row["健診実施機関名称"].ToString());
+                        , row["健診実施機関名称"].ToString().Trim());
                 }
             }
 
@@ -432,7 +432,7 @@ namespace ConvertDaiwaForBPF
             if (userdata.Count() <= 0)
             {
                 //結合した結果データが無い
-                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+                Dbg.ErrorWithView(null, "E_MERGED_DATA_IS_EMPTY");
 
                 //次のユーザーへ
                 return true;
@@ -466,13 +466,13 @@ namespace ConvertDaiwaForBPF
                 //6列目は、個人番号をセット（仮）
                 if (index == 6)
                 {
-                    value = userID;
+                    //value = userID;
                 }
 
                 //13列目は、必ず受診日が入る（仮）
                 if (index == 13)
                 {
-                    value = hrow["健診実施日"].ToString();
+                    //value = hrow["健診実施日"].ToString();
                 }
 
                 //固定値
@@ -512,7 +512,11 @@ namespace ConvertDaiwaForBPF
 
                 if (value != "" && !CheckMappingType(type, value))
                 {
-                    Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+                    Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                        , userID
+                        , row.Field<string>("項目名")
+                        , type
+                        , value);
 
                     //エラーの場合空にする
                     value = "";
@@ -531,7 +535,8 @@ namespace ConvertDaiwaForBPF
                     else
                     {
                         //エラー表示
-                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH
+                        Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                            , userID
                             , row.Field<string>("項目名")
                             , type
                             , value);
@@ -558,9 +563,9 @@ namespace ConvertDaiwaForBPF
                         Dbg.Error(ex.ToString());
 
                         //エラー表示
-                        Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
-                            , userID
-                            , codeid);
+                        Dbg.ErrorWithView(null, "E_CORDMAPPING_FILED"
+                            ,userID
+                            ,codeid);
 
                         //エラーの場合空にする
                         value = "";
@@ -571,7 +576,9 @@ namespace ConvertDaiwaForBPF
                 if (request == "○" && value == "")
                 {
                     //必須項目に値が無い場合は、そのデータを作成しない。
-                    Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
+                    Dbg.ErrorWithView(null, "E_NOT_REQUIRED_FIELD"
+                        ,userID
+                        ,row.Field<string>("項目名"));
 
                     requestFiledError = true;
                 }
@@ -758,7 +765,8 @@ namespace ConvertDaiwaForBPF
                 }
                 catch (Exception ex)
                 {
-                    Dbg.ErrorWithView(Properties.Resources.E_ORDERMAPPING_FILED, userID);
+                    Dbg.ErrorWithView(null, "E_ORDERMAPPING_FILED"
+                        , userID);
                     throw ex;
                 }
             }
@@ -921,7 +929,7 @@ namespace ConvertDaiwaForBPF
             if (userdata.Count() <= 0)
             {
                 //結合した結果データが無い
-                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+                Dbg.ErrorWithView(null, "E_MERGED_DATA_IS_EMPTY");
 
                 //次のユーザーへ
                 return true;
