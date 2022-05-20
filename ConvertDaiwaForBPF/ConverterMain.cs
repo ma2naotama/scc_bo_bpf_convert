@@ -36,7 +36,7 @@ namespace ConvertDaiwaForBPF
 
 
         //健診ヘッダーと健診データの結合用
-        private class MergedMap// : object
+        private class MergedMap
         {
             //public string userId { get; set; }                  //個人番号
 
@@ -50,6 +50,14 @@ namespace ConvertDaiwaForBPF
 
             public string Value { get; set; }
         }
+
+        private class OrderArray
+        {
+            public string Category { get; set; }
+            public string[] KensakoumokuCodeArray { get; set; }
+        }
+
+        private OrderArray[] mOrderArray = null;
 
         /*
         //設定ファイルの項目マッピングから、検査項目コードで抽出した結果
@@ -119,6 +127,7 @@ namespace ConvertDaiwaForBPF
             mItemMap  = null;
             mOrderMap = null;
             mCordMap  = null;
+            mOrderArray = null;
 
             mOutputCsv = null;
 
@@ -171,8 +180,9 @@ namespace ConvertDaiwaForBPF
 
                     //変換処理
                     Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
+                    var h = hrow;
 
-                    if (!ConvertMain(hrow, tdlTbl))
+                    if (!ConvertMain(ref h, ref tdlTbl))
                     {
                         return 0;
                     }
@@ -250,6 +260,35 @@ namespace ConvertDaiwaForBPF
                   .Where(x => x["検査項目コード"].ToString() != "")
                   .ToArray();
 
+            /*
+            var inOrder = new string[][] {
+                    new string[]{
+                    "9A751000000000001",    //血圧 収縮期 1回目
+                    "9A752000000000001",    //血圧 収縮期 2回目
+                    "9A755000000000001"     //血圧 収縮期 3回目
+                    }
+                ,
+                new string[] {
+                    "9A761000000000001",    //血圧 拡張期 1回目
+                    "9A762000000000001",    //血圧 拡張期 2回目
+                    "9A765000000000001"     //血圧 拡張期 3回目
+                    }
+            };
+            */
+
+            //上記、カテゴリー別のstring 配列を動的生成 
+            mOrderArray = mOrderMap.AsEnumerable()
+                    .Where(x => x.Field<string>("検査項目コード") != "")
+                    .GroupBy(x => new
+                    {
+                        category = x.Field<string>("カテゴリー"),
+                    })
+                    .Select(x => new OrderArray
+                    {
+                        Category = x.Key.category,
+                        KensakoumokuCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray()
+                    })
+                    .ToArray();
 
             //コードマッピング初期化
             mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
@@ -382,12 +421,12 @@ namespace ConvertDaiwaForBPF
         /// <param name="hrow"></param>
         /// <param name="TdlTbl"></param>
         /// <returns></returns>
-        bool ConvertMain(DataRow hrow, DataTable TdlTbl)
+        bool ConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
         {
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = JoinHdrWithTdl(hrow, TdlTbl)
+            var userdata = JoinHdrWithTdl(ref hrow, ref TdlTbl)
                         .ToArray();
 
             if (userdata.Count() <= 0)
@@ -652,7 +691,7 @@ namespace ConvertDaiwaForBPF
                  }
             };
             */
-
+            /*
             //上記、カテゴリー別のstring 配列を動的生成 
             var inOrder = ordermap.AsEnumerable()
                     .Where(x => x.Field<string>("検査項目コード") != "")
@@ -660,12 +699,15 @@ namespace ConvertDaiwaForBPF
                     {
                         category = x.Field<string>("カテゴリー"),
                     })
-                    .Select(x => new {
-                        category = x.Key.category,
-                        code = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
+                    .Select(x => new OrderMap
+                    {
+                        Category = x.Key.category,
+                        KensakoumokuCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
                     });
+            */
 
-            foreach(var order in inOrder)
+
+            foreach(var order in mOrderArray)
             {
                 // IN句の条件
                 /*
@@ -677,7 +719,7 @@ namespace ConvertDaiwaForBPF
                 */
 
                 //IN句を動的生成
-                var inCause = order.code;
+                var inCause = order.KensakoumokuCodeArray;
 
                 //ユーザーデータから抽出
                 try
@@ -723,7 +765,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
         /// <returns>１ユーザー分の検査項目一覧</returns>
-        private IEnumerable<MergedMap> JoinHdrWithTdl(DataRow hrow, DataTable tdlTable)
+        private IEnumerable<MergedMap> JoinHdrWithTdl(ref DataRow hrow, ref DataTable tdlTable)
         {
             /*
             .Join(
@@ -859,12 +901,12 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        bool TestConvertMain(DataRow hrow, DataTable TdlTbl)
+        bool TestConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
         {
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = JoinHdrWithTdl(hrow, TdlTbl)
+            var userdata = JoinHdrWithTdl(ref hrow, ref TdlTbl)
                         .ToArray();
 
             if (userdata.Count() <= 0)
