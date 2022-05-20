@@ -61,6 +61,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_CORDMAPPING_FILED {
+            get {
+                return ResourceManager.GetString("E_CORDMAPPING_FILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データが重複しています。個人番号：{0}　受信日：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USER {

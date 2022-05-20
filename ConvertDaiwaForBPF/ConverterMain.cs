@@ -387,10 +387,10 @@ namespace ConvertDaiwaForBPF
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var merged = JoinHdrWithTdl(hrow, TdlTbl)
+            var userdata = JoinHdrWithTdl(hrow, TdlTbl)
                         .ToArray();
 
-            if (merged.Count() <= 0)
+            if (userdata.Count() <= 0)
             {
                 //結合した結果データが無い
                 Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
@@ -410,7 +410,7 @@ namespace ConvertDaiwaForBPF
             //項目マッピング処理
 
             //オーダーマッピング（特定の検査項目コードの絞込）
-            var newmerged = OrderMapping(ref merged, mOrderMap, userID);
+            userdata = OrderMapping(ref userdata, mOrderMap, userID);
 
             //項目マッピングから該当する検査項目コード一覧を抽出（複数の検査項目コードも抽出される）
 
@@ -425,7 +425,7 @@ namespace ConvertDaiwaForBPF
 
                 int index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
 
-                string value = null;
+                string value = "";
 
                 //固定値
                 string fixvalue = row.Field<string>("固定値").Trim();
@@ -441,7 +441,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //検査項目コードの検索
-                if (value == null)
+                if (value == "")
                 {
                     if (row.Field<string>("検査項目コード") == "")
                     {
@@ -449,21 +449,21 @@ namespace ConvertDaiwaForBPF
                     }
 
                     //ユーザーデータから抽出
-                    var userdataArray = merged.AsEnumerable()
+                    var requestcord = userdata.AsEnumerable()
                             .Where(x => x.KensakoumokuCode == row.Field<string>("検査項目コード"));
                             //.ToArray();
 
-                    if (userdataArray == null)
+                    if (requestcord == null)
                     {
                         continue;
                     }
 
-                    if (userdataArray.Count() == 0)
+                    if (requestcord.Count() == 0)
                     {
                         continue;
                     }
 
-                    var useritem = userdataArray.First();
+                    var useritem = requestcord.First();
 
                     //検査値
                     value = useritem.Value;
@@ -474,7 +474,7 @@ namespace ConvertDaiwaForBPF
                 //種別のチェック
                 string type = row.Field<string>("種別").Trim();
 
-                if (value != null && !CheckMappingType(type, value))
+                if (value != "" && !CheckMappingType(type, value))
                 {
                     Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
 
@@ -483,7 +483,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //日付の変更
-                if (value != null && type == "年月日")
+                if (value != "" && type == "年月日")
                 {
                     //年月日の変換
                     DateTime d;
@@ -495,28 +495,50 @@ namespace ConvertDaiwaForBPF
                     else
                     {
                         //エラー表示
-                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH, row.Field<string>("項目名"), type, value);
+                        Dbg.ErrorWithView(Properties.Resources.E_ITEM_TYPE_MISMATCH
+                            , row.Field<string>("項目名")
+                            , type
+                            , value);
 
                         //エラーの場合空にする
                         value = "";
                     }
                 }
 
-                //TODO:コードマッピング（属性が「コード」の場合、値の置換）
-                //CodeMapping(itemMapped,itemSheet);
+                //コードマッピング（属性が「コード」の場合、値の置換）
+                if(value != "" &&  row.Field<string>("属性") == "コード")
+                {
+                    var codeid = row.Field<string>("コードID").Trim();
+                    
+                    try
+                    {
+                        value = mCordMap.AsEnumerable()
+                            .Where(x => x.Field<string>("コードID") == codeid && x.Field<string>("コード") == value)
+                            .Select(x => x.Field<string>("値"))
+                            .First();
+                    }
+                    catch(Exception ex)
+                    {
+                        //エラー表示
+                        Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
+                            , userID
+                            , codeid);
+
+                        //エラーの場合空にする
+                        value = "";
+                    }
+                }
+
 
                 //必須項目確認
-                if (request == "〇")
+                if (request == "〇" && value == "")
                 {
-                    if (value == null)
-                    {
-                        //必須項目に値が無い場合は、そのデータを作成しない。
-                        Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
-                        outputrow = null;
+                    //必須項目に値が無い場合は、そのデータを作成しない。
+                    Dbg.ErrorWithView(Properties.Resources.E_NOT_REQUIRED_FIELD, row.Field<string>("項目名"));
+                    outputrow = null;
 
-                        //次のユーザー
-                        return true;
-                    }
+                    //次のユーザー
+                    return true;
                 }
 
                 //出力情報に指定列順で値をセット
@@ -690,11 +712,6 @@ namespace ConvertDaiwaForBPF
 
 
             return merged;
-        }
-
-        private IEnumerable CodeMapping(IEnumerable<MergedMap> merged, DataRow[] cordmap)
-        {
-            return null;
         }
 
 
