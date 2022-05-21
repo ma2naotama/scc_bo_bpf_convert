@@ -470,13 +470,13 @@ namespace ConvertDaiwaForBPF
                 //6列目は、個人番号をセット（仮）
                 if (index == 6)
                 {
-                    //value = userID;
+                    value = userID;
                 }
 
                 //13列目は、必ず受診日が入る（仮）
                 if (index == 13)
                 {
-                    //value = hrow["健診実施日"].ToString();
+                    value = hrow["健診実施日"].ToString();
                 }
 
                 //固定値
@@ -489,11 +489,13 @@ namespace ConvertDaiwaForBPF
                 //検査項目コードの検索
                 if (value == "")
                 {
-                    if (row.Field<string>("検査項目コード") != "")
+                    string inspectcord = row.Field<string>("検査項目コード").Trim();
+
+                    if (inspectcord != "")
                     {
                         //ユーザーデータから抽出
                         var requestcord = userdata.AsEnumerable()
-                                .Where(x => x.InspectionItemCode == row.Field<string>("検査項目コード").Trim());
+                                .Where(x => x.InspectionItemCode == inspectcord);
                                 //.ToArray();
 
                         if (requestcord != null)
@@ -555,15 +557,16 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //コードマッピング（属性が「コード」の場合、値の置換）
-                if(value != "" &&  row.Field<string>("属性") == "コード")
+                if(value != "" && row.Field<string>("属性") == "コード")
                 {
                     var codeid = row.Field<string>("コードID").Trim();
                     
                     try
                     {
+                        //コードマッピングから抽出
                         value = mCordMap.AsEnumerable()
-                            .Where(x => x.Field<string>("コードID") == codeid && x.Field<string>("コード") == value)
-                            .Select(x => x.Field<string>("値"))
+                            .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("コード").Trim() == value)
+                            .Select(x => x.Field<string>("値").Trim())
                             .First();
                     }
                     catch(Exception ex)
@@ -588,6 +591,7 @@ namespace ConvertDaiwaForBPF
                         ,userID
                         ,row.Field<string>("項目名"));
 
+                    //必須項目でエラーの場合はフラグを立てる
                     requestFiledError = true;
                 }
 
@@ -595,7 +599,7 @@ namespace ConvertDaiwaForBPF
                 outputrow[index - 1] = value;
             }
 
-            //必須項目にエラーがあるユーザーはデータを作成しない。
+            //全ての必須項目で一つでもエラーがあれば、レコードを作成しない
             if (!requestFiledError)
             {
                 // CSV出力情報に追加
@@ -849,7 +853,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="itemSheet">シート「項目マッピング」</param>
         /// <param name="ItemMap">１ユーザー分の検査項目一覧</param>
         /// <returns>項目マッピングの一覧</returns>
-        private IEnumerable<ItemMap> JoinItemMapWithMergedMap(DataTable itemSheet, IEnumerable<MergedMap> merged)
+        private IEnumerable<ItemMap> GetItemMapByUserData(DataTable itemSheet, IEnumerable<UserData> merged)
         {
             var itemMapped =
                     from m in merged.AsEnumerable()
@@ -873,7 +877,7 @@ namespace ConvertDaiwaForBPF
             return itemMapped;
         }
         */
- 
+
 
         /// <summary>
         /// 種別と検査値の判定をします
