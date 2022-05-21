@@ -205,8 +205,8 @@ namespace ConvertDaiwaForBPF
             //実行ボタンの非表示
             buttonConvert.Enabled = false;
 
-            //if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
-            if (isTextActive(textBox1.Text) && isTextActive(textBox3.Text))
+            if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
+            //if (isTextActive(textBox1.Text) && isTextActive(textBox3.Text))
             {
                 //実行ボタンの表示
                 buttonConvert.Enabled = true;

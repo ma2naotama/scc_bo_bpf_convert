@@ -43,7 +43,10 @@ namespace ConvertDaiwaForBPF
 
                 var task = Task.Factory.StartNew(() =>
                 {
-                    MultiThreadMethod();
+                    if(MultiThreadMethod() == 0)
+                    {
+                        Cancel=true;
+                    }
                 }, _tokenSource.Token);
 
                 //task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);

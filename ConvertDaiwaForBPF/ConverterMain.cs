@@ -151,15 +151,38 @@ namespace ConvertDaiwaForBPF
                     return 0;
                 }
 
+                //人事データの読み込み
+                DataTable hrTabl = ReadHumanResourceData(mPathHR);
+                if (hrTabl == null)
+                {
+                    return 0;
+                }
+
+                //健診ヘッダーの削除フラグが0だけ抽出
+                DataRow[] hdrRows =
+                    hrTabl.AsEnumerable()
+                    .Where(x => x["削除"].ToString() == "0")
+                    .ToArray();
+
+                if (hrTabl.Columns.Contains("健康ポイントID"))
+                { 
+                     foreach (var h in hdrRows)
+                    {
+                        Dbg.ViewLog(""+ h.Field<string>("健康ポイントID"));
+                    }
+                }
+
+                return 0;
+
                 //健診ヘッダーの読み込み
-                DataTable hdrTbl = ReadHelthHeder();
+                DataTable hdrTbl = ReadHelthHeder(mPathInput);
                 if (hdrTbl == null)
                 {
                     return 0;
                 }
 
                 //健診データの読み込み
-                DataTable tdlTbl = ReadHelthData();
+                DataTable tdlTbl = ReadHelthData(mPathInput);
                 if (tdlTbl == null)
                 {
                     return 0;
@@ -307,7 +330,7 @@ namespace ConvertDaiwaForBPF
         /// 健診ヘッダーの読み込み
         /// </summary>
         /// <returns></returns>
-        DataTable ReadHelthHeder()
+        DataTable ReadHelthHeder(string path)
         {
             DataRow[] rows =
                 mMasterSheets.Tables["config"].AsEnumerable()
@@ -315,7 +338,7 @@ namespace ConvertDaiwaForBPF
                   .ToArray();
 
             UtilCsv　csv = new UtilCsv();
-            DataTable tbl = csv.ReadFile(mPathInput + "\\" + rows[0][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
+            DataTable tbl = csv.ReadFile(path + "\\" + rows[0][0], ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -340,7 +363,7 @@ namespace ConvertDaiwaForBPF
         /// 健診データの読み込み
         /// </summary>
         /// <returns></returns>
-        DataTable ReadHelthData()
+        DataTable ReadHelthData(string path)
         {
             DataRow[] rows =
                 mMasterSheets.Tables["config"].AsEnumerable()
@@ -349,7 +372,7 @@ namespace ConvertDaiwaForBPF
 
             UtilCsv csv = new UtilCsv();
 
-            DataTable tbl = csv.ReadFile(mPathInput + "\\" + rows[1][0], ",", GlobalVariables.ENCORDTYPE.SJIS);
+            DataTable tbl = csv.ReadFile(path + "\\" + rows[1][0], ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -367,6 +390,33 @@ namespace ConvertDaiwaForBPF
             SetColumnName(tbl, mMasterSheets.Tables["DHPTV001DTL"]);
             return tbl;
         }
+
+        /// <summary>
+        /// 人事の読み込み
+        /// </summary>
+        /// <returns></returns>
+        DataTable ReadHumanResourceData(string path)
+        {
+            UtilCsv csv = new UtilCsv();
+
+            DataTable tbl = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
+            if (tbl == null)
+            {
+                //中断
+                Dbg.ErrorWithView(null, "E_READFAILED_TDL");
+                return null;
+            }
+
+            if (tbl.Rows.Count == 0)
+            {
+                //中断
+                Dbg.ErrorWithView(null, "E_READFAILED_TDL");
+                return null;
+            }
+
+            return tbl;
+        }
+
 
         /// <summary>
         /// 有効なユーザーの一覧取得

@@ -36,7 +36,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="path">ファイルパス</param>
         /// <param name="delimiters">区切り文字</param>
         /// <param name="encoding">エンコード指定。Encoding.GetEncoding("shift-jis")等</param>
-        public DataTable ReadFile(string path, string delimiters = ",", GlobalVariables.ENCORDTYPE encode = GlobalVariables.ENCORDTYPE.UTF8)
+        public DataTable ReadFile(string path, string delimiters = ",", bool hasheader = true, GlobalVariables.ENCORDTYPE encode = GlobalVariables.ENCORDTYPE.UTF8)
         {
             Encoding encoding;
 
@@ -84,16 +84,27 @@ namespace ConvertDaiwaForBPF
                     dt = new DataTable();
                     dt.TableName = fileName;
 
-                    int n = row.Count();    //カラム数取得
-                    //Dbg.Log("カラム数:" + n);
-                    for (int i = 0; i < n; i++)
-                    {
-                        //仮のカラム名を設定します。
-                        dt.Columns.Add(""+(i+1));       //1始まり
-                    }
-
                     DataSet dataSet = new DataSet();
                     dataSet.Tables.Add(dt);
+
+                    int n = row.Count();    //カラム数取得
+                    //Dbg.Log("カラム数:" + n);
+
+                    if(hasheader)
+                    {
+                        for (int i = 0; i < n; i++)
+                        {
+                            dt.Columns.Add(new DataColumn(row[i]));
+                        }
+                    }
+                    else
+                    { 
+                        for (int i = 0; i < n; i++)
+                        {
+                            //仮のカラム名を設定します。
+                            dt.Columns.Add(new DataColumn("" +(i+1)));       //1始まり
+                        }
+                    }
 
                     //var v = new List<string>();
                     //v.Clear();
