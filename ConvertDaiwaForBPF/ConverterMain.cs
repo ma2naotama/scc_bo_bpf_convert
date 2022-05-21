@@ -36,25 +36,29 @@ namespace ConvertDaiwaForBPF
 
 
         //健診ヘッダーと健診データの結合用
-        private class MergedMap
+        private class UserData
         {
             //public string userId { get; set; }                  //個人番号
 
             //public string date_of_consult { get; set; }         //受診日
 
-            public string KensakoumokuCode { get; set; }
+            //検査項目コード
+            public string InspectionItemCode { get; set; }
 
-            public string KensakoumokuName { get; set; }
+            //検査項目名称
+            public string InspectionItemName { get; set; }
 
-            public string KenshinmeisaiNo { get; set; }
+            //健診明細情報管理番号
+            public string InspectionDetailID { get; set; }
 
+            //結果値
             public string Value { get; set; }
         }
 
         private class OrderArray
         {
             public string Category { get; set; }
-            public string[] KensakoumokuCodeArray { get; set; }
+            public string[] InspectionItemCodeArray { get; set; }
         }
 
         private OrderArray[] mOrderArray = null;
@@ -63,7 +67,7 @@ namespace ConvertDaiwaForBPF
         //設定ファイルの項目マッピングから、検査項目コードで抽出した結果
         private class ItemMap
         {
-            public string KensakoumokuCode { get; set; }   //検査項目コード
+            public string InspectionItemCode { get; set; }   //検査項目コード
             public string OutputHdrIndex { get; set; }     //列順(出力先の列番号)
             public string ItemName { get; set; }           //検査項目名
             public string Attribute { get; set; }          //属性
@@ -286,7 +290,7 @@ namespace ConvertDaiwaForBPF
                     .Select(x => new OrderArray
                     {
                         Category = x.Key.category,
-                        KensakoumokuCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray()
+                        InspectionItemCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray()
                     })
                     .ToArray();
 
@@ -426,7 +430,7 @@ namespace ConvertDaiwaForBPF
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = JoinHdrWithTdl(ref hrow, ref TdlTbl)
+            var userdata = CreateUserData(ref hrow, ref TdlTbl)
                         .ToArray();
 
             if (userdata.Count() <= 0)
@@ -489,7 +493,7 @@ namespace ConvertDaiwaForBPF
                     {
                         //ユーザーデータから抽出
                         var requestcord = userdata.AsEnumerable()
-                                .Where(x => x.KensakoumokuCode == row.Field<string>("検査項目コード"));
+                                .Where(x => x.InspectionItemCode == row.Field<string>("検査項目コード").Trim());
                                 //.ToArray();
 
                         if (requestcord != null)
@@ -506,20 +510,24 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
-
-                //種別のチェック
+                //種別
                 string type = row.Field<string>("種別").Trim();
 
-                if (value != "" && !CheckMappingType(type, value))
+                //種別と値のチェック
+                if (value != "")
                 {
-                    Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
-                        , userID
-                        , row.Field<string>("項目名")
-                        , type
-                        , value);
+                    //種別が数値を期待しているのに、数値以外の値の場合はエラーとする
+                    if (!CheckMappingType(type, value))
+                    { 
+                        Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                            , userID
+                            , row.Field<string>("項目名")
+                            , type
+                            , value);
 
-                    //エラーの場合空にする
-                    value = "";
+                        //エラーの場合空にする
+                        value = "";
+                    }
                 }
 
                 //日付の変更
@@ -668,7 +676,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="ordermap"></param>
         /// <param name="userID"></param>
         /// <returns></returns>
-        private MergedMap[] OrderMapping(ref MergedMap[] merged, ref DataRow[] ordermap, string userID)
+        private UserData[] OrderMapping(ref UserData[] merged, ref DataRow[] ordermap, string userID)
         {
             /* -------
              * 元のSQL
@@ -715,7 +723,7 @@ namespace ConvertDaiwaForBPF
                     .Select(x => new OrderMap
                     {
                         Category = x.Key.category,
-                        KensakoumokuCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
+                        InspectionItemCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
                     });
             */
 
@@ -732,7 +740,7 @@ namespace ConvertDaiwaForBPF
                 */
 
                 //IN句を動的生成
-                var inCause = order.KensakoumokuCodeArray;
+                var inCause = order.InspectionItemCodeArray;
 
                 //ユーザーデータから抽出
                 try
@@ -740,18 +748,18 @@ namespace ConvertDaiwaForBPF
                     //Dbg.ViewLog("category:" + order.category);
 
                     var userdataArray = merged.AsEnumerable()
-                        .Where(x => inCause.Contains(x.KensakoumokuCode))
-                        .OrderBy(x => x.KensakoumokuCode)
+                        .Where(x => inCause.Contains(x.InspectionItemCode))
+                        .OrderBy(x => x.InspectionItemCode)
                         .ToArray();
 
-                    var  remove = new List<MergedMap>();
+                    var  remove = new List<UserData>();
 
                     int i =0;
                     foreach (var o in userdataArray)
                     {
                         if (i>=1)
                         {
-                            //Dbg.ViewLog("code:" + o.KensakoumokuCode + " v:" + o.Value);
+                            //Dbg.ViewLog("code:" + o.InspectionItemCode + " v:" + o.Value);
                             remove.Add(o);
                         }
                         i++;
@@ -777,12 +785,12 @@ namespace ConvertDaiwaForBPF
 
 
         /// <summary>
-        /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
+        /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を作成する
         /// </summary>
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
         /// <returns>１ユーザー分の検査項目一覧</returns>
-        private IEnumerable<MergedMap> JoinHdrWithTdl(ref DataRow hrow, ref DataTable tdlTable)
+        private IEnumerable<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
         {
             /*
             .Join(
@@ -818,12 +826,12 @@ namespace ConvertDaiwaForBPF
                         && d.Field<string>("削除フラグ") == "0"
                         && d.Field<string>("未実施FLG") == "0"
                         && d.Field<string>("測定不能FLG") == "0"
-                    select new MergedMap
+                    select new UserData
                     {
                         //ヘッダー情報は、人事データ結合時に処理する。
-                        KensakoumokuCode = d.Field<string>("検査項目コード").Trim(),
-                        KensakoumokuName = d.Field<string>("検査項目名称").Trim(),
-                        KenshinmeisaiNo = d.Field<string>("健診明細情報管理番号").Trim(),
+                        InspectionItemCode = d.Field<string>("検査項目コード").Trim(),
+                        InspectionItemName = d.Field<string>("検査項目名称").Trim(),
+                        InspectionDetailID = d.Field<string>("健診明細情報管理番号").Trim(),
                         Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
                     };
 
@@ -845,10 +853,10 @@ namespace ConvertDaiwaForBPF
         {
             var itemMapped =
                     from m in merged.AsEnumerable()
-                    join t in itemSheet.AsEnumerable() on m.KensakoumokuCode.ToString() equals t.Field<string>("検査項目コード").Trim()
+                    join t in itemSheet.AsEnumerable() on m.InspectionItemCode.ToString() equals t.Field<string>("検査項目コード").Trim()
                     select new ItemMap
                     {
-                        KensakoumokuCode = m.KensakoumokuCode,      //検査項目コード
+                        InspectionItemCode = m.InspectionItemCode,      //検査項目コード
                         OutputHdrIndex = t.Field<string>("列順"),
                         ItemName = t.Field<string>("項目名"),
                         Attribute = t.Field<string>("属性"),
@@ -923,7 +931,7 @@ namespace ConvertDaiwaForBPF
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = JoinHdrWithTdl(ref hrow, ref TdlTbl)
+            var userdata = CreateUserData(ref hrow, ref TdlTbl)
                         .ToArray();
 
             if (userdata.Count() <= 0)
