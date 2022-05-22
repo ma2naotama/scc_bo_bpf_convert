@@ -136,7 +136,7 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                Dbg.ViewLog(ex.ToString());
+                Dbg.Error(ex.ToString());
                 throw ex;
             }
 

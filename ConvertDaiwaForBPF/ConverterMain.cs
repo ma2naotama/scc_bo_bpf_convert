@@ -195,10 +195,10 @@ namespace ConvertDaiwaForBPF
                         return 0;
                     }
 
-                    //変換処理
                     Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
-                    var h = hrow;
 
+                    //変換処理
+                    var h = hrow;
                     if (!ConvertMain(ref h, ref tdlTbl))
                     {
                         return 0;
@@ -524,29 +524,26 @@ namespace ConvertDaiwaForBPF
                 string value = "";
 
                 //人事データ結合(ここで結合できない人事をワーニングとして出力する)
-                //列順の6番目は、人事データのキー（固定）
-                if (hr_row == null && index == 6)
-                {
-                    //初回、健診ヘッダーの個人番号から人事情報を取得
-                    hr_row = GetHumanResorceRow(userID);
-                    if (hr_row == null)
-                    {
-                        Dbg.ErrorWithView(null, "E_NO_USERDATA"
-                            , userID);
-
-                        //存在しない場合はレコードを作成しないで次のユーザーへ
-                        return true;
-                    }
-
-                    //検索対象と取得カラム名が違う為、設定ファイルから取ってこれない
-                    value = hr_row.Field<string>("社員番号").Trim();
-                }
-
                 string hrcolumn = row.Field<string>("人事参照項目");
-                if(hrcolumn != "" && value != "")
+                if(hrcolumn != "")
                 {
                     //人事参照項目の指定列名
                     hrcolumn = hrcolumn.Trim();
+
+                    //列順の6番目は、人事データのキー（固定）
+                    if (hr_row == null && index == 6)
+                    {
+                        //初回、健診ヘッダーの個人番号から人事情報を取得
+                        hr_row = GetHumanResorceRow(userID, hrcolumn);
+                        if (hr_row == null)
+                        {
+                            Dbg.ErrorWithView(null, "E_NO_USERDATA"
+                                , userID);
+
+                            //存在しない場合はレコードを作成しないで次のユーザーへ
+                            return true;
+                        }
+                    }
 
                     //項目マッピングで指定した列名の値をセット
                     if (hr_row != null)
@@ -1019,26 +1016,22 @@ namespace ConvertDaiwaForBPF
             return true;
         }
 
-        DataRow GetHumanResorceRow(string userID)
+        DataRow GetHumanResorceRow(string userID, string hrcolumn)
         {
             DataRow row = null;
 
-            string hrcolumn = "健康ポイントID";
-
-            if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
+            if (!mHRRows[0].Table.Columns.Contains("健康ポイントID"))
             {
-                hrcolumn = "社員番号";
-
+                //健康ポイントIDが無い場合は、指定の列名（カラム名）で検索
                 if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
                 {
-                    hrcolumn = "個人番号";
-
-                    if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
-                    {
-                        //存在しない場合はレコードを作成しないで次のユーザーへ
-                        return null;
-                    }
+                    //存在しない場合はレコードを作成しないで次のユーザーへ
+                    return null;
                 }
+            }
+            else
+            {
+                hrcolumn = "健康ポイントID";
             }
 
             //最終的に残った項目で検索
