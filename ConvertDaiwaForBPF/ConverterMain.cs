@@ -31,6 +31,9 @@ namespace ConvertDaiwaForBPF
         //コードマッピング
         private DataRow[] mCordMap = null;
 
+        //人事データ
+        private DataRow[] mHRRows = null;
+
         //出力情報
         private DataTable mOutputCsv = null;
 
@@ -131,6 +134,9 @@ namespace ConvertDaiwaForBPF
             mItemMap  = null;
             mOrderMap = null;
             mCordMap  = null;
+
+            mHRRows = null;
+
             mOrderArray = null;
 
             mOutputCsv = null;
@@ -152,27 +158,11 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //人事データの読み込み
-                DataTable hrTabl = ReadHumanResourceData(mPathHR);
-                if (hrTabl == null)
+                mHRRows = ReadHumanResourceData(mPathHR);
+                if (mHRRows == null)
                 {
                     return 0;
                 }
-
-                //健診ヘッダーの削除フラグが0だけ抽出
-                DataRow[] hdrRows =
-                    hrTabl.AsEnumerable()
-                    .Where(x => x["削除"].ToString() == "0")
-                    .ToArray();
-
-                if (hrTabl.Columns.Contains("健康ポイントID"))
-                { 
-                     foreach (var h in hdrRows)
-                    {
-                        Dbg.ViewLog(""+ h.Field<string>("健康ポイントID"));
-                    }
-                }
-
-                return 0;
 
                 //健診ヘッダーの読み込み
                 DataTable hdrTbl = ReadHelthHeder(mPathInput);
@@ -395,7 +385,7 @@ namespace ConvertDaiwaForBPF
         /// 人事の読み込み
         /// </summary>
         /// <returns></returns>
-        DataTable ReadHumanResourceData(string path)
+        DataRow[] ReadHumanResourceData(string path)
         {
             UtilCsv csv = new UtilCsv();
 
@@ -414,7 +404,23 @@ namespace ConvertDaiwaForBPF
                 return null;
             }
 
-            return tbl;
+            //健診ヘッダーの削除フラグが0だけ抽出
+            DataRow[] row =
+                tbl.AsEnumerable()
+                .Where(x => x["削除"].ToString() == "0")
+                .ToArray();
+
+            /*
+            if (hrTabl.Columns.Contains("健康ポイントID"))
+            { 
+                 foreach (var h in hdrRows)
+                {
+                    Dbg.ViewLog(""+ h.Field<string>("健康ポイントID"));
+                }
+            }
+            */
+
+            return row;
         }
 
 
@@ -495,14 +501,14 @@ namespace ConvertDaiwaForBPF
             //出力情報の一行分作成
             DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
-            //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
-
             //項目マッピング処理
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
 
             bool requestFiledError = false;
+
+            DataRow hr_row = null;
 
             //必要な検査項目コード分ループ
             foreach (var row in mItemMap)
@@ -517,13 +523,44 @@ namespace ConvertDaiwaForBPF
 
                 string value = "";
 
-                //6列目は、個人番号をセット（仮）
-                if (index == 6)
+                //人事データ結合(ここで結合できない人事をワーニングとして出力する)
+                string hrcolumn = row.Field<string>("人事参照項目");
+                if(hrcolumn != "")
                 {
-                    value = userID;
+                    //人事参照項目の指定列名
+                    hrcolumn = hrcolumn.Trim();
+
+                    //列順の6番目は、人事データのキー（固定）
+                    if (hr_row == null && index == 6)
+                    {
+                        //初回、健診ヘッダーの個人番号から人事情報を取得
+                        hr_row = GetHumanResorceRow(userID, hrcolumn);
+                        if(hr_row == null)
+                        {
+                            Dbg.ErrorWithView(null, "E_NO_USERDATA"
+                                , userID);
+
+                            //存在しない場合はレコードを作成しないで次のユーザーへ
+                            return true;
+                        }
+                    }
+
+                    //項目マッピングで指定した列名の値をセット
+                    if (hr_row != null)
+                    {
+                        try
+                        {
+                            value = hr_row.Field<string>(hrcolumn);
+                        }
+                        catch (Exception ex)
+                        {
+                            //処理中断
+                            throw ex;
+                        }
+                    }
                 }
 
-                //13列目は、必ず受診日が入る（仮）
+                //13列目は、必ず受診日が入る（固定）
                 if (index == 13)
                 {
                     value = hrow["健診実施日"].ToString();
@@ -637,7 +674,7 @@ namespace ConvertDaiwaForBPF
                 if (request == "○" && value == "")
                 {
                     //必須項目に値が無い場合は、そのデータを作成しない。
-                    Dbg.ErrorWithView(null, "E_NOT_REQUIRED_FIELD"
+                    Dbg.ErrorWithView(null, "E_NO_VALUE_REQUIRED_FIELD"
                         ,userID
                         ,row.Field<string>("項目名"));
 
@@ -977,6 +1014,43 @@ namespace ConvertDaiwaForBPF
             }
 
             return true;
+        }
+
+        DataRow GetHumanResorceRow(string userID, string hrcolumn)
+        {
+            DataRow row = null;
+
+            if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
+            {
+                hrcolumn = "社員番号";
+
+                if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
+                {
+                    hrcolumn = "個人番号";
+                }
+
+                if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
+                {
+                    //存在しない場合はレコードを作成しないで次のユーザーへ
+                    return null;
+                }
+            }
+
+            try
+            {
+                row = mHRRows
+                    .Where(x => x.Field<string>(hrcolumn) == userID)
+                    .First();
+            }
+            catch (Exception ex)
+            {
+                Dbg.Error(ex.ToString());
+
+                //存在しない場合はレコードを作成しないで次のユーザーへ
+                return null;
+            }
+
+            return row;            
         }
 
 

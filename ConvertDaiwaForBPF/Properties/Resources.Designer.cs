@@ -153,9 +153,9 @@ namespace ConvertDaiwaForBPF.Properties {
         /// <summary>
         ///   必須項目に値がありません。個人番号：{0}　項目名：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string E_NOT_REQUIRED_FIELD {
+        internal static string E_NO_VALUE_REQUIRED_FIELD {
             get {
-                return ResourceManager.GetString("E_NOT_REQUIRED_FIELD", resourceCulture);
+                return ResourceManager.GetString("E_NO_VALUE_REQUIRED_FIELD", resourceCulture);
             }
         }
         
