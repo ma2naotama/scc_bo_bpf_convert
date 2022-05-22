@@ -524,33 +524,36 @@ namespace ConvertDaiwaForBPF
                 string value = "";
 
                 //人事データ結合(ここで結合できない人事をワーニングとして出力する)
+                //列順の6番目は、人事データのキー（固定）
+                if (hr_row == null && index == 6)
+                {
+                    //初回、健診ヘッダーの個人番号から人事情報を取得
+                    hr_row = GetHumanResorceRow(userID);
+                    if (hr_row == null)
+                    {
+                        Dbg.ErrorWithView(null, "E_NO_USERDATA"
+                            , userID);
+
+                        //存在しない場合はレコードを作成しないで次のユーザーへ
+                        return true;
+                    }
+
+                    //検索対象と取得カラム名が違う為、設定ファイルから取ってこれない
+                    value = hr_row.Field<string>("社員番号").Trim();
+                }
+
                 string hrcolumn = row.Field<string>("人事参照項目");
-                if(hrcolumn != "")
+                if(hrcolumn != "" && value != "")
                 {
                     //人事参照項目の指定列名
                     hrcolumn = hrcolumn.Trim();
-
-                    //列順の6番目は、人事データのキー（固定）
-                    if (hr_row == null && index == 6)
-                    {
-                        //初回、健診ヘッダーの個人番号から人事情報を取得
-                        hr_row = GetHumanResorceRow(userID, hrcolumn);
-                        if(hr_row == null)
-                        {
-                            Dbg.ErrorWithView(null, "E_NO_USERDATA"
-                                , userID);
-
-                            //存在しない場合はレコードを作成しないで次のユーザーへ
-                            return true;
-                        }
-                    }
 
                     //項目マッピングで指定した列名の値をセット
                     if (hr_row != null)
                     {
                         try
                         {
-                            value = hr_row.Field<string>(hrcolumn);
+                            value = hr_row.Field<string>(hrcolumn).Trim();
                         }
                         catch (Exception ex)
                         {
@@ -1016,9 +1019,11 @@ namespace ConvertDaiwaForBPF
             return true;
         }
 
-        DataRow GetHumanResorceRow(string userID, string hrcolumn)
+        DataRow GetHumanResorceRow(string userID)
         {
             DataRow row = null;
+
+            string hrcolumn = "健康ポイントID";
 
             if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
             {
@@ -1027,15 +1032,16 @@ namespace ConvertDaiwaForBPF
                 if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
                 {
                     hrcolumn = "個人番号";
-                }
 
-                if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
-                {
-                    //存在しない場合はレコードを作成しないで次のユーザーへ
-                    return null;
+                    if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
+                    {
+                        //存在しない場合はレコードを作成しないで次のユーザーへ
+                        return null;
+                    }
                 }
             }
 
+            //最終的に残った項目で検索
             try
             {
                 row = mHRRows
