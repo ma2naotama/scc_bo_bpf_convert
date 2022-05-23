@@ -314,7 +314,7 @@ namespace ConvertDaiwaForBPF
                 //処理中断
                 Dbg.Error(ex.ToString());
 
-                throw new MyException("人事データの結合キーがありません。");
+                throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
             }
 
             //次の処理へ
@@ -560,7 +560,7 @@ namespace ConvertDaiwaForBPF
                         Dbg.Error(ex.ToString());
 
                         //処理中断
-                        throw new MyException("中断しました。");
+                        throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                     }
                 }
 
@@ -601,7 +601,7 @@ namespace ConvertDaiwaForBPF
                                 Dbg.Error(ex.ToString());
 
                                 //処理中断
-                                throw new MyException("中断しました。");
+                                throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                             }
                         }
                     }
@@ -624,7 +624,7 @@ namespace ConvertDaiwaForBPF
                             Dbg.Error(ex.ToString());
 
                             //処理中断
-                            throw new MyException("中断しました。");
+                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
                     }
                 }

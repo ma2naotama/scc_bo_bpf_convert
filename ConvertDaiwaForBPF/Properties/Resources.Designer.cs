@@ -142,6 +142,24 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   ヘッダーの数が合っていません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_HDR_COUNT {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_HDR_COUNT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   人事データの結合キーがありません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_HR_KEY {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_HR_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NO_TDLDATA {
@@ -174,6 +192,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_ORDERMAPPING_FILED {
             get {
                 return ResourceManager.GetString("E_ORDERMAPPING_FILED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   中断しました。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_PROCESSING_ABORTED {
+            get {
+                return ResourceManager.GetString("E_PROCESSING ABORTED", resourceCulture);
             }
         }
         
@@ -219,6 +246,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string MSG_CONVERT_FINISHED {
             get {
                 return ResourceManager.GetString("MSG_CONVERT_FINISHED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///    に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
     }

@@ -138,6 +138,12 @@
   <data name="E_MERGED_DATA_IS_EMPTY" xml:space="preserve">
     <value>結合したデータが空です。</value>
   </data>
+  <data name="E_MISMATCHED_HDR_COUNT" xml:space="preserve">
+    <value>ヘッダーの数が合っていません。</value>
+  </data>
+  <data name="E_MISMATCHED_HR_KEY" xml:space="preserve">
+    <value>人事データの結合キーがありません。</value>
+  </data>
   <data name="E_MISMATCH_ITEM_TYPE" xml:space="preserve">
     <value>検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}</value>
   </data>
@@ -156,6 +162,9 @@
   <data name="E_ORDERMAPPING_FILED" xml:space="preserve">
     <value>オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1}</value>
   </data>
+  <data name="E_PROCESSING ABORTED" xml:space="preserve">
+    <value>中断しました。</value>
+  </data>
   <data name="E_READFAILED_HDR" xml:space="preserve">
     <value>健診ヘッダーが読めませんでした。</value>
   </data>
@@ -170,5 +179,8 @@
   </data>
   <data name="MSG_CONVERT_FINISHED" xml:space="preserve">
     <value>完了しました。</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value />
   </data>
 </root>
