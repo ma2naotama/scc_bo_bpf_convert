@@ -631,6 +631,14 @@ namespace ConvertDaiwaForBPF
                                 value = useritem.Value;
                                 //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
                             }
+
+                            //コードマッピング（属性が「コード」の場合、値の置換）
+                            if (value != "" && row.Field<string>("属性") == "コード")
+                            {
+                                var codeid = row.Field<string>("コードID").Trim();
+
+                                value = GetCodeMapping(value, codeid, userID);
+                            }
                         }
                     }
                 }
@@ -646,32 +654,6 @@ namespace ConvertDaiwaForBPF
                     value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
                 }
 
-                //コードマッピング（属性が「コード」の場合、値の置換）
-                if(value != "" && row.Field<string>("属性") == "コード")
-                {
-                    var codeid = row.Field<string>("コードID").Trim();
-                    
-                    try
-                    {
-                        //コードマッピングから抽出
-                        value = mCordMap.AsEnumerable()
-                            .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("コード").Trim() == value)
-                            .Select(x => x.Field<string>("値").Trim())
-                            .First();
-                    }
-                    catch(Exception ex)
-                    {
-                        //エラー表示
-                        Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
-                            ,userID
-                            ,codeid);
-
-                        Dbg.Error(ex.ToString());
-
-                        //エラーの場合空にする
-                        value = "";
-                    }
-                }
 
                 //必須項目確認
                 string request = row.Field<string>("必須").Trim();
@@ -937,6 +919,33 @@ namespace ConvertDaiwaForBPF
             return itemMapped;
         }
         */
+
+        string GetCodeMapping(string value, string codeid, string userID)
+        { 
+            //コードマッピング（属性が「コード」の場合、値の置換）
+            try
+            {
+                //コードマッピングから抽出
+                value = mCordMap.AsEnumerable()
+                    .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("コード").Trim() == value)
+                    .Select(x => x.Field<string>("値").Trim())
+                    .First();
+            }
+            catch(Exception ex)
+            {
+                //エラー表示
+                Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
+                    , userID
+                    , codeid);
+
+                Dbg.Error(ex.ToString());
+
+                //エラーの場合空にする
+                value = "";
+            }
+
+            return value;
+        }
 
 
         /// <summary>
