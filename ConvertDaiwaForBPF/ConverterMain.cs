@@ -32,6 +32,7 @@ namespace ConvertDaiwaForBPF
         private DataRow[] mCordMap = null;
 
         //人事データ
+        private string mHRJoinKey = null;
         private DataRow[] mHRRows = null;
 
         //出力情報
@@ -298,6 +299,24 @@ namespace ConvertDaiwaForBPF
                   .Where(x => x["コードID"].ToString() != "")
                   .ToArray();
 
+
+            //人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
+            try
+            {
+                mHRJoinKey =
+                  mMasterSheets.Tables["config"].AsEnumerable()
+                    .Where(x => x["名称"].ToString() == "人事データ結合列名")
+                    .Select(x => x.Field<string>("設定値").ToString().Trim())
+                    .First();
+            }
+            catch (Exception ex)
+            {
+                //処理中断
+                Dbg.Error(ex.ToString());
+
+                throw new MyException("人事データの結合キーがありません。");
+            }
+
             //次の処理へ
             return true;
         }
@@ -308,13 +327,14 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         DataTable ReadHelthHeder(string path)
         {
-            DataRow[] rows =
+            var filename=
                 mMasterSheets.Tables["config"].AsEnumerable()
-                  .Where(x => x["受信ファイル名"].ToString() != "")
-                  .ToArray();
+                  .Where(x => x["名称"].ToString() == "健診ヘッダー")
+                  .Select(x => x.Field<string>("設定値").ToString().Trim())
+                  .First();
 
             UtilCsv　csv = new UtilCsv();
-            DataTable tbl = csv.ReadFile(path + "\\" + rows[0][0], ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+            DataTable tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -341,14 +361,14 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         DataTable ReadHelthData(string path)
         {
-            DataRow[] rows =
+            var filename =
                 mMasterSheets.Tables["config"].AsEnumerable()
-                    .Where(x => x["受信ファイル名"].ToString() != "")
-                    .ToArray();
+                  .Where(x => x["名称"].ToString() == "健診データ")
+                  .Select(x => x.Field<string>("設定値").ToString().Trim())
+                  .First();
 
             UtilCsv csv = new UtilCsv();
-
-            DataTable tbl = csv.ReadFile(path + "\\" + rows[1][0], ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+            DataTable tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -557,8 +577,8 @@ namespace ConvertDaiwaForBPF
                         //列順の6番目は、人事データのキー（固定）
                         if (hr_row == null && index == 6)
                         {
-                            //初回、健診ヘッダーの個人番号から人事情報を取得
-                            hr_row = GetHumanResorceRow(userID, hrcolumn);
+                            //初回、健診ヘッダーの個人番号とconfigで指定したキーで結合したデータを取得
+                            hr_row = GetHumanResorceRow(userID, mHRJoinKey);
                             if (hr_row == null)
                             {
                                 Dbg.ErrorWithView(Properties.Resources.E_NO_USERDATA
@@ -631,17 +651,17 @@ namespace ConvertDaiwaForBPF
                                 value = useritem.Value;
                                 //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
                             }
+                        }
+                    }
+                }
 
-                            //コードマッピング（属性が「コード」の場合、値の置換）
+                                            //コードマッピング（属性が「コード」の場合、値の置換）
                             if (value != "" && row.Field<string>("属性") == "コード")
                             {
                                 var codeid = row.Field<string>("コードID").Trim();
 
                                 value = GetCodeMapping(value, codeid, userID);
                             }
-                        }
-                    }
-                }
 
 
                 //種別と値のチェック
@@ -1011,6 +1031,7 @@ namespace ConvertDaiwaForBPF
         {
             DataRow row = null;
 
+            /*
             if (!mHRRows[0].Table.Columns.Contains("健康ポイントID"))
             {
                 //健康ポイントIDが無い場合は、指定の列名（カラム名）で検索
@@ -1024,6 +1045,8 @@ namespace ConvertDaiwaForBPF
             {
                 hrcolumn = "健康ポイントID";
             }
+            */
+
 
             //最終的に残った項目で検索
             try
