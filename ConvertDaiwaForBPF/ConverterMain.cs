@@ -650,19 +650,19 @@ namespace ConvertDaiwaForBPF
                                 //検査値
                                 value = useritem.Value;
                                 //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
+
+                                //コードマッピング（属性が「コード」の場合、値の置換）
+                                if (value != "" && row.Field<string>("属性") == "コード")
+                                {
+                                    var codeid = row.Field<string>("コードID").Trim();
+
+                                    //コードマッピング処理
+                                    value = GetCodeMapping(value, codeid, userID);
+                                }
                             }
                         }
                     }
                 }
-
-                                            //コードマッピング（属性が「コード」の場合、値の置換）
-                            if (value != "" && row.Field<string>("属性") == "コード")
-                            {
-                                var codeid = row.Field<string>("コードID").Trim();
-
-                                value = GetCodeMapping(value, codeid, userID);
-                            }
-
 
                 //種別と値のチェック
                 if (value != "")
@@ -947,8 +947,8 @@ namespace ConvertDaiwaForBPF
             {
                 //コードマッピングから抽出
                 value = mCordMap.AsEnumerable()
-                    .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("コード").Trim() == value)
-                    .Select(x => x.Field<string>("値").Trim())
+                    .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("★コード").Trim() == value)
+                    .Select(x => x.Field<string>("コード").Trim())
                     .First();
             }
             catch(Exception ex)
