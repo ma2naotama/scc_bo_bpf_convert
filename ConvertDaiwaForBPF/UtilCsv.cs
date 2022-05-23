@@ -172,7 +172,7 @@ namespace ConvertDaiwaForBPF
                         {
                             if (columnNames.Length != overwriteColumnName.Count)
                             {
-                                throw new MyException("ヘッダーの数が合っていません。");
+                                throw new MyException(Properties.Resources.E_MISMATCHED_HDR_COUNT);
                             }
                         }
                         catch (Exception ex)
