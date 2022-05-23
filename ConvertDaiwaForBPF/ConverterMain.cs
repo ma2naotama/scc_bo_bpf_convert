@@ -460,9 +460,11 @@ namespace ConvertDaiwaForBPF
             int overlapcount = dr_array.Count();
             if (overlapcount > 0)
             {
+                //重複件数の表示
                 Dbg.ErrorWithView(null, "E_DUPLICATE_USERS_COUNT"
                         , overlapcount.ToString());
 
+                //重複している行を表示
                 foreach (var row in dr_array)
                 {
                     Dbg.ErrorWithView(null, "E_DUPLICATE_USERS_INFO"
@@ -470,6 +472,8 @@ namespace ConvertDaiwaForBPF
                         , row["健診実施日"].ToString()
                         , row["健診実施機関名称"].ToString().Trim());
                 }
+
+                //重複したデータをそのまま出力する
             }
 
             //次の処理へ
