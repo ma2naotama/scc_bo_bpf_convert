@@ -124,24 +124,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_MISMATCH_ITEM_TYPE {
-            get {
-                return ResourceManager.GetString("E_MISMATCH_ITEM_TYPE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_MISMATCH_ORGANIZATION_ID {
-            get {
-                return ResourceManager.GetString("E_MISMATCH_ORGANIZATION_ID", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   ヘッダーの数が合っていません。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MISMATCHED_HDR_COUNT {
@@ -156,6 +138,24 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_MISMATCHED_HR_KEY {
             get {
                 return ResourceManager.GetString("E_MISMATCHED_HR_KEY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_ITEM_TYPE {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_ITEM_TYPE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_ORGANIZATION_ID {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_ORGANIZATION_ID", resourceCulture);
             }
         }
         

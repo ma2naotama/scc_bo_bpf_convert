@@ -554,7 +554,7 @@ namespace ConvertDaiwaForBPF
                     }
                     catch (Exception ex)
                     {
-                        Dbg.ErrorWithView(Properties.Resources.E_MISMATCH_ORGANIZATION_ID
+                        Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
                                 , value);
 
                         Dbg.Error(ex.ToString());
@@ -986,7 +986,7 @@ namespace ConvertDaiwaForBPF
                             float f = 0.0f;
                             if (!float.TryParse(value, out f))
                             {
-                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCH_ITEM_TYPE
+                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
                                     , userID
                                     , itenName.Trim()
                                     , type
@@ -1011,7 +1011,7 @@ namespace ConvertDaiwaForBPF
                         else
                         {
                             //エラー表示
-                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCH_ITEM_TYPE
+                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
                                 , userID
                                 , itenName.Trim()
                                 , type
