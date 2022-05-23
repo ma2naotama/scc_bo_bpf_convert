@@ -219,7 +219,8 @@ namespace ConvertDaiwaForBPF
             catch (Exception ex)
             {
                 MultiThreadCancel();
-                Dbg.ErrorWithView(ex.ToString());
+                Dbg.ViewLog(ex.Message);    //メッセージのみ、ログ画面に表示
+                Dbg.Error(ex.ToString());   //エラー内容全体は、ログファイルに書き出す
                 return 0;
             }
 
@@ -547,8 +548,10 @@ namespace ConvertDaiwaForBPF
                         Dbg.ErrorWithView(null, "E_MISMATCH_ORGANIZATION_ID"
                                 , value);
 
+                        Dbg.Error(ex.ToString());
+
                         //処理中断
-                        throw ex;
+                        throw new MyException("中断しました。");
                     }
                 }
 
@@ -586,8 +589,10 @@ namespace ConvertDaiwaForBPF
                             }
                             catch (Exception ex)
                             {
+                                Dbg.Error(ex.ToString());
+
                                 //処理中断
-                                throw ex;
+                                throw new MyException("中断しました。");
                             }
                         }
                     }
@@ -607,8 +612,10 @@ namespace ConvertDaiwaForBPF
                         }
                         catch (Exception ex)
                         {
+                            Dbg.Error(ex.ToString());
+
                             //処理中断
-                            throw ex;
+                            throw new MyException("中断しました。");
                         }
                     }
                 }
@@ -665,12 +672,12 @@ namespace ConvertDaiwaForBPF
                     }
                     catch(Exception ex)
                     {
-                        Dbg.Error(ex.ToString());
-
                         //エラー表示
                         Dbg.ErrorWithView(null, "E_CORDMAPPING_FILED"
                             ,userID
                             ,codeid);
+
+                        Dbg.Error(ex.ToString());
 
                         //エラーの場合空にする
                         value = "";
