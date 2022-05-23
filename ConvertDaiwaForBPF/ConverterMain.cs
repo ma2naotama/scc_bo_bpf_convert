@@ -207,7 +207,7 @@ namespace ConvertDaiwaForBPF
                     i++;
 
                     //テスト用、１ユーザー分でやめる
-                    //break;
+                    break;
                 }
 
                 //出力情報から全レコードの書き出し
@@ -513,8 +513,8 @@ namespace ConvertDaiwaForBPF
             //必要な検査項目コード分ループ
             foreach (var row in mItemMap)
             {
-                string request = row.Field<string>("必須").Trim();
-                if (request == "入力禁止")
+                string outputtype = row.Field<string>("出力形式").Trim();
+                if (outputtype == "該当なし")
                 {
                     continue;
                 }
@@ -523,34 +523,64 @@ namespace ConvertDaiwaForBPF
 
                 string value = "";
 
-                //人事データ結合(ここで結合できない人事をワーニングとして出力する)
-                string hrcolumn = row.Field<string>("人事参照項目");
-                if(hrcolumn != "")
+                //固定値
+                string fixvalue = row.Field<string>("固定値").Trim();
+                if (fixvalue != "")
                 {
-                    //人事参照項目の指定列名
-                    hrcolumn = hrcolumn.Trim();
+                    value = fixvalue;
+                }
 
-                    //列順の6番目は、人事データのキー（固定）
-                    if (hr_row == null && index == 6)
+                //人事データ結合(ここで結合できない人事をワーニングとして出力する)
+                if(value == "")
+                {
+                    string hrcolumn = row.Field<string>("参照人事");
+                    if(hrcolumn != "")
                     {
-                        //初回、健診ヘッダーの個人番号から人事情報を取得
-                        hr_row = GetHumanResorceRow(userID, hrcolumn);
-                        if (hr_row == null)
-                        {
-                            Dbg.ErrorWithView(null, "E_NO_USERDATA"
-                                , userID);
+                        //人事の指定列名
+                        hrcolumn = hrcolumn.Trim();
 
-                            //存在しない場合はレコードを作成しないで次のユーザーへ
-                            return true;
+                        //列順の6番目は、人事データのキー（固定）
+                        if (hr_row == null && index == 6)
+                        {
+                            //初回、健診ヘッダーの個人番号から人事情報を取得
+                            hr_row = GetHumanResorceRow(userID, hrcolumn);
+                            if (hr_row == null)
+                            {
+                                Dbg.ErrorWithView(null, "E_NO_USERDATA"
+                                    , userID);
+
+                                //存在しない場合はレコードを作成しないで次のユーザーへ
+                                return true;
+                            }
+                        }
+
+                        //項目マッピングで指定した列名の値をセット
+                        if (hr_row != null)
+                        {
+                            try
+                            {
+                                value = hr_row.Field<string>(hrcolumn).Trim();
+                            }
+                            catch (Exception ex)
+                            {
+                                //処理中断
+                                throw ex;
+                            }
                         }
                     }
+                }
 
-                    //項目マッピングで指定した列名の値をセット
-                    if (hr_row != null)
+                //参照健診ヘッダーの取得
+                if (value == "")
+                {
+                    string inspectionHeader = row.Field<string>("参照健診ヘッダー").Trim();
+                    if(inspectionHeader != "")
                     {
+                        //現状、健診実施日と健診実施機関番号のみ
+                        //Dbg.ViewLog(inspectionHeader);
                         try
                         {
-                            value = hr_row.Field<string>(hrcolumn).Trim();
+                            value = hrow[inspectionHeader].ToString();
                         }
                         catch (Exception ex)
                         {
@@ -560,24 +590,11 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
-                //13列目は、必ず受診日が入る（固定）
-                if (index == 13)
-                {
-                    value = hrow["健診実施日"].ToString();
-                }
-
-                //固定値
-                string fixvalue = row.Field<string>("固定値").Trim();
-                if (fixvalue != "")
-                {
-                    value = fixvalue;
-                }
 
                 //検査項目コードの検索
                 if (value == "")
                 {
                     string inspectcord = row.Field<string>("検査項目コード").Trim();
-
                     if (inspectcord != "")
                     {
                         //ユーザーデータから抽出
@@ -599,48 +616,15 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
-                //種別
-                string type = row.Field<string>("種別").Trim();
 
                 //種別と値のチェック
                 if (value != "")
                 {
+                    //種別
+                    string type = row.Field<string>("種別").Trim();
+
                     //種別が数値を期待しているのに、数値以外の値の場合はエラーとする
-                    if (!CheckMappingType(type, value))
-                    { 
-                        Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
-                            , userID
-                            , row.Field<string>("項目名")
-                            , type
-                            , value);
-
-                        //エラーの場合空にする
-                        value = "";
-                    }
-                }
-
-                //日付の変更
-                if (value != "" && type == "年月日")
-                {
-                    //年月日の変換
-                    DateTime d;
-                    if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
-                    {
-                        //日付
-                        value = d.ToString("yyyy/MM/dd");
-                    }
-                    else
-                    {
-                        //エラー表示
-                        Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
-                            , userID
-                            , row.Field<string>("項目名")
-                            , type
-                            , value);
-
-                        //エラーの場合空にする
-                        value = "";
-                    }
+                    value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
                 }
 
                 //コードマッピング（属性が「コード」の場合、値の置換）
@@ -671,6 +655,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //必須項目確認
+                string request = row.Field<string>("必須").Trim();
                 if (request == "○" && value == "")
                 {
                     //必須項目に値が無い場合は、そのデータを作成しない。
@@ -971,7 +956,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="ItemMap">抽出した項目マッピングの行</param>
         /// <returns>検査値</returns>
-        private bool CheckMappingType(string type, string value)
+        private string CheckMappingType(string type, string value, string userID, string itenName)
         {
             switch (type)
             {
@@ -1004,16 +989,46 @@ namespace ConvertDaiwaForBPF
                         {
                             float f = 0.0f;
                             if (!float.TryParse(value, out f))
-                            { 
+                            {
+                                Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                                    , userID
+                                    , itenName.Trim()
+                                    , type
+                                    , value);
+
                                 //エラーの場合空白として出力
-                                return false;
+                                return "";
                             }
+                        }
+                    }
+                    break;
+
+                case "年月日":
+                    {
+                        //年月日の変換
+                        DateTime d;
+                        if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                        {
+                            //日付
+                            value = d.ToString("yyyy/MM/dd");
+                        }
+                        else
+                        {
+                            //エラー表示
+                            Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                                , userID
+                                , itenName.Trim()
+                                , type
+                                , value);
+
+                            //エラーの場合空にする
+                            value = "";
                         }
                     }
                     break;
             }
 
-            return true;
+            return value;
         }
 
         DataRow GetHumanResorceRow(string userID, string hrcolumn)
