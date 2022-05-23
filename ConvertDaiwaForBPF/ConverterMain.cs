@@ -207,7 +207,7 @@ namespace ConvertDaiwaForBPF
                     i++;
 
                     //テスト用、１ユーザー分でやめる
-                    break;
+                    //break;
                 }
 
                 //出力情報から全レコードの書き出し
@@ -459,12 +459,12 @@ namespace ConvertDaiwaForBPF
             int overlapcount = dr_array.Count();
             if (overlapcount > 0)
             {
-                Dbg.ErrorWithView(null, "E_DUPICATE_USERS_COUNT"
+                Dbg.ErrorWithView(null, "E_DUPLICATE_USERS_COUNT"
                         , overlapcount.ToString());
 
                 foreach (var row in dr_array)
                 {
-                    Dbg.ErrorWithView(null, "E_DUPICATE_USERS_INFO"
+                    Dbg.ErrorWithView(null, "E_DUPLICATE_USERS_INFO"
                         , row["個人番号"].ToString()
                         , row["健診実施日"].ToString()
                         , row["健診実施機関名称"].ToString().Trim());
@@ -529,6 +529,27 @@ namespace ConvertDaiwaForBPF
                 {
                     value = fixvalue;
                 }
+
+                //団体IDの確認
+                if(index == 4)
+                {
+                    //最終的に残った項目で検索
+                    try
+                    {
+                        var hr_id = mHRRows
+                            .Where(x => x.Field<string>("団体ID") == value)
+                            .First();
+                    }
+                    catch (Exception ex)
+                    {
+                        Dbg.ErrorWithView(null, "E_MISMATCH_ORGANIZATION_ID"
+                                , value);
+
+                        //処理中断
+                        throw ex;
+                    }
+                }
+
 
                 //人事データ結合(ここで結合できない人事をワーニングとして出力する)
                 if(value == "")
@@ -990,7 +1011,7 @@ namespace ConvertDaiwaForBPF
                             float f = 0.0f;
                             if (!float.TryParse(value, out f))
                             {
-                                Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                                Dbg.ErrorWithView(null, "E_MISMATCH_ITEM_TYPE"
                                     , userID
                                     , itenName.Trim()
                                     , type
@@ -1015,7 +1036,7 @@ namespace ConvertDaiwaForBPF
                         else
                         {
                             //エラー表示
-                            Dbg.ErrorWithView(null, "E_ITEM_TYPE_MISMATCH"
+                            Dbg.ErrorWithView(null, "E_MISMATCH_ITEM_TYPE"
                                 , userID
                                 , itenName.Trim()
                                 , type

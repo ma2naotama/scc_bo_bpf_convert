@@ -70,24 +70,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   受診者の重複があります。重複件数：{0} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_DUPICATE_USERS_COUNT {
-            get {
-                return ResourceManager.GetString("E_DUPICATE_USERS_COUNT", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_DUPICATE_USERS_INFO {
-            get {
-                return ResourceManager.GetString("E_DUPICATE_USERS_INFO", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   健診データが重複しています。個人番号：{0}　受信日：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USER {
@@ -97,20 +79,29 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   受診者の重複があります。重複件数：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPLICATE_USERS_COUNT {
+            get {
+                return ResourceManager.GetString("E_DUPLICATE_USERS_COUNT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPLICATE_USERS_INFO {
+            get {
+                return ResourceManager.GetString("E_DUPLICATE_USERS_INFO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診ヘッダーが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_HDR_IS_EMPTY {
             get {
                 return ResourceManager.GetString("E_HDR_IS_EMPTY", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_ITEM_TYPE_MISMATCH {
-            get {
-                return ResourceManager.GetString("E_ITEM_TYPE_MISMATCH", resourceCulture);
             }
         }
         
@@ -129,6 +120,24 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_MERGED_DATA_IS_EMPTY {
             get {
                 return ResourceManager.GetString("E_MERGED_DATA_IS_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCH_ITEM_TYPE {
+            get {
+                return ResourceManager.GetString("E_MISMATCH_ITEM_TYPE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCH_ORGANIZATION_ID {
+            get {
+                return ResourceManager.GetString("E_MISMATCH_ORGANIZATION_ID", resourceCulture);
             }
         }
         
