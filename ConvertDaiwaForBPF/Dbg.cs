@@ -64,14 +64,16 @@ namespace ConvertDaiwaForBPF
         }
 
         //ログ画面への表示とerror log ファイルへの書き出し
-        public static void ErrorWithView(string errormsg = null, string resourcename = null, params string[] args)
+        public static void ErrorWithView(string errormsg = null, params string[] args)
         {
+            /*
             if(resourcename!=null)
             { 
                 System.Resources.ResourceManager resource = Properties.Resources.ResourceManager;
 
-                errormsg = errormsg + "[" + resourcename +"]"+ resource.GetString(resourcename);
+                errormsg = resource.GetString(resourcename);
             }
+            */
 
             ViewLog(string.Format(errormsg, args));
 
