@@ -58,6 +58,7 @@ namespace ConvertDaiwaForBPF
             public string Value { get; set; }
         }
 
+        //オーダーマッピング処理で使用
         private class OrderArray
         {
             public string Category { get; set; }
@@ -66,21 +67,6 @@ namespace ConvertDaiwaForBPF
 
         private OrderArray[] mOrderArray = null;
 
-        /*
-        //設定ファイルの項目マッピングから、検査項目コードで抽出した結果
-        private class ItemMap
-        {
-            public string InspectionItemCode { get; set; }   //検査項目コード
-            public string OutputHdrIndex { get; set; }     //列順(出力先の列番号)
-            public string ItemName { get; set; }           //検査項目名
-            public string Attribute { get; set; }          //属性
-            public string CodeID { get; set; }             //コードID
-            public string Type { get; set; }               //種別
-            //public string Rate { get; set; }               //倍率
-            //public string StringFormat { get; set; }       //文字フォーマット
-            public string Value { get; set; }              //検査値
-        }
-        */
 
         public ConverterMain()
         {
@@ -100,7 +86,6 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
                 new ExcelOption ( "オーダーマッピング", 2, 1, true),
-                //new ExcelOption ( "出力ヘッダー",       2, 1, true),
             };
 
             excel.SetExcelOptionArray(optionarray);
@@ -807,37 +792,6 @@ namespace ConvertDaiwaForBPF
                     JLAC10
              */
 
-            /*
-            var inOrder = new string[][] {
-                 new string[]{
-                    "9A751000000000001",    //血圧 収縮期 1回目
-                    "9A752000000000001",    //血圧 収縮期 2回目
-                    "9A755000000000001"     //血圧 収縮期 3回目
-                 }
-                ,
-                new string[] {
-                    "9A761000000000001",    //血圧 拡張期 1回目
-                    "9A762000000000001",    //血圧 拡張期 2回目
-                    "9A765000000000001"     //血圧 拡張期 3回目
-                 }
-            };
-            */
-            /*
-            //上記、カテゴリー別のstring 配列を動的生成 
-            var inOrder = ordermap.AsEnumerable()
-                    .Where(x => x.Field<string>("検査項目コード") != "")
-                    .GroupBy( x => new
-                    {
-                        category = x.Field<string>("カテゴリー"),
-                    })
-                    .Select(x => new OrderMap
-                    {
-                        Category = x.Key.category,
-                        InspectionItemCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray() 
-                    });
-            */
-
-
             foreach(var order in mOrderArray)
             {
                 // IN句の条件
@@ -994,27 +948,6 @@ namespace ConvertDaiwaForBPF
         {
             switch (type)
             {
-                /*
-                case "数字":
-                    {
-                        try
-                        {
-                            if (itemMap.Rate != "")
-                            {
-                                float v = float.Parse(itemMap.Value) * float.Parse(itemMap.Rate);
-                                return string.Format(itemMap.StringFormat, v).ToString();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Dbg.ErrorWithView(Properties.Resources.E_STRING_FORMAT_FAILE, itemMap.ItemName, itemMap.Value);
-                        }
-
-                        ret = itemMap.Value;
-                    }
-                    break;
-                */
-
                 case "半角数字":
                 case "数値":
                     {
@@ -1101,7 +1034,7 @@ namespace ConvertDaiwaForBPF
             return row;            
         }
 
-
+        /*
         bool TestConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
         {
             var userID = hrow["個人番号"].ToString();
@@ -1135,6 +1068,7 @@ namespace ConvertDaiwaForBPF
             //次のユーザー
             return true;
         }
+        */
 
     }
 }
