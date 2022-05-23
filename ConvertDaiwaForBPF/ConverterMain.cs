@@ -530,14 +530,16 @@ namespace ConvertDaiwaForBPF
                     value = fixvalue;
                 }
 
-                //団体IDの確認
+                //団体IDの確認(固定)
                 if(index == 4)
                 {
                     //最終的に残った項目で検索
                     try
                     {
+                        string hrcolumn = row.Field<string>("参照人事").Trim();
+
                         var hr_id = mHRRows
-                            .Where(x => x.Field<string>("団体ID") == value)
+                            .Where(x => x.Field<string>(hrcolumn) == value)
                             .First();
                     }
                     catch (Exception ex)
