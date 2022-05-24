@@ -746,7 +746,7 @@ namespace ConvertDaiwaForBPF
         void SetColumnName(DataTable dt, DataTable sheet)
         {
             DataRow[] rows = sheet.AsEnumerable()
-                .Where(x => x["項目"].ToString() != "")
+                .Where(x => x["項目名"].ToString() != "")
                 .ToArray();
 
             int n = dt.Columns.Count;
@@ -755,11 +755,11 @@ namespace ConvertDaiwaForBPF
                 //Dbg.Log(rows[i][0].ToString());
                 if(i<n)
                 {
-                    dt.Columns[""+(i+1)].ColumnName = rows[i][0].ToString();
+                    dt.Columns[""+(i+1)].ColumnName = rows[i]["項目名"].ToString().Trim();
                 }
                 else
                 {
-                    dt.Columns.Add(rows[i][0].ToString());
+                    dt.Columns.Add(rows[i]["項目名"].ToString().Trim());
                 }
             }
 
