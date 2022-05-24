@@ -766,91 +766,6 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// オーダーマッピング処理
-        /// 優先度が高い検査項目コードだけ残す
-        /// </summary>
-        /// <param name="merged"></param>
-        /// <param name="ordermap"></param>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        private UserData[] OrderMapping(ref UserData[] merged, ref DataRow[] ordermap, string userID)
-        {
-            /* -------
-             * 元のSQL
-             * -------
-                select
-                    top 1 値 
-                from
-                    10_検査結果 
-                where
-                    組合C = h.組合C 
-                    and 健診基本情報管理番号 = h.健診基本情報管理番号 
-                    and JLAC10 in ( 
-                        '9A751000000000001'
-                        , '9A752000000000001'
-                        , '9A755000000000001'
-                    ) 
-                order by
-                    JLAC10
-             */
-
-            foreach(var order in mOrderArray)
-            {
-                // IN句の条件
-                /*
-                var inCause = new string[] {
-                    "9A751000000000001",    //血圧 収縮期 1回目
-                    "9A752000000000001",    //血圧 収縮期 2回目
-                    "9A755000000000001"     //血圧 収縮期 3回目
-                    };
-                */
-
-                //IN句を動的生成
-                var inCause = order.InspectionItemCodeArray;
-
-                //ユーザーデータから抽出
-                try
-                {
-                    //Dbg.ViewLog("category:" + order.category);
-
-                    var userdataArray = merged.AsEnumerable()
-                        .Where(x => inCause.Contains(x.InspectionItemCode))
-                        .OrderBy(x => x.InspectionItemCode)
-                        .ToArray();
-
-                    var  remove = new List<UserData>();
-
-                    int i =0;
-                    foreach (var o in userdataArray)
-                    {
-                        if (i>=1)
-                        {
-                            //Dbg.ViewLog("code:" + o.InspectionItemCode + " v:" + o.Value);
-                            remove.Add(o);
-                        }
-                        i++;
-                    }
-
-                    //ユーザーデータから優先度の低いものを削除
-                    if(remove.Count>0)
-                    {
-                        merged = merged.Except(remove).ToArray();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Dbg.ErrorWithView(Properties.Resources.E_ORDERMAPPING_FILED
-                        , userID);
-                    throw ex;
-                }
-            }
-
-
-            return merged;
-        }
-
-
-        /// <summary>
         /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を作成する
         /// </summary>
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
@@ -940,6 +855,99 @@ namespace ConvertDaiwaForBPF
         }
         */
 
+        /// <summary>
+        /// オーダーマッピング処理
+        /// 優先度が高い検査項目コードだけ残す
+        /// </summary>
+        /// <param name="merged"></param>
+        /// <param name="ordermap"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        private UserData[] OrderMapping(ref UserData[] merged, ref DataRow[] ordermap, string userID)
+        {
+            /* -------
+             * 元のSQL
+             * -------
+                select
+                    top 1 値 
+                from
+                    10_検査結果 
+                where
+                    組合C = h.組合C 
+                    and 健診基本情報管理番号 = h.健診基本情報管理番号 
+                    and JLAC10 in ( 
+                        '9A751000000000001'
+                        , '9A752000000000001'
+                        , '9A755000000000001'
+                    ) 
+                order by
+                    JLAC10
+             */
+
+            foreach (var order in mOrderArray)
+            {
+                // IN句の条件
+                /*
+                var inCause = new string[] {
+                    "9A751000000000001",    //血圧 収縮期 1回目
+                    "9A752000000000001",    //血圧 収縮期 2回目
+                    "9A755000000000001"     //血圧 収縮期 3回目
+                    };
+                */
+
+                //IN句を動的生成
+                var inCause = order.InspectionItemCodeArray;
+
+                //ユーザーデータから抽出
+                try
+                {
+                    //Dbg.ViewLog("category:" + order.category);
+
+                    var userdataArray = merged.AsEnumerable()
+                        .Where(x => inCause.Contains(x.InspectionItemCode))
+                        .OrderBy(x => x.InspectionItemCode)
+                        .ToArray();
+
+                    var remove = new List<UserData>();
+
+                    int i = 0;
+                    foreach (var o in userdataArray)
+                    {
+                        if (i >= 1)
+                        {
+                            //Dbg.ViewLog("code:" + o.InspectionItemCode + " v:" + o.Value);
+                            remove.Add(o);
+                        }
+                        i++;
+                    }
+
+                    //ユーザーデータから優先度の低いものを削除
+                    if (remove.Count > 0)
+                    {
+                        merged = merged.Except(remove).ToArray();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Dbg.ErrorWithView(Properties.Resources.E_ORDERMAPPING_FILED
+                        , userID);
+                    throw ex;
+                }
+            }
+
+
+            return merged;
+        }
+
+
+        /// <summary>
+        /// コードマッピング処理
+        /// 指定のコードを置換する
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="codeid"></param>
+        /// <param name="userID"></param>
+        /// <returns></returns>
         string GetCodeMapping(string value, string codeid, string userID)
         { 
             //コードマッピング（属性が「コード」の場合、値の置換）
