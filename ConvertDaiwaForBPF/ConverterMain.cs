@@ -81,7 +81,7 @@ namespace ConvertDaiwaForBPF
 
             ExcelOption[] optionarray = new ExcelOption[]
             {
-                new ExcelOption ( "config",             2, 1, true),
+                new ExcelOption ( "各種設定",           2, 1, true),
                 new ExcelOption ( "DHPTV001HED",        2, 1, true),
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
@@ -304,7 +304,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 mHRJoinKey =
-                  mMasterSheets.Tables["config"].AsEnumerable()
+                  mMasterSheets.Tables["各種設定"].AsEnumerable()
                     .Where(x => x["名称"].ToString() == "人事データ結合列名")
                     .Select(x => x.Field<string>("設定値").ToString().Trim())
                     .First();
@@ -328,7 +328,7 @@ namespace ConvertDaiwaForBPF
         DataTable ReadHelthHeder(string path)
         {
             var filename=
-                mMasterSheets.Tables["config"].AsEnumerable()
+                mMasterSheets.Tables["各種設定"].AsEnumerable()
                   .Where(x => x["名称"].ToString() == "健診ヘッダー")
                   .Select(x => x.Field<string>("設定値").ToString().Trim())
                   .First();
@@ -362,7 +362,7 @@ namespace ConvertDaiwaForBPF
         DataTable ReadHelthData(string path)
         {
             var filename =
-                mMasterSheets.Tables["config"].AsEnumerable()
+                mMasterSheets.Tables["各種設定"].AsEnumerable()
                   .Where(x => x["名称"].ToString() == "健診データ")
                   .Select(x => x.Field<string>("設定値").ToString().Trim())
                   .First();
@@ -577,7 +577,7 @@ namespace ConvertDaiwaForBPF
                         //列順の6番目は、人事データのキー（固定）
                         if (hr_row == null && index == 6)
                         {
-                            //初回、健診ヘッダーの個人番号とconfigで指定したキーで結合したデータを取得
+                            //初回、健診ヘッダーの個人番号と「各種設定」で指定したキーで結合したデータを取得
                             hr_row = GetHumanResorceRow(userID, mHRJoinKey);
                             if (hr_row == null)
                             {
