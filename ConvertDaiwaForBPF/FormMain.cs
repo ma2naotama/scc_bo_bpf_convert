@@ -104,6 +104,12 @@ namespace ConvertDaiwaForBPF
 
         }
 
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            CheckActiveRunButton();
+        }
+
+
         private void button2_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
@@ -146,6 +152,11 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            CheckActiveRunButton();
+        }
+
 
         private void button3_Click(object sender, EventArgs e)
         {
@@ -187,12 +198,16 @@ namespace ConvertDaiwaForBPF
         }
 
 
-
         private void textBox3_DragEnter(object sender, DragEventArgs e)
         {
             //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
 
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+            CheckActiveRunButton();
         }
 
 
@@ -256,5 +271,6 @@ namespace ConvertDaiwaForBPF
             }
 
         }
+
     }
 }
