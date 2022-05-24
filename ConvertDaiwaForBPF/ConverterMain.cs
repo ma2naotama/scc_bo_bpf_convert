@@ -181,7 +181,7 @@ namespace ConvertDaiwaForBPF
                         return 0;
                     }
 
-                    Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
+                    //Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
 
                     //変換処理
                     var h = hrow;
