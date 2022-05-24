@@ -168,7 +168,18 @@ namespace ConvertDaiwaForBPF
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-                textBox3.Text = files[0];
+
+                string path = files[0];
+
+                //ファイルパスを変更（ファイル名は入力した内容のまま）
+                if (textBox3.Text != null)
+                {
+                    var filename = Path.GetFileName(textBox3.Text);
+
+                    path += "\\"+ filename;
+                }
+
+                textBox3.Text = path;
             }
 
             CheckActiveRunButton();
