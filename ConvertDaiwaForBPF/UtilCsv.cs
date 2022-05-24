@@ -55,8 +55,7 @@ namespace ConvertDaiwaForBPF
             try
             { 
                 //	パース開始
-                var parser = new TextFieldParser(path, encoding);
-                using (parser)
+                using (var parser = new TextFieldParser(path, encoding))
                 {
                     //  区切りの指定
                     parser.TextFieldType = FieldType.Delimited;
