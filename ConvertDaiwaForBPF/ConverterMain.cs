@@ -508,17 +508,28 @@ namespace ConvertDaiwaForBPF
                 return true;
             }
 
-            //出力情報の一行分作成
-            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
             //項目マッピング処理
+
+            //人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
+            DataRow hr_row = GetHumanResorceRow(userID, mHRJoinKey);
+            if (hr_row == null)
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_NO_USERDATA
+                    , userID);
+
+                //存在しない場合はレコードを作成しないで次のユーザーへ
+                return true;
+            }
+
+            //出力情報の一行分作成
+            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
 
             bool requestFiledError = false;
 
-            DataRow hr_row = null;
 
             //必要な検査項目コード分ループ
             foreach (var row in mItemMap)
@@ -574,35 +585,17 @@ namespace ConvertDaiwaForBPF
                         //人事の指定列名
                         hrcolumn = hrcolumn.Trim();
 
-                        //列順の6番目は、人事データのキー（固定）
-                        if (hr_row == null && index == 6)
-                        {
-                            //初回、健診ヘッダーの個人番号と「各種設定」で指定したキーで結合したデータを取得
-                            hr_row = GetHumanResorceRow(userID, mHRJoinKey);
-                            if (hr_row == null)
-                            {
-                                Dbg.ErrorWithView(Properties.Resources.E_NO_USERDATA
-                                    , userID);
-
-                                //存在しない場合はレコードを作成しないで次のユーザーへ
-                                return true;
-                            }
-                        }
-
                         //項目マッピングで指定した列名の値をセット
-                        if (hr_row != null)
+                        try
                         {
-                            try
-                            {
-                                value = hr_row.Field<string>(hrcolumn).Trim();
-                            }
-                            catch (Exception ex)
-                            {
-                                Dbg.Error(ex.ToString());
+                            value = hr_row.Field<string>(hrcolumn).Trim();
+                        }
+                        catch (Exception ex)
+                        {
+                            Dbg.Error(ex.ToString());
 
-                                //処理中断
-                                throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
-                            }
+                            //処理中断
+                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
                     }
                 }
@@ -924,7 +917,25 @@ namespace ConvertDaiwaForBPF
                     //ユーザーデータから優先度の低いものを削除
                     if (remove.Count > 0)
                     {
+                        //書き換え
                         merged = merged.Except(remove).ToArray();
+
+                        //残った優先度を表示
+                        var resultArray = merged.AsEnumerable()
+                            .Where(x => inCause.Contains(x.InspectionItemCode))
+                            .OrderBy(x => x.InspectionItemCode)
+                            .ToArray();
+
+                        if(resultArray.Count()!=1)
+                        {
+                            throw new MyException("オーダーマッピングエラー");
+                        }
+
+                        var top = resultArray[0];
+                        Dbg.ViewLog("優先した検査項目コード:{0} 値:{1} 個人番号:{2}"
+                            , top.InspectionItemCode
+                            , top.Value
+                            , userID);
                     }
                 }
                 catch (Exception ex)
