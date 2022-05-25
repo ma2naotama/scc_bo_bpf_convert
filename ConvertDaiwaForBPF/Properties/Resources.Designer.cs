@@ -142,6 +142,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   検査項目コードに、半角英数以外がつかわれています。検査項目コード：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_INSPECTCORD_TYPE {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_INSPECTCORD_TYPE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MISMATCHED_ITEM_TYPE {

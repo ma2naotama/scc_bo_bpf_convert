@@ -135,6 +135,8 @@ namespace ConvertDaiwaForBPF
         public override int MultiThreadMethod()
         {
             Dbg.ViewLog("変換中...");
+            Dbg.Error("開始");
+
             try
             {
                 //初期化と設定ファイルの読み込み
@@ -488,6 +490,19 @@ namespace ConvertDaiwaForBPF
             return hdrRows;
         }
 
+
+        /// <summary>
+        /// 引数の文字列が半角英数字のみで構成されているかを調べる。
+        /// </summary>
+        /// <param name="text">チェック対象の文字列。</param>
+        /// <returns>引数が英数字のみで構成されていればtrue、そうでなければfalseを返す。</returns>
+        public static bool IsOnlyAlphaWithNumeric(string text)
+        {
+            // 文字列の先頭から末尾までが、英数字のみとマッチするかを調べる。
+            return (Regex.IsMatch(text, @"^[0-9a-zA-Z]+$"));
+        }
+
+
         /// <summary>
         /// 変換処理メイン
         /// </summary>
@@ -635,6 +650,16 @@ namespace ConvertDaiwaForBPF
                     string inspectcord = row.Field<string>("検査項目コード").Trim();
                     if (inspectcord != "")
                     {
+                        //検査項目コードに半角英数以外が使われているか確認
+                        if(!IsOnlyAlphaWithNumeric(inspectcord))
+                        {
+                            Dbg.ViewLog(Properties.Resources.E_MISMATCHED_INSPECTCORD_TYPE
+                                , inspectcord);
+
+                            //処理中断
+                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
+                        }
+
                         //ユーザーデータから抽出
                         var requestcord = userdata.AsEnumerable()
                                 .Where(x => x.InspectionItemCode == inspectcord);

@@ -144,6 +144,9 @@
   <data name="E_MISMATCHED_HR_KEY" xml:space="preserve">
     <value>人事データの結合キーがありません。</value>
   </data>
+  <data name="E_MISMATCHED_INSPECTCORD_TYPE" xml:space="preserve">
+    <value>検査項目コードに、半角英数以外がつかわれています。検査項目コード：{0}</value>
+  </data>
   <data name="E_MISMATCHED_ITEM_TYPE" xml:space="preserve">
     <value>検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}</value>
   </data>
