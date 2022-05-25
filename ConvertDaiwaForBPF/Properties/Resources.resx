@@ -127,7 +127,7 @@
     <value>受診者の重複があります。重複件数：{0}</value>
   </data>
   <data name="E_DUPLICATE_USERS_INFO" xml:space="preserve">
-    <value>重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2}</value>
+    <value>重複　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2}</value>
   </data>
   <data name="E_HDR_IS_EMPTY" xml:space="preserve">
     <value>健診ヘッダーが空です。</value>
@@ -190,6 +190,6 @@
     <value>完了しました。</value>
   </data>
   <data name="MSG_RESULT_ORDER_MAPPING" xml:space="preserve">
-    <value>優先した検査項目コード:{0} 値:{1} 個人番号:{2}</value>
+    <value>優先した検査項目コード：{0} 値：{1} 個人番号：{2}</value>
   </data>
 </root>

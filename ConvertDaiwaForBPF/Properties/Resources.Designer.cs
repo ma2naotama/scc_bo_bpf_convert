@@ -88,7 +88,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   重複　個人番号：{0}　健診実施日:{1}　健診実施機関名称:{2} に類似しているローカライズされた文字列を検索します。
+        ///   重複　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_INFO {
             get {
@@ -277,7 +277,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   優先した検査項目コード:{0} 値:{1} 個人番号:{2} に類似しているローカライズされた文字列を検索します。
+        ///   優先した検査項目コード：{0} 値：{1} 個人番号：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string MSG_RESULT_ORDER_MAPPING {
             get {
