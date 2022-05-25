@@ -554,7 +554,7 @@ namespace ConvertDaiwaForBPF
                 //団体IDの確認(固定)
                 if(index == 4)
                 {
-                    //最終的に残った項目で検索
+                    //「参照人事」で指定した項目名で検索
                     try
                     {
                         string hrcolumn = row.Field<string>("参照人事").Trim();
@@ -576,7 +576,7 @@ namespace ConvertDaiwaForBPF
                 }
 
 
-                //人事データ結合(ここで結合できない人事をワーニングとして出力する)
+                //人事データ結合
                 if(value == "")
                 {
                     string hrcolumn = row.Field<string>("参照人事");
@@ -592,6 +592,9 @@ namespace ConvertDaiwaForBPF
                         }
                         catch (Exception ex)
                         {
+                            Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
+                                    , hrcolumn);
+
                             Dbg.Error(ex.ToString());
 
                             //処理中断

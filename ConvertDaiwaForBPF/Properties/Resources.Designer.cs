@@ -187,6 +187,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   人事データに指定の項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_NOT_EXIST_ITEM_IN_HR {
+            get {
+                return ResourceManager.GetString("E_NOT_EXIST_ITEM_IN_HR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_ORDERMAPPING_FILED {
@@ -246,15 +255,6 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string MSG_CONVERT_FINISHED {
             get {
                 return ResourceManager.GetString("MSG_CONVERT_FINISHED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///    に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string String1 {
-            get {
-                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
     }

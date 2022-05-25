@@ -150,6 +150,9 @@
   <data name="E_MISMATCHED_ORGANIZATION_ID" xml:space="preserve">
     <value>人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0}</value>
   </data>
+  <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
+    <value>人事データに指定の項目がありません。指定項目：{0}</value>
+  </data>
   <data name="E_NO_TDLDATA" xml:space="preserve">
     <value>健診データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
@@ -179,8 +182,5 @@
   </data>
   <data name="MSG_CONVERT_FINISHED" xml:space="preserve">
     <value>完了しました。</value>
-  </data>
-  <data name="String1" xml:space="preserve">
-    <value />
   </data>
 </root>
