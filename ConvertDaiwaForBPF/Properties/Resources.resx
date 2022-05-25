@@ -162,6 +162,9 @@
   <data name="E_NO_VALUE_REQUIRED_FIELD" xml:space="preserve">
     <value>必須項目に値がありません。個人番号：{0}　項目名：{1}</value>
   </data>
+  <data name="E_ORDERMAPPING_ABORTED" xml:space="preserve">
+    <value>オーダーマッピングでエラーが発生した為処理を中断しました。</value>
+  </data>
   <data name="E_ORDERMAPPING_FILED" xml:space="preserve">
     <value>オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1}</value>
   </data>
@@ -182,5 +185,8 @@
   </data>
   <data name="MSG_CONVERT_FINISHED" xml:space="preserve">
     <value>完了しました。</value>
+  </data>
+  <data name="MSG_RESULT_ORDER_MAPPING" xml:space="preserve">
+    <value>優先した検査項目コード:{0} 値:{1} 個人番号:{2}</value>
   </data>
 </root>

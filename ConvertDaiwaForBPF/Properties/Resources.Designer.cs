@@ -196,6 +196,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   オーダーマッピングでエラーが発生した為処理を中断しました。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_ORDERMAPPING_ABORTED {
+            get {
+                return ResourceManager.GetString("E_ORDERMAPPING_ABORTED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_ORDERMAPPING_FILED {
@@ -255,6 +264,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string MSG_CONVERT_FINISHED {
             get {
                 return ResourceManager.GetString("MSG_CONVERT_FINISHED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   優先した検査項目コード:{0} 値:{1} 個人番号:{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_RESULT_ORDER_MAPPING {
+            get {
+                return ResourceManager.GetString("MSG_RESULT_ORDER_MAPPING", resourceCulture);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace ConvertDaiwaForBPF
         private DataRow[] mItemMap = null;
 
         //オーダーマッピング
-        private DataRow[] mOrderMap = null;
+        //private DataRow[] mOrderMap = null;
 
         //コードマッピング
         private DataRow[] mCordMap = null;
@@ -86,7 +86,7 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
-                new ExcelOption ( "オーダーマッピング", 2, 1, true),
+                //new ExcelOption ( "オーダーマッピング", 2, 1, true),
             };
 
             excel.SetExcelOptionArray(optionarray);
@@ -118,7 +118,7 @@ namespace ConvertDaiwaForBPF
             mPathOutput = pathOutput;
 
             mItemMap  = null;
-            mOrderMap = null;
+            //mOrderMap = null;
             mCordMap  = null;
 
             mHRRows = null;
@@ -259,11 +259,12 @@ namespace ConvertDaiwaForBPF
             }
 
 
+            /*
             //オーダーマッピング初期化
             mOrderMap = mMasterSheets.Tables["オーダーマッピング"].AsEnumerable()
                   .Where(x => x["検査項目コード"].ToString() != "")
                   .ToArray();
-
+            */
             /*
             var inOrder = new string[][] {
                     new string[]{
@@ -279,7 +280,7 @@ namespace ConvertDaiwaForBPF
                     }
             };
             */
-
+            /*
             //上記、カテゴリー別のstring 配列を動的生成 
             mOrderArray = mOrderMap.AsEnumerable()
                     .Where(x => x.Field<string>("検査項目コード") != "")
@@ -293,6 +294,8 @@ namespace ConvertDaiwaForBPF
                         InspectionItemCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray()
                     })
                     .ToArray();
+            */
+
 
             //コードマッピング初期化
             mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
@@ -526,7 +529,7 @@ namespace ConvertDaiwaForBPF
             DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
             //オーダーマッピング（特定の検査項目コードの絞込）
-            userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
+            //userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
 
             bool requestFiledError = false;
 
@@ -646,18 +649,18 @@ namespace ConvertDaiwaForBPF
                                 //検査値
                                 value = useritem.Value;
                                 //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
-
-                                //コードマッピング（属性が「コード」の場合、値の置換）
-                                if (value != "" && row.Field<string>("属性") == "コード")
-                                {
-                                    var codeid = row.Field<string>("コードID").Trim();
-
-                                    //コードマッピング処理
-                                    value = GetCodeMapping(value, codeid, userID);
-                                }
                             }
                         }
                     }
+                }
+
+                //コードマッピング（属性が「コード」の場合、値の置換）
+                if (value != "" && row.Field<string>("属性") == "コード")
+                {
+                    var codeid = row.Field<string>("コードID").Trim();
+
+                    //コードマッピング処理
+                    value = GetCodeMapping(value, codeid, userID);
                 }
 
                 //種別と値のチェック
@@ -923,19 +926,21 @@ namespace ConvertDaiwaForBPF
                         //書き換え
                         merged = merged.Except(remove).ToArray();
 
-                        //残った優先度を表示
+                        //確認
                         var resultArray = merged.AsEnumerable()
                             .Where(x => inCause.Contains(x.InspectionItemCode))
                             .OrderBy(x => x.InspectionItemCode)
                             .ToArray();
 
-                        if(resultArray.Count()!=1)
+                        //上記処理により、１つしか残らないはず
+                        if (resultArray.Count() != 1)
                         {
-                            throw new MyException("オーダーマッピングエラー");
+                            throw new MyException(Properties.Resources.E_ORDERMAPPING_ABORTED);
                         }
 
+                        //残った優先度を表示
                         var top = resultArray[0];
-                        Dbg.ViewLog("優先した検査項目コード:{0} 値:{1} 個人番号:{2}"
+                        Dbg.ViewLog(Properties.Resources.MSG_RESULT_ORDER_MAPPING
                             , top.InspectionItemCode
                             , top.Value
                             , userID);
