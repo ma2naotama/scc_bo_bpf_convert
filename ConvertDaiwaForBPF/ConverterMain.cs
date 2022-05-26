@@ -140,7 +140,7 @@ namespace ConvertDaiwaForBPF
         public override int MultiThreadMethod()
         {
             Dbg.ViewLog("変換中...");
-            Dbg.Error("開始");
+            Dbg.Debug("開始");
 
             try
             {
@@ -892,12 +892,13 @@ namespace ConvertDaiwaForBPF
             foreach (var m in user)
             {
                 var newcode = jlacTable.AsEnumerable()
-                                .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode)
+                                .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode && x.Field<string>("置換対象") == "〇")
                                 .Select(x => x.Field<string>("新検査項目コード"))
                                 .FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(newcode))
                 {
+                    //Dbg.Debug("newcode:"+ newcode);
                     m.InspectionItemCode = newcode;
                 }
 
