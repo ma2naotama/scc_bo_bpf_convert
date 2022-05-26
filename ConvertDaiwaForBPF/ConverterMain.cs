@@ -874,11 +874,11 @@ namespace ConvertDaiwaForBPF
 
             //return merged.ToList();
 
-            List<UserData> ret = new List<UserData>();
+            //旧検査項目コードを新検査項目コードに置換します。
 
+            List<UserData> ret = new List<UserData>();
             foreach(var m in merged)
             {
-                //参照ではないので書き換えできない
                 var newcode = jlacTable.AsEnumerable()
                                             .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode)
                                             .Select(x => x.Field<string>("新検査項目コード"))
@@ -889,6 +889,7 @@ namespace ConvertDaiwaForBPF
                     m.InspectionItemCode = newcode;
                 }
 
+                //refが使えない為、値を書き換えて別に保存
                 ret.Add(m);
             }
 
