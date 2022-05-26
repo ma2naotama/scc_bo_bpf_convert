@@ -522,9 +522,7 @@ namespace ConvertDaiwaForBPF
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
             var userdata = CreateUserData(
                         ref hrow
-                        , ref TdlTbl
-                        , mMasterSheets.Tables["JLAC10変換"])
-                        .ToArray();
+                        , ref TdlTbl);
 
             if (userdata.Count() <= 0)
             {
@@ -534,9 +532,6 @@ namespace ConvertDaiwaForBPF
                 //次のユーザーへ
                 return true;
             }
-
-
-            //項目マッピング処理
 
             //人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
             DataRow hr_row = GetHumanResorceRow(userID, mHRJoinKey);
@@ -549,15 +544,18 @@ namespace ConvertDaiwaForBPF
                 return true;
             }
 
-            //出力情報の一行分作成
-            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+            //旧検査項目コードの書き換え
+            userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"]);
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             //userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
 
+            //出力情報の一行分作成
+            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+
             bool requestFiledError = false;
 
-
+            //項目マッピング処理
             //必要な検査項目コード分ループ
             foreach (var row in mItemMap)
             {
@@ -669,21 +667,16 @@ namespace ConvertDaiwaForBPF
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
 
-                        //ユーザーデータから抽出
-                        var requestcord = userdata.AsEnumerable()
-                                .Where(x => x.InspectionItemCode == inspectcord);
-                                //.ToArray();
+                        //ユーザーデータから検査値を抽出
+                        var retvalue =  userdata.AsEnumerable()
+                                .Where(x => x.InspectionItemCode == inspectcord)
+                                .Select(x => x.Value)
+                                .FirstOrDefault();
 
-                        if (requestcord != null)
+                        //検査値
+                        if (!string.IsNullOrEmpty(retvalue))
                         {
-                            if (requestcord.Count() > 0)
-                            {
-                                var useritem = requestcord.First();
-
-                                //検査値
-                                value = useritem.Value;
-                                //Dbg.ViewLog("value:" + value + " " + row.Field<string>("項目名"));
-                            }
+                            value = retvalue;
                         }
                     }
                 }
@@ -804,7 +797,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
         /// <returns>１ユーザー分の検査項目一覧</returns>
-        private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable,  DataTable jlacTable)
+        private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
         {
             /*
             .Join(
@@ -852,7 +845,7 @@ namespace ConvertDaiwaForBPF
 
             // 外部結合を行うメソッド式
             /*
-             * 同じ項目が増えるの使えないs
+             * 同じ項目が増えるの使えない
             var outerJoin =
                 merged.GroupJoin(jlacTable.AsEnumerable(), p => p.InspectionItemCode , j => j.Field<string>("旧検査項目コード"), (p, j) => new
                 {
@@ -874,17 +867,36 @@ namespace ConvertDaiwaForBPF
 
             //return merged.ToList();
 
-            //旧検査項目コードを新検査項目コードに置換します。
+            /*
+            if (ret.Count() > 0)
+            {
+                UtilCsv csv = new UtilCsv();
+                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "a.csv", csv.CreateDataTable(merged));
+                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "b.csv", csv.CreateDataTable(ret));
+            }
+            */
 
+            return merged.ToList();
+        }
+
+        /// <summary>
+        /// 旧検査項目コードを新検査項目コードに置換します。
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="jlacTable"></param>
+        /// <returns></returns>
+        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable jlacTable)
+        {
             List<UserData> ret = new List<UserData>();
-            foreach(var m in merged)
+
+            foreach (var m in user)
             {
                 var newcode = jlacTable.AsEnumerable()
-                                            .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode)
-                                            .Select(x => x.Field<string>("新検査項目コード"))
-                                            .FirstOrDefault();
+                                .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode)
+                                .Select(x => x.Field<string>("新検査項目コード"))
+                                .FirstOrDefault();
 
-                if(!string.IsNullOrEmpty(newcode))
+                if (!string.IsNullOrEmpty(newcode))
                 {
                     m.InspectionItemCode = newcode;
                 }
@@ -897,8 +909,8 @@ namespace ConvertDaiwaForBPF
             if (ret.Count() > 0)
             {
                 UtilCsv csv = new UtilCsv();
-                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "a.csv", csv.CreateDataTable(merged));
-                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "b.csv", csv.CreateDataTable(ret));
+                csv.WriteFile(".\\out\\UserData_a.csv", csv.CreateDataTable(user));
+                csv.WriteFile(".\\out\\UserData_b.csv", csv.CreateDataTable(ret));
             }
             */
 
