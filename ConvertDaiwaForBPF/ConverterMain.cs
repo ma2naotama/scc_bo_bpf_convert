@@ -31,6 +31,10 @@ namespace ConvertDaiwaForBPF
         //コードマッピング
         private DataRow[] mCordMap = null;
 
+        //JLAC10変換
+        //private DataRow[] mJLAC10 = null;
+
+
         //人事データ
         private string mHRJoinKey = null;
         private DataRow[] mHRRows = null;
@@ -86,6 +90,7 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
+                new ExcelOption ( "JLAC10変換",         2, 1, true),
                 //new ExcelOption ( "オーダーマッピング", 2, 1, true),
             };
 
@@ -322,6 +327,7 @@ namespace ConvertDaiwaForBPF
                 throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
             }
 
+
             //次の処理へ
             return true;
         }
@@ -514,7 +520,10 @@ namespace ConvertDaiwaForBPF
             var userID = hrow["個人番号"].ToString();
 
             //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = CreateUserData(ref hrow, ref TdlTbl)
+            var userdata = CreateUserData(
+                        ref hrow
+                        , ref TdlTbl
+                        , mMasterSheets.Tables["JLAC10変換"])
                         .ToArray();
 
             if (userdata.Count() <= 0)
@@ -795,7 +804,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
         /// <returns>１ユーザー分の検査項目一覧</returns>
-        private IEnumerable<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
+        private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable,  DataTable jlacTable)
         {
             /*
             .Join(
@@ -840,10 +849,59 @@ namespace ConvertDaiwaForBPF
                         Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
                     };
 
-            //UtilCsv csv = new UtilCsv();
-            //csv.WriteFile(".\\merged_"+ hrow["個人番号"].ToString()+".csv", csv.CreateDataTable(merged));
 
-            return merged;
+            // 外部結合を行うメソッド式
+            /*
+             * 同じ項目が増えるの使えないs
+            var outerJoin =
+                merged.GroupJoin(jlacTable.AsEnumerable(), p => p.InspectionItemCode , j => j.Field<string>("旧検査項目コード"), (p, j) => new
+                {
+                    InspectionItemCode = p.InspectionItemCode,
+                    InspectionItemName = p.InspectionItemName,
+                    InspectionDetailID = p.InspectionDetailID,
+                    Value = p.Value,
+                    NewInspectionItemCode = j.DefaultIfEmpty()
+                })
+                .SelectMany(x => x.NewInspectionItemCode, (x, j) => new 
+                {
+                    InspectionItemCode = x.InspectionItemCode,
+                    InspectionItemName = x.InspectionItemName,
+                    InspectionDetailID = x.InspectionDetailID,
+                    Value = x.Value,
+                    NewInspectionItemCode = j != null ? j.Field<string>("新検査項目コード") : ""
+                });
+            */
+
+            //return merged.ToList();
+
+            List<UserData> ret = new List<UserData>();
+
+            foreach(var m in merged)
+            {
+                //参照ではないので書き換えできない
+                var newcode = jlacTable.AsEnumerable()
+                                            .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode)
+                                            .Select(x => x.Field<string>("新検査項目コード"))
+                                            .FirstOrDefault();
+
+                if(!string.IsNullOrEmpty(newcode))
+                {
+                    m.InspectionItemCode = newcode;
+                }
+
+                ret.Add(m);
+            }
+
+            /*
+            if (ret.Count() > 0)
+            {
+                UtilCsv csv = new UtilCsv();
+                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "a.csv", csv.CreateDataTable(merged));
+                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "b.csv", csv.CreateDataTable(ret));
+            }
+            */
+
+            return ret.ToList();
         }
 
 
@@ -982,7 +1040,6 @@ namespace ConvertDaiwaForBPF
 
             return merged;
         }
-
 
         /// <summary>
         /// コードマッピング処理
