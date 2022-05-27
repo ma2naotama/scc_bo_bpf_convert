@@ -127,6 +127,8 @@ namespace ConvertDaiwaForBPF
             mOutputCsv = null;
 
             Cancel = false;
+
+            Dbg.SetLogPath(mPathOutput);
         }
 
 

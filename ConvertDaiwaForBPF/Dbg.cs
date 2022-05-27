@@ -1,7 +1,10 @@
 ﻿using ConvertDaiwaForBPF;
+using log4net.Appender;
+using log4net.Repository.Hierarchy;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,20 +21,41 @@ namespace ConvertDaiwaForBPF
 
         }
 
+        public static void SetLogPath(string path)
+        {
+            var rootLogger = ((Hierarchy)_logger.Logger.Repository).Root;
+
+            FileAppender appender = rootLogger.GetAppender("logFileAbc") as FileAppender; //
+
+            string filename = Path.GetFileName(appender.File);
+
+            //DateTime dt = DateTime.Now;
+            //var datetime = "\\" + String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名
+            
+            // 出力先フォルダとログファイル名をC#で変更したい
+            appender.File = path +"\\"+ filename;
+            appender.ActivateOptions();
+        }
 
         //ログ画面への表示のみ
-        public static void ViewLog(String msg, params string[] args)
+        private static void _ViewLog(String msg, params string[] args)
         {
             string logText = string.Format(msg, args);
 
             FormMain main = FormMain.GetInstance();
-            if(main == null)
+            if (main == null)
             {
                 Console.WriteLine(logText);
                 return;
             }
 
             main.ViewLog(logText);
+        }
+
+        public static void ViewLog(String msg, params string[] args)
+        {
+            _ViewLog(msg, args);
+            Debug(msg, args);
         }
 
 
@@ -75,7 +99,7 @@ namespace ConvertDaiwaForBPF
             }
             */
 
-            ViewLog(string.Format(errormsg, args));
+            _ViewLog(string.Format(errormsg, args));
 
             var stackFrames = new StackTrace().GetFrames();
             var callingframe = stackFrames.ElementAt(1);
