@@ -27,13 +27,13 @@ namespace ConvertDaiwaForBPF
 
             FileAppender appender = rootLogger.GetAppender("logFileAbc") as FileAppender; //
 
-            string filename = Path.GetFileName(appender.File);
+            //string filename = Path.GetFileName(appender.File);
 
-            //DateTime dt = DateTime.Now;
-            //var datetime = "\\" + String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名
+            DateTime dt = DateTime.Now;
+            var datetime = String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名
             
             // 出力先フォルダとログファイル名をC#で変更したい
-            appender.File = path +"\\"+ filename;
+            appender.File = path +"\\"+ datetime;
             appender.ActivateOptions();
         }
 
