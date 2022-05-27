@@ -223,12 +223,10 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         bool Init()
         {
-            string filename = "設定ファイル.xlsx";
-
             // 独自に設定した「appSettings」へのアクセス
             NameValueCollection appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
 
-            string path = appSettings["SettingPath"] + filename;
+            string path = appSettings["SettingPath"];
             Dbg.ViewLog("設定ファイルの読み込み:" + path);
 
             mMasterSheets = ReadMasterFile(path);
