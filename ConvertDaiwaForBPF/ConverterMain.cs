@@ -305,19 +305,14 @@ namespace ConvertDaiwaForBPF
 
 
             //人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
-            try
-            {
-                mHRJoinKey =
-                  mMasterSheets.Tables["各種設定"].AsEnumerable()
+            mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
                     .Where(x => x["名称"].ToString() == "人事データ結合列名")
                     .Select(x => x.Field<string>("設定値").ToString().Trim())
-                    .First();
-            }
-            catch (Exception ex)
+                    .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(mHRJoinKey))
             {
                 //処理中断
-                Dbg.Error(ex.ToString());
-
                 throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
             }
 
@@ -578,6 +573,7 @@ namespace ConvertDaiwaForBPF
                     {
                         string hrcolumn = row.Field<string>("参照人事").Trim();
 
+                        //固定IDと人事データの確認、例外が発生しなければOK
                         var hr_id = mHRRows
                             .Where(x => x.Field<string>(hrcolumn) == value)
                             .First();
@@ -587,7 +583,10 @@ namespace ConvertDaiwaForBPF
                         Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
                                 , value);
 
-                        Dbg.Error(ex.ToString());
+                        #pragma warning disable
+                        var e = ex;
+                        #pragma warning restore
+                        //Dbg.Error(ex.ToString());
 
                         //処理中断
                         throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
@@ -614,7 +613,10 @@ namespace ConvertDaiwaForBPF
                             Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
                                     , hrcolumn);
 
-                            Dbg.Error(ex.ToString());
+                            #pragma warning disable
+                            var e = ex;
+                            #pragma warning restore
+                            //Dbg.Error(ex.ToString());
 
                             //処理中断
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
@@ -636,7 +638,10 @@ namespace ConvertDaiwaForBPF
                         }
                         catch (Exception ex)
                         {
-                            Dbg.Error(ex.ToString());
+                            #pragma warning disable 
+                            var e = ex;
+                            #pragma warning restore
+                            //Dbg.Error(ex.ToString());
 
                             //処理中断
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
@@ -1062,28 +1067,24 @@ namespace ConvertDaiwaForBPF
         string GetCodeMapping(string value, string codeid, string userID)
         { 
             //コードマッピング（属性が「コード」の場合、値の置換）
-            try
-            {
-                //コードマッピングから抽出
-                value = mCordMap.AsEnumerable()
-                    .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("★コード").Trim() == value)
-                    .Select(x => x.Field<string>("コード").Trim())
-                    .First();
-            }
-            catch(Exception ex)
+            //コードマッピングから抽出
+            var newvalue = mCordMap.AsEnumerable()
+                .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("★コード").Trim() == value)
+                .Select(x => x.Field<string>("コード").Trim())
+                .FirstOrDefault();
+
+            if(string.IsNullOrEmpty(newvalue))
             {
                 //エラー表示
                 Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
                     , userID
                     , codeid);
 
-                Dbg.Error(ex.ToString());
-
                 //エラーの場合空にする
-                value = "";
+                newvalue = "";
             }
 
-            return value;
+            return newvalue;
         }
 
 
@@ -1176,13 +1177,16 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                Dbg.Error(ex.ToString());
+                #pragma warning disable
+                var e = ex;
+                #pragma warning restore
+                //Dbg.Error(ex.ToString());
 
                 //存在しない場合はレコードを作成しないで次のユーザーへ
                 return null;
             }
 
-            return row;            
+            return row;
         }
 
         /*
