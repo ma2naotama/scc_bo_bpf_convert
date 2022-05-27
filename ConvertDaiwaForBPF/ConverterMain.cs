@@ -31,10 +31,6 @@ namespace ConvertDaiwaForBPF
         //コードマッピング
         private DataRow[] mCordMap = null;
 
-        //JLAC10変換
-        //private DataRow[] mJLAC10 = null;
-
-
         //人事データ
         private string mHRJoinKey = null;
         private DataRow[] mHRRows = null;
@@ -90,7 +86,7 @@ namespace ConvertDaiwaForBPF
                 new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
-                new ExcelOption ( "JLAC10変換",         2, 1, true),
+                //new ExcelOption ( "JLAC10変換",         2, 1, true),
                 //new ExcelOption ( "オーダーマッピング", 2, 1, true),
             };
 
@@ -545,7 +541,7 @@ namespace ConvertDaiwaForBPF
             }
 
             //旧検査項目コードの書き換え
-            userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"], userID, hrow["健診実施日"].ToString());
+            //userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"], userID, hrow["健診実施日"].ToString());
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             //userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
