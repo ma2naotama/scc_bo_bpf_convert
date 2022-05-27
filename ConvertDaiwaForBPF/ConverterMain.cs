@@ -82,8 +82,6 @@ namespace ConvertDaiwaForBPF
             ExcelOption[] optionarray = new ExcelOption[]
             {
                 new ExcelOption ( "各種設定",           2, 1, true),
-                new ExcelOption ( "DHPTV001HED",        2, 1, true),
-                new ExcelOption ( "DHPTV001DTL",        2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
                 //new ExcelOption ( "JLAC10変換",         2, 1, true),
@@ -356,7 +354,7 @@ namespace ConvertDaiwaForBPF
                 return null;
             }
 
-            SetColumnName(tbl, mMasterSheets.Tables["DHPTV001HED"]);
+            SetColumnName(tbl, GlobalVariables.ColumnHDR);
 
             //次の処理へ
             return tbl;
@@ -390,7 +388,7 @@ namespace ConvertDaiwaForBPF
                 return null;
             }
 
-            SetColumnName(tbl, mMasterSheets.Tables["DHPTV001DTL"]);
+            SetColumnName(tbl, GlobalVariables.ColumnTDL);
             return tbl;
         }
 
@@ -765,23 +763,19 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="sheet"></param>
-        void SetColumnName(DataTable dt, DataTable sheet)
+        void SetColumnName(DataTable dt, List<string> sheet)
         {
-            DataRow[] rows = sheet.AsEnumerable()
-                .Where(x => x["項目名"].ToString() != "")
-                .ToArray();
-
-            int n = dt.Columns.Count;
-            for (int i=0; i< rows.Count(); i++)
+            int n = sheet.Count;
+            for (int i=0; i< sheet.Count(); i++)
             {
                 //Dbg.Log(rows[i][0].ToString());
                 if(i<n)
                 {
-                    dt.Columns[""+(i+1)].ColumnName = rows[i]["項目名"].ToString().Trim();
+                    dt.Columns[""+(i+1)].ColumnName = sheet[i].ToString().Trim();
                 }
                 else
                 {
-                    dt.Columns.Add(rows[i]["項目名"].ToString().Trim());
+                    dt.Columns.Add(sheet[i].ToString().Trim());
                 }
             }
 
