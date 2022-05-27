@@ -751,7 +751,11 @@ namespace ConvertDaiwaForBPF
             }
 
             UtilCsv csv = new UtilCsv();
-            csv.WriteFile(mPathOutput, mOutputCsv, str_arry);
+
+            DateTime dt = DateTime.Now;
+            var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+
+            csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
 
             return true;
         }

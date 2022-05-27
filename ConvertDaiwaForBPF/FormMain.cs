@@ -49,16 +49,17 @@ namespace ConvertDaiwaForBPF
             }
         }
 
-        private string mOutputFileName = "";
+        //private string mOutputFileName = "";
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-
+            /*
             DateTime dt = DateTime.Now;
-
             mOutputFileName = ".\\"+String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
-
             textBox3.Text = mOutputFileName;
+            */
+
+            textBox3.Text = "..\\";
         }
 
 
@@ -160,6 +161,7 @@ namespace ConvertDaiwaForBPF
 
         private void button3_Click(object sender, EventArgs e)
         {
+            /*
             SaveFileDialog sfd = new SaveFileDialog();
 
             DateTime dt = DateTime.Now;
@@ -170,12 +172,32 @@ namespace ConvertDaiwaForBPF
             {
                 textBox3.Text = sfd.FileName;
             }
+            */
+
+            FolderBrowserDialog fbDialog = new FolderBrowserDialog();
+
+            // ダイアログの説明文を指定する
+            fbDialog.Description = "出力フォルダの選択";
+
+            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+
+            // デフォルトのフォルダを指定する
+            fbDialog.SelectedPath = stCurrentDir;
+
+            // 「新しいフォルダーの作成する」ボタンを表示する
+            fbDialog.ShowNewFolderButton = true;
+
+            if (fbDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                textBox3.Text = fbDialog.SelectedPath;
+            }
 
             CheckActiveRunButton();
         }
 
         private void textBox3_DragDrop(object sender, DragEventArgs e)
         {
+            /*
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
@@ -192,9 +214,15 @@ namespace ConvertDaiwaForBPF
 
                 textBox3.Text = path;
             }
+            */
+
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                textBox3.Text = files[0];
+            }
 
             CheckActiveRunButton();
-
         }
 
 
