@@ -839,7 +839,9 @@ namespace ConvertDaiwaForBPF
                         InspectionItemCode = d.Field<string>("検査項目コード").Trim(),
                         InspectionItemName = d.Field<string>("検査項目名称").Trim(),
                         InspectionDetailID = d.Field<string>("健診明細情報管理番号").Trim(),
-                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
+
+                        //コメントのTrimはしない
+                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
                     };
 
 
