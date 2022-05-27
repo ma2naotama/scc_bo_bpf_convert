@@ -545,7 +545,7 @@ namespace ConvertDaiwaForBPF
             }
 
             //旧検査項目コードの書き換え
-            userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"]);
+            userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"], userID, hrow["健診実施日"].ToString());
 
             //オーダーマッピング（特定の検査項目コードの絞込）
             //userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
@@ -885,7 +885,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="user"></param>
         /// <param name="jlacTable"></param>
         /// <returns></returns>
-        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable jlacTable)
+        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable jlacTable, string userID, string date)
         {
             List<UserData> ret = new List<UserData>();
 
@@ -898,8 +898,8 @@ namespace ConvertDaiwaForBPF
 
                 if (!string.IsNullOrEmpty(newcode))
                 {
-                    //Dbg.Debug("newcode:"+ newcode);
-                    m.InspectionItemCode = newcode;
+                    m.InspectionItemCode = newcode.Trim();
+                    //Dbg.Debug("個人番号：{0} 健診実施日:{1} newcode：{2}", userID, date, m.InspectionItemCode);
                 }
 
                 //refが使えない為、値を書き換えて別に保存
