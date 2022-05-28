@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             this.textBox_Log = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.button3 = new System.Windows.Forms.Button();
+            this.textBoxReceivePath = new System.Windows.Forms.TextBox();
+            this.buttonReceivePath = new System.Windows.Forms.Button();
+            this.textBoxHRPath = new System.Windows.Forms.TextBox();
+            this.buttonHRPath = new System.Windows.Forms.Button();
+            this.textBoxOutputPath = new System.Windows.Forms.TextBox();
+            this.buttonOutputPath = new System.Windows.Forms.Button();
             this.buttonConvert = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -53,80 +53,80 @@
             this.textBox_Log.Size = new System.Drawing.Size(647, 172);
             this.textBox_Log.TabIndex = 0;
             // 
-            // textBox1
+            // textBoxReceivePath
             // 
-            this.textBox1.AllowDrop = true;
-            this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxReceivePath.AllowDrop = true;
+            this.textBoxReceivePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox1.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.textBox1.Location = new System.Drawing.Point(21, 41);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(568, 20);
-            this.textBox1.TabIndex = 3;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            this.textBox1.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBox1_DragDrop);
-            this.textBox1.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBox1_DragEnter);
+            this.textBoxReceivePath.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.textBoxReceivePath.Location = new System.Drawing.Point(21, 41);
+            this.textBoxReceivePath.Name = "textBoxReceivePath";
+            this.textBoxReceivePath.Size = new System.Drawing.Size(568, 20);
+            this.textBoxReceivePath.TabIndex = 3;
+            this.textBoxReceivePath.TextChanged += new System.EventHandler(this.textBoxReceivePath_TextChanged);
+            this.textBoxReceivePath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxReceivePath_DragEnter);
+            this.textBoxReceivePath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxReceivePath_DragEnter);
             // 
-            // button1
+            // buttonReceivePath
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(595, 43);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(46, 22);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "選択";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.buttonReceivePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonReceivePath.Location = new System.Drawing.Point(595, 43);
+            this.buttonReceivePath.Name = "buttonReceivePath";
+            this.buttonReceivePath.Size = new System.Drawing.Size(46, 22);
+            this.buttonReceivePath.TabIndex = 4;
+            this.buttonReceivePath.Text = "選択";
+            this.buttonReceivePath.UseVisualStyleBackColor = true;
+            this.buttonReceivePath.Click += new System.EventHandler(this.buttonReceivePath_Click);
             // 
-            // textBox2
+            // textBoxHRPath
             // 
-            this.textBox2.AllowDrop = true;
-            this.textBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxHRPath.AllowDrop = true;
+            this.textBoxHRPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox2.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.textBox2.Location = new System.Drawing.Point(21, 99);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(568, 20);
-            this.textBox2.TabIndex = 5;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
-            this.textBox2.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBox2_DragDrop);
-            this.textBox2.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBox2_DragEnter);
+            this.textBoxHRPath.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.textBoxHRPath.Location = new System.Drawing.Point(21, 99);
+            this.textBoxHRPath.Name = "textBoxHRPath";
+            this.textBoxHRPath.Size = new System.Drawing.Size(568, 20);
+            this.textBoxHRPath.TabIndex = 5;
+            this.textBoxHRPath.TextChanged += new System.EventHandler(this.textBoxHRPath_TextChanged);
+            this.textBoxHRPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxHRPath_DragDrop);
+            this.textBoxHRPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxHRPath_DragEnter);
             // 
-            // button2
+            // buttonHRPath
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(595, 101);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(46, 22);
-            this.button2.TabIndex = 6;
-            this.button2.Text = "選択";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.buttonHRPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonHRPath.Location = new System.Drawing.Point(595, 101);
+            this.buttonHRPath.Name = "buttonHRPath";
+            this.buttonHRPath.Size = new System.Drawing.Size(46, 22);
+            this.buttonHRPath.TabIndex = 6;
+            this.buttonHRPath.Text = "選択";
+            this.buttonHRPath.UseVisualStyleBackColor = true;
+            this.buttonHRPath.Click += new System.EventHandler(this.buttonHRPath_Click);
             // 
-            // textBox3
+            // textBoxOutputPath
             // 
-            this.textBox3.AllowDrop = true;
-            this.textBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.textBoxOutputPath.AllowDrop = true;
+            this.textBoxOutputPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox3.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.textBox3.Location = new System.Drawing.Point(21, 159);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(568, 20);
-            this.textBox3.TabIndex = 7;
-            this.textBox3.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
-            this.textBox3.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBox3_DragDrop);
-            this.textBox3.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBox3_DragEnter);
+            this.textBoxOutputPath.Font = new System.Drawing.Font("ＭＳ ゴシック", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.textBoxOutputPath.Location = new System.Drawing.Point(21, 159);
+            this.textBoxOutputPath.Name = "textBoxOutputPath";
+            this.textBoxOutputPath.Size = new System.Drawing.Size(568, 20);
+            this.textBoxOutputPath.TabIndex = 7;
+            this.textBoxOutputPath.TextChanged += new System.EventHandler(this.textBoxOutputPath_TextChanged);
+            this.textBoxOutputPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxOutputPath_DragDrop);
+            this.textBoxOutputPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxOutputPath_DragEnter);
             // 
-            // button3
+            // buttonOutputPath
             // 
-            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.Location = new System.Drawing.Point(595, 161);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(46, 22);
-            this.button3.TabIndex = 8;
-            this.button3.Text = "選択";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.buttonOutputPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonOutputPath.Location = new System.Drawing.Point(595, 161);
+            this.buttonOutputPath.Name = "buttonOutputPath";
+            this.buttonOutputPath.Size = new System.Drawing.Size(46, 22);
+            this.buttonOutputPath.TabIndex = 8;
+            this.buttonOutputPath.Text = "選択";
+            this.buttonOutputPath.UseVisualStyleBackColor = true;
+            this.buttonOutputPath.Click += new System.EventHandler(this.buttonOutputPath_Click);
             // 
             // buttonConvert
             // 
@@ -176,12 +176,12 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.buttonConvert);
-            this.Controls.Add(this.button3);
-            this.Controls.Add(this.textBox3);
-            this.Controls.Add(this.button2);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.buttonOutputPath);
+            this.Controls.Add(this.textBoxOutputPath);
+            this.Controls.Add(this.buttonHRPath);
+            this.Controls.Add(this.textBoxHRPath);
+            this.Controls.Add(this.buttonReceivePath);
+            this.Controls.Add(this.textBoxReceivePath);
             this.Controls.Add(this.textBox_Log);
             this.Name = "FormMain";
             this.Text = "健診結果取込フォーマット作成ツール";
@@ -194,12 +194,12 @@
         #endregion
 
         private System.Windows.Forms.TextBox textBox_Log;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.TextBox textBox3;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.TextBox textBoxReceivePath;
+        private System.Windows.Forms.Button buttonReceivePath;
+        private System.Windows.Forms.TextBox textBoxHRPath;
+        private System.Windows.Forms.Button buttonHRPath;
+        private System.Windows.Forms.TextBox textBoxOutputPath;
+        private System.Windows.Forms.Button buttonOutputPath;
         private System.Windows.Forms.Button buttonConvert;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;

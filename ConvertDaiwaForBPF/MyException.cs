@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// 例外処理のラッパー
+    /// </summary>
     [Serializable()]
     public class MyException : System.Exception
     {

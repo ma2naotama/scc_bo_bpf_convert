@@ -9,14 +9,12 @@ using ClosedXML.Excel;
 
 namespace ConvertDaiwaForBPF
 {
-   
     /// <summary>
     /// エクセルファイルの読み込み
     /// </summary>
     internal class UtilExcel
     {
         private bool mbCancel;
-
 
         private List<ExcelOption> mExcelOption = new List<ExcelOption>();
 

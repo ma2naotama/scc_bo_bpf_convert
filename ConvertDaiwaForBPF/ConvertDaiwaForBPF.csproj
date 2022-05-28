@@ -122,6 +122,7 @@
   <ItemGroup>
     <Compile Include="BaseThread.cs" />
     <Compile Include="ConverterMain.cs" />
+    <Compile Include="ExcelOption.cs" />
     <Compile Include="FormProgressDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -129,6 +130,7 @@
       <DependentUpon>FormProgressDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="MyException.cs" />
+    <Compile Include="UserData.cs" />
     <Compile Include="UtilCsv.cs" />
     <Compile Include="UtilExcel.cs" />
     <Compile Include="Dbg.cs" />

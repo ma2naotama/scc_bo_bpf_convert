@@ -1,13 +1,8 @@
-﻿using ConvertDaiwaForBPF;
-using log4net.Appender;
+﻿using log4net.Appender;
 using log4net.Repository.Hierarchy;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
@@ -36,7 +31,7 @@ namespace ConvertDaiwaForBPF
 
             var appender = rootLogger.GetAppender("logFileAbc") as FileAppender; //
 
-            //string filename = Path.GetFileName(appender.File);
+            //var filename = Path.GetFileName(appender.File);
 
             var dt = DateTime.Now;
             var datetime = String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名

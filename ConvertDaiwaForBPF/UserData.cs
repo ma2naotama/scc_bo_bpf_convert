@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 namespace ConvertDaiwaForBPF
 {
     /// <summary>
-    /// 健診ヘッダーと健診データの結合用
+    /// 1ユーザー分の検査項目コード一覧
+    /// 健診ヘッダーと健診データの結合結果
     /// </summary>
     internal class UserData
     {

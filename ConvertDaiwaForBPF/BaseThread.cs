@@ -7,25 +7,34 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// スレッドの基礎クラス
+    /// </summary>
     public abstract class BaseThread
     {
         public bool Cancel { get; set; }            //キャンセルフラグ
         public bool Completed { get; set; }         //完了フラグ
 
+        /// <summary>
+        /// キャンセル用トークン
+        /// </summary>
+        private CancellationTokenSource _tokenSource = null;
 
         //コンストラクタ
         public BaseThread()
         {
         }
 
-        //マルチスレッドの処理
+        /// <summary>
+        /// マルチスレッドの処理
+        /// </summary>
+        /// <returns></returns>
         public  abstract int MultiThreadMethod();
 
 
-        private CancellationTokenSource _tokenSource = null;
-
-
-        //非同期処理開始
+        /// <summary>
+        /// 非同期処理開始
+        /// </summary>
         public void RunMultiThreadAsync()
         {
             //変数初期化
@@ -67,6 +76,9 @@ namespace ConvertDaiwaForBPF
 
         }
 
+        /// <summary>
+        /// スレッドのキャンセル
+        /// </summary>
         public virtual void MultiThreadCancel()
         {
             Dbg.ViewLog("変換キャンセル");
