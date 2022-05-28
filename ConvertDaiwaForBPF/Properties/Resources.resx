@@ -129,6 +129,9 @@
   <data name="E_DUPLICATE_USERS_INFO" xml:space="preserve">
     <value>重複　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2}</value>
   </data>
+  <data name="E_EMPTY_SHEET" xml:space="preserve">
+    <value>シートが空です。シート名：{0}</value>
+  </data>
   <data name="E_HDR_IS_EMPTY" xml:space="preserve">
     <value>健診ヘッダーが空です。</value>
   </data>
@@ -152,6 +155,9 @@
   </data>
   <data name="E_MISMATCHED_ORGANIZATION_ID" xml:space="preserve">
     <value>人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0}</value>
+  </data>
+  <data name="E_NOT_EXIST_ITEM_IN_HDR" xml:space="preserve">
+    <value>検診ヘッダーに指定の項目がありません。指定項目：{0}</value>
   </data>
   <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
     <value>人事データに指定の項目がありません。指定項目：{0}</value>
@@ -183,13 +189,31 @@
   <data name="E_READFAILED_TDL" xml:space="preserve">
     <value>健診データが読めませんでした。</value>
   </data>
+  <data name="E_TASK_CANCEL" xml:space="preserve">
+    <value>RunMultiThread キャンセル</value>
+  </data>
+  <data name="E_TASK_ERROR" xml:space="preserve">
+    <value>RunMultiThread エラー</value>
+  </data>
   <data name="E_TDL_IS_EMPTY" xml:space="preserve">
     <value>健診データが空です。</value>
+  </data>
+  <data name="MSG_CONVERT_CANCEL" xml:space="preserve">
+    <value>変換キャンセル</value>
   </data>
   <data name="MSG_CONVERT_FINISHED" xml:space="preserve">
     <value>完了しました。</value>
   </data>
+  <data name="MSG_CREATE_OUTPUT" xml:space="preserve">
+    <value>CSV作成中...（件数{0})</value>
+  </data>
+  <data name="MSG_READ_SETTINGFILE" xml:space="preserve">
+    <value>設定ファイルの読み込み ファイル名：{0}</value>
+  </data>
   <data name="MSG_RESULT_ORDER_MAPPING" xml:space="preserve">
     <value>優先した検査項目コード：{0} 値：{1} 個人番号：{2}</value>
+  </data>
+  <data name="WRN_NO_DATA" xml:space="preserve">
+    <value>データがありません。Path：{0}</value>
   </data>
 </root>

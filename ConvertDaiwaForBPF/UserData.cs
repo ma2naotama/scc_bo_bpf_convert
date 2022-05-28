@@ -13,17 +13,17 @@ namespace ConvertDaiwaForBPF
     internal class UserData
     {
         /// <summary>
-        ///検査項目コード
+        /// 検査項目コード
         /// </summary>
         public string InspectionItemCode { get; set; }
 
         /// <summary>
-        ///検査項目名称
+        /// 検査項目名称
         /// </summary>
         public string InspectionItemName { get; set; }
 
         /// <summary>
-        ///健診明細情報管理番号
+        /// 健診明細情報管理番号
         /// </summary>
         public string InspectionDetailID { get; set; }
 

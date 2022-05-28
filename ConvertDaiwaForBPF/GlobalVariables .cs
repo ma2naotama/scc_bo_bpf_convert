@@ -14,7 +14,9 @@ namespace ConvertDaiwaForBPF
             UTF8
         };
 
-
+        /// <summary>
+        /// 検診ヘッダーのカラム
+        /// </summary>
         public static List<string> ColumnHDR = new List<string>() 
         {
             "組合C",
@@ -78,6 +80,9 @@ namespace ConvertDaiwaForBPF
             "削除フラグ"
         };
 
+        /// <summary>
+        /// 検診データのカラム
+        /// </summary>
         public static List<string> ColumnTDL = new List<string>()
         {
             "組合C",

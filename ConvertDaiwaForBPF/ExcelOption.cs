@@ -7,27 +7,37 @@ namespace ConvertDaiwaForBPF
     /// </summary>
     public class ExcelOption
     {
-        //シート番号（どのシートに対するオプションなのか判断する為に使用する）
-        public string sheetName { get; set; }
+        /// <summary>
+        /// シート番号（どのシートに対するオプションなのか判断する為に使用する）
+        /// </summary>
+        public string SheetName { get; set; }
 
-        public bool isActive { get; set; }
-
+        /// <summary>
+        /// ヘッダーの開始行
+        /// </summary>
         public int HeaderRowStartNumber { get; set; }
 
+        /// <summary>
+        /// ヘッダー列番号
+        /// </summary>
         public int HeaderColumnStartNumber { get; set; }
+
+        /// <summary>
+        /// ヘッダー列の最後番号
+        /// </summary>
         public int HeaderColumnEndNumber { get; set; }
 
-        //取り出す行の開始位置
+        /// <summary>
+        /// 取り出す行の開始位置
+        /// </summary>
         public int DataRowStartNumber { get; set; }
 
         public ExcelOption()
         {
-            isActive = false;      //初期設定ではシートは読まない
-            HeaderRowStartNumber = 1;
+            HeaderRowStartNumber = 1;           // ヘッダーが1行名から開始
             HeaderColumnStartNumber = 1;
             HeaderColumnEndNumber = 10000;
-
-            DataRowStartNumber = 2;
+            DataRowStartNumber = 2;             //データはヘッダーの次の行から開始
         }
 
         /// <summary>
@@ -37,17 +47,15 @@ namespace ConvertDaiwaForBPF
         /// <param name="headerRowStartNumber"></param>
         /// <param name="headerColumnStartNumber"></param>
         /// <param name="active"></param>
-        public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber, bool active)
+        public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber)
         {
-            this.sheetName = sheetName;
+            SheetName = sheetName;
 
             HeaderRowStartNumber = headerRowStartNumber;
             HeaderColumnStartNumber = headerColumnStartNumber;
             HeaderColumnEndNumber = 10000;
 
             DataRowStartNumber = headerRowStartNumber + 1;
-
-            isActive = active;
         }
 
         /// <summary>

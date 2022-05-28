@@ -14,24 +14,18 @@ namespace ConvertDaiwaForBPF
     /// </summary>
     internal class UtilExcel
     {
-        private bool mbCancel;
-
+        /// <summary>
+        /// エクセルオプションのリスト
+        /// </summary>
         private List<ExcelOption> mExcelOption = new List<ExcelOption>();
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public UtilExcel()
         {
-            mbCancel = false;
-
             var option = new ExcelOption();
             mExcelOption.Add(option);
-        }
-
-        /// <summary>
-        /// キャンセル処理
-        /// </summary>
-        public void Cancel()
-        {
-            mbCancel = true;
         }
 
 
@@ -41,15 +35,15 @@ namespace ConvertDaiwaForBPF
         /// <param name="option"></param>
         public void SetExcelOption(ExcelOption option)
         {
-            //シート番号で検索
-            var optindex = mExcelOption.FindIndex(x => x.sheetName == option.sheetName);
+            // シート番号で検索
+            var optindex = mExcelOption.FindIndex(x => x.SheetName == option.SheetName);
             if(optindex <0)
             {
                 mExcelOption.Add(option);
                 return;
             }
 
-            //書き換え
+            // 書き換え
             mExcelOption[optindex] = option;
         }
 
@@ -72,10 +66,9 @@ namespace ConvertDaiwaForBPF
         /// <returns>ExcelOption　未設定の場合は初期値を返す</returns>
         private ExcelOption GetExcelOption(string sheetName)
         {
-            var option = mExcelOption.Find(x => x.sheetName == sheetName);
+            var option = mExcelOption.Find(x => x.SheetName == sheetName);
             if(option == null)
             {
-                //Dbg.Log("初期設定のオプション");
                 return new ExcelOption();
             }
 
@@ -92,19 +85,19 @@ namespace ConvertDaiwaForBPF
         /// <returns1行分の文字列のList</returns>
         private List<string> GetRow(IXLWorksheet worksheet, int rowIndex, int columnStart, int columnMax)
         {
-            //一旦リストに変換
+            // 一旦リストに変換
             var data = new List<string>(); 
 
             for (int col = 0; col < columnMax; col++)
             {
-                //行、列の順に指定することで値を取得する
+                // 行、列の順に指定することで値を取得する
                 var cell = worksheet.Cell(rowIndex, col + columnStart);
                 if(cell == null)
                 {
                     continue;
                 }
 
-                //取得したデータをListに加える
+                // 取得したデータをListに加える
                 if (cell.CachedValue != null)
                 { 
                     data.Add(cell.CachedValue.ToString());
@@ -115,14 +108,9 @@ namespace ConvertDaiwaForBPF
                 }
             }
 
-            //1行分の文字列のList
+            // 1行分の文字列のList
             return data;
         }
-
-        //データベース以外にも、Excelで言うと
-        //DataSet   = エクセルのBook
-        //DataTable = エクセルのシート
-        //DataRow   = エクセルシートの1行
 
         /// <summary>
         /// Excelの読み込み処理
@@ -134,104 +122,97 @@ namespace ConvertDaiwaForBPF
         {
             var dataSet = new DataSet();
 
-            //既にエクセルが開いている場合でも読める様にする
-            FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            //Excelファイルを開く
-            //XLEventTracking.Disabled 追跡を無効
-            using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
+            try
             {
-                //Dbg.Log("sheeet count:" + workbook.Worksheets.Count);
 
-                for (var sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
+                // 既にエクセルが開いている場合でも読める様にする
+                var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+                // Excelファイルを開く
+                // XLEventTracking.Disabled 追跡を無効
+                using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
                 {
-                    var sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
 
-                    //Dbg.Log("load sheeet:" + sheeetname);
-
-                    //シートを選択する　シート名で取得する
-                    var worksheet = workbook.Worksheet(sheeetname);
-
-                    //最大カラム数の確認
-                    //取得するセルの最大カラム番号（個数ではなく番号）
-                    int columnNum = worksheet.LastColumnUsed().ColumnNumber();
-                    if (columnNum < 0)
+                    for (var sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
                     {
-                        Dbg.ViewLog("データがありません。sheeetname:" + sheeetname);
-                        continue;
-                    }
+                        var sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
 
-                    //取得するセルの最大行数
-                    int RowsMax = worksheet.LastRowUsed().RowNumber();
-                    if (RowsMax <=0)
-                    {
-                        Dbg.ViewLog("データがありません。sheeetname:" + sheeetname);
-                        continue;
-                    }
+                        // シートを選択する　シート名で取得する
+                        var worksheet = workbook.Worksheet(sheeetname);
 
-                    //シート番号で検索
-                    ExcelOption option = GetExcelOption(sheeetname);
-                    if (option != null)
-                    {
-                        if(!option.isActive)
+                        // 最大カラム数の確認
+                        // 取得するセルの最大カラム番号（個数ではなく番号）
+                        var columnNum = worksheet.LastColumnUsed().ColumnNumber();
+                        if (columnNum < 0)
                         {
+                            Dbg.ViewLog(Properties.Resources.E_EMPTY_SHEET, sheeetname);
                             continue;
                         }
 
-                        if (columnNum > option.GetColumnMax())
+                        // 取得するセルの最大行数
+                        var RowsMax = worksheet.LastRowUsed().RowNumber();
+                        if (RowsMax <=0)
                         {
-                            columnNum = option.GetColumnMax();
-                        }
-                    }
-
-
-                    var dt = new DataTable();
-
-                    //シート名保存
-                    dt.TableName = sheeetname;
-
-                    //最初の行
-                    var row = GetRow(worksheet
-                        , option.HeaderRowStartNumber
-                        , option.HeaderColumnStartNumber
-                        , columnNum);
-
-                    for (int i = 0; i < columnNum; i++)
-                    {
-                        //カラム名を設定します。
-                        dt.Columns.Add(row[i]);
-                    }
-
-                    dataSet.Tables.Add(dt);
-
-                    //実データの開始行から開始
-                    for (int rownum = option.DataRowStartNumber; rownum <= RowsMax; rownum++)
-                    {
-                        if (mbCancel)
-                        {
-                            Dbg.ViewLog("エクセルファイルの読み込みキャンセル:" + path);
-                            break;
+                            Dbg.ViewLog(Properties.Resources.E_EMPTY_SHEET, sheeetname);
+                            continue;
                         }
 
-                        row = GetRow(worksheet
-                            , rownum
+                        // シート名で検索
+                        var option = GetExcelOption(sheeetname);
+                        if (option != null)
+                        {
+                            if (columnNum > option.GetColumnMax())
+                            {
+                                columnNum = option.GetColumnMax();
+                            }
+                        }
+
+
+                        var dt = new DataTable();
+
+                        // シート名保存
+                        dt.TableName = sheeetname;
+
+                        // 最初の行
+                        var row = GetRow(worksheet
+                            , option.HeaderRowStartNumber
                             , option.HeaderColumnStartNumber
                             , columnNum);
 
-
-                        var r = dt.NewRow();
-                        for(int i = 0; i < row.Count; i++)
+                        for (var i = 0; i < columnNum; i++)
                         {
-                            r[i] = row[i];
+                            // カラム名を設定します。
+                            dt.Columns.Add(row[i]);
                         }
 
-                        dt.Rows.Add(r);
-                    }
+                        dataSet.Tables.Add(dt);
 
+                        // 実データの開始行から開始
+                        for (var rownum = option.DataRowStartNumber; rownum <= RowsMax; rownum++)
+                        {
+                            row = GetRow(worksheet
+                                , rownum
+                                , option.HeaderColumnStartNumber
+                                , columnNum);
+
+                            var r = dt.NewRow();
+                            for(var i = 0; i < row.Count; i++)
+                            {
+                                r[i] = row[i];
+                            }
+
+                            dt.Rows.Add(r);
+                        }
+
+                    }
                 }
             }
+            catch(Exception ex)
+            {
+                Dbg.Error(ex.ToString());
+            }
 
-            //全シート分のDataTableを返す
+            // 全シート分のDataTableを返す
             return dataSet;
         }
 

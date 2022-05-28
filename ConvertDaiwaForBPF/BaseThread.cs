@@ -12,15 +12,22 @@ namespace ConvertDaiwaForBPF
     /// </summary>
     public abstract class BaseThread
     {
-        public bool Cancel { get; set; }            //キャンセルフラグ
-        public bool Completed { get; set; }         //完了フラグ
+        /// <summary>
+        /// キャンセルフラグ
+        /// </summary>
+        public bool Cancel { get; set; }
+
+        /// <summary>
+        /// 完了フラグ
+        /// </summary>
+        public bool Completed { get; set; }
 
         /// <summary>
         /// キャンセル用トークン
         /// </summary>
         private CancellationTokenSource _tokenSource = null;
 
-        //コンストラクタ
+        // コンストラクタ
         public BaseThread()
         {
         }
@@ -37,15 +44,15 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         public void RunMultiThreadAsync()
         {
-            //変数初期化
+            // 変数初期化
             Cancel = false;
             Completed = false;
 
-             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
+            // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
             if (_tokenSource == null) 
                 _tokenSource = new CancellationTokenSource();
 
-            //非同期処理（マルチスレッド）開始
+            // 非同期処理（マルチスレッド）開始
             try
             {
                 //Dbg.Log("RunMultiThread");
@@ -58,18 +65,16 @@ namespace ConvertDaiwaForBPF
                     }
                 }, _tokenSource.Token);
 
-                //task = Task.Run<int>(new Func<int>(MultiThreadMethod), token);
-                //int result = await task; // スレッドの処理の結果を「待ち受け」する
             }
             catch (TaskCanceledException ex)
             {
                 // キャンセルされた場合の例外処理
-                Dbg.Debug("RunMultiThread キャンセル：" + ex.ToString());
+                Dbg.Debug(Properties.Resources.E_TASK_CANCEL + ex.ToString());
             }
             catch (Exception ex)
             {
                 // 異常終了した場合の例外処理
-                Dbg.ErrorWithView("RunMultiThread エラー：" + ex.ToString());
+                Dbg.ErrorWithView(Properties.Resources.E_TASK_ERROR + ex.ToString());
 
                 throw ex;
             }
@@ -81,7 +86,8 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         public virtual void MultiThreadCancel()
         {
-            Dbg.ViewLog("変換キャンセル");
+            Dbg.ViewLog(Properties.Resources.MSG_CONVERT_CANCEL);
+
             if (_tokenSource != null)
             {
                 _tokenSource.Cancel();

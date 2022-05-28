@@ -97,6 +97,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   シートが空です。シート名：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_EMPTY_SHEET {
+            get {
+                return ResourceManager.GetString("E_EMPTY_SHEET", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診ヘッダーが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_HDR_IS_EMPTY {
@@ -196,6 +205,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   検診ヘッダーに指定の項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_NOT_EXIST_ITEM_IN_HDR {
+            get {
+                return ResourceManager.GetString("E_NOT_EXIST_ITEM_IN_HDR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   人事データに指定の項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NOT_EXIST_ITEM_IN_HR {
@@ -259,11 +277,38 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   RunMultiThread キャンセル に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_TASK_CANCEL {
+            get {
+                return ResourceManager.GetString("E_TASK_CANCEL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   RunMultiThread エラー に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_TASK_ERROR {
+            get {
+                return ResourceManager.GetString("E_TASK_ERROR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_TDL_IS_EMPTY {
             get {
                 return ResourceManager.GetString("E_TDL_IS_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   変換キャンセル に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_CONVERT_CANCEL {
+            get {
+                return ResourceManager.GetString("MSG_CONVERT_CANCEL", resourceCulture);
             }
         }
         
@@ -277,11 +322,38 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   CSV作成中...（件数{0}) に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_CREATE_OUTPUT {
+            get {
+                return ResourceManager.GetString("MSG_CREATE_OUTPUT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   設定ファイルの読み込み ファイル名：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_READ_SETTINGFILE {
+            get {
+                return ResourceManager.GetString("MSG_READ_SETTINGFILE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   優先した検査項目コード：{0} 値：{1} 個人番号：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string MSG_RESULT_ORDER_MAPPING {
             get {
                 return ResourceManager.GetString("MSG_RESULT_ORDER_MAPPING", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   データがありません。Path：{0} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string WRN_NO_DATA {
+            get {
+                return ResourceManager.GetString("WRN_NO_DATA", resourceCulture);
             }
         }
     }

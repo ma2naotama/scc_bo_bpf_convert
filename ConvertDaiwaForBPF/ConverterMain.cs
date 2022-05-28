@@ -14,28 +14,31 @@ namespace ConvertDaiwaForBPF
     /// </summary>
     internal class ConverterMain : BaseThread
     {
+        // 各種のパス
         private string mPathInput;
         private string mPathHR;
         private string mPathOutput;
 
-        //設定ファイル
+        // 設定ファイル
         private DataSet mMasterSheets = null;
 
-        //項目マッピング
+        // 項目マッピング
         private DataRow[] mItemMap = null;
 
-
-        //コードマッピング
+        // コードマッピング
         private DataRow[] mCordMap = null;
 
-        //人事データ
+        // 人事データ
         private string mHRJoinKey = null;
         private DataRow[] mHRRows = null;
 
-        //出力情報
+        // 出力情報
         private DataTable mOutputCsv = null;
 
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public ConverterMain()
         {
         }
@@ -53,9 +56,9 @@ namespace ConvertDaiwaForBPF
 
             var optionarray = new ExcelOption[]
             {
-                new ExcelOption ( "各種設定",           2, 1, true),
-                new ExcelOption ( "項目マッピング",     4, 1, true),
-                new ExcelOption ( "コードマッピング",   3, 1, true),
+                new ExcelOption ( "各種設定",           2, 1),
+                new ExcelOption ( "項目マッピング",     4, 1),
+                new ExcelOption ( "コードマッピング",   3, 1),
             };
 
             excel.SetExcelOptionArray(optionarray);
@@ -69,6 +72,9 @@ namespace ConvertDaiwaForBPF
             return master;
         }
 
+        /// <summary>
+        /// スレッドのキャンセル
+        /// </summary>
         public override void MultiThreadCancel()
         {
             base.MultiThreadCancel();
@@ -98,8 +104,10 @@ namespace ConvertDaiwaForBPF
             Dbg.SetLogPath(mPathOutput);
         }
 
-
-        //スレッド内の処理（これ自体をキャンセルはできない）
+        /// <summary>
+        /// スレッド内の処理（これ自体をキャンセルはできない）
+        /// </summary>
+        /// <returns></returns>
         public override int MultiThreadMethod()
         {
             Dbg.ViewLog("変換中...");
@@ -107,53 +115,51 @@ namespace ConvertDaiwaForBPF
 
             try
             {
-                //初期化と設定ファイルの読み込み
+                // 初期化と設定ファイルの読み込み
                 if (!Init())
                 {
                     return 0;
                 }
 
-                //人事データの読み込み
+                // 人事データの読み込み
                 mHRRows = ReadHumanResourceData(mPathHR);
                 if (mHRRows == null)
                 {
                     return 0;
                 }
 
-                //健診ヘッダーの読み込み
+                // 健診ヘッダーの読み込み
                 var hdrTbl = ReadHelthHeder(mPathInput);
                 if (hdrTbl == null)
                 {
                     return 0;
                 }
 
-                //健診データの読み込み
+                // 健診データの読み込み
                 var tdlTbl = ReadHelthData(mPathInput);
                 if (tdlTbl == null)
                 {
                     return 0;
                 }
 
-                //健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
+                // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
                 var hdrUsers = GetActiveUsers(hdrTbl);
                 if (hdrUsers == null)
                 {
                     return 0;
                 }
 
-                //一ユーザー毎に処理する
+                // 一ユーザー毎に処理する
                 int i = 0;
                 foreach (var hrow in hdrUsers)
                 {
-                    //キャンセル
+                    // キャンセル
                     if (Cancel)
                     {
                         return 0;
                     }
 
-                    //Dbg.ViewLog("{0} 個人番号:{1}", i.ToString(), hrow["個人番号"].ToString());
-
-                    //変換処理
+                    // 変換処理
                     var h = hrow;
                     if (!ConvertMain(ref h, ref tdlTbl))
                     {
@@ -166,7 +172,7 @@ namespace ConvertDaiwaForBPF
                     //break;
                 }
 
-                //出力情報から全レコードの書き出し
+                // 出力情報から全レコードの書き出し
                 if (!WriteCsv())
                 {
                     return 0;
@@ -196,7 +202,7 @@ namespace ConvertDaiwaForBPF
             var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
 
             var path = appSettings["SettingPath"];
-            Dbg.ViewLog("設定ファイルの読み込み:" + path);
+            Dbg.ViewLog(Properties.Resources.MSG_READ_SETTINGFILE, path);
 
             mMasterSheets = ReadMasterFile(path);
             if (mMasterSheets == null)
@@ -205,12 +211,12 @@ namespace ConvertDaiwaForBPF
                 return false;
             }
 
-            //出力用CSVの初期化
+            // 出力用CSVの初期化
             mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
                   .Where(x => x["列順"].ToString() != "")
                   .ToArray();
 
-            //項目マッピングの順列の最大値と項目数（個数）の確認
+            // 項目マッピングの順列の最大値と項目数（個数）の確認
             if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
             {
                 Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
@@ -219,20 +225,19 @@ namespace ConvertDaiwaForBPF
 
             mOutputCsv = new DataTable();
 
-            //同じ列名（カラム名）はセットできないので、列順をセットしておく
+            // 同じ列名（カラム名）はセットできないので、列順をセットしておく
             foreach (var row in mItemMap)
             {
-                //Dbg.Log("" + row["列順"]);
                 mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
             }
 
-            //コードマッピング初期化
+            // コードマッピング初期化
             mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
                   .Where(x => x["コードID"].ToString() != "")
                   .ToArray();
 
 
-            //人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
+            // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
             mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
                     .Where(x => x["名称"].ToString() == "人事データ結合列名")
                     .Select(x => x.Field<string>("設定値").ToString().Trim())
@@ -240,19 +245,19 @@ namespace ConvertDaiwaForBPF
 
             if (string.IsNullOrEmpty(mHRJoinKey))
             {
-                //処理中断
+                // 処理中断
                 throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
             }
 
 
-            //次の処理へ
+            // 次の処理へ
             return true;
         }
 
         /// <summary>
-        /// 健診ヘッダーの読み込み
+        /// 健診ヘッダーCSVの読み込み
         /// </summary>
-        /// <returns></returns>
+        /// <returns>DataTable</returns>
         DataTable ReadHelthHeder(string path)
         {
             var filename=
@@ -265,28 +270,28 @@ namespace ConvertDaiwaForBPF
             var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
                 return null;
             }
 
             if (tbl.Rows.Count == 0)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
                 return null;
             }
 
             SetColumnName(tbl, GlobalVariables.ColumnHDR);
 
-            //次の処理へ
+            // 次の処理へ
             return tbl;
         }
 
         /// <summary>
-        /// 健診データの読み込み
+        /// 健診データCSVの読み込み
         /// </summary>
-        /// <returns></returns>
+        /// <returns>DataTable</returns>
         DataTable ReadHelthData(string path)
         {
             var filename =
@@ -299,14 +304,14 @@ namespace ConvertDaiwaForBPF
             var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                 return null;
             }
 
             if (tbl.Rows.Count == 0)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                 return null;
             }
@@ -316,28 +321,28 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// 人事の読み込み
+        /// 人事CSVの読み込み
         /// </summary>
-        /// <returns></returns>
+        /// <returns>DataRowの配列  削除されている人事を除く</returns>
         DataRow[] ReadHumanResourceData(string path)
         {
             var csv = new UtilCsv();
             var tbl = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                 return null;
             }
 
             if (tbl.Rows.Count == 0)
             {
-                //中断
+                // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
                 return null;
             }
 
-            //健診ヘッダーの削除フラグが0だけ抽出
+            // 健診ヘッダーの削除フラグが0だけ抽出
             var row =
                 tbl.AsEnumerable()
                 .Where(x => x["削除"].ToString() == "0")
@@ -351,10 +356,10 @@ namespace ConvertDaiwaForBPF
         /// 有効なユーザーの一覧取得
         /// </summary>
         /// <param name="HdrTbl"></param>
-        /// <returns></returns>
+        /// <returns>DataRowの配列  削除されている検診ヘッダーを除く</returns>
         DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
-            //健診ヘッダーの削除フラグが0だけ抽出
+            // 健診ヘッダーの削除フラグが0だけ抽出
             var hdrRows =
                 HdrTbl.AsEnumerable()
                 .Where(x => x["削除フラグ"].ToString() == "0")
@@ -366,7 +371,7 @@ namespace ConvertDaiwaForBPF
                 return null;
             }
 
-            //健診ヘッダーの重複の確認(何をもって重複とするか検討)
+            // 健診ヘッダーの重複の確認
             var dr_array = from row in hdrRows.AsEnumerable()
                            where (
                                from _row in hdrRows.AsEnumerable()
@@ -375,18 +380,18 @@ namespace ConvertDaiwaForBPF
                                && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
                                && row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
                                select _row["個人番号"]
-                           ).Count() > 1 //重複していたら、２つ以上見つかる
+                           ).Count() > 1 // 重複していたら、２つ以上見つかる
                            select row;
 
-            //DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+            // DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
             var overlapcount = dr_array.Count();
             if (overlapcount > 0)
             {
-                //重複件数の表示
+                // 重複件数の表示
                 Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_COUNT
                         , overlapcount.ToString());
 
-                //重複している行を表示
+                // 重複している行を表示
                 foreach (var row in dr_array)
                 {
                     Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_INFO
@@ -395,10 +400,10 @@ namespace ConvertDaiwaForBPF
                         , row["健診実施機関名称"].ToString().Trim());
                 }
 
-                //重複したデータをそのまま出力する
+                // 重複したデータをそのまま出力する
             }
 
-            //次の処理へ
+            // 次の処理へ
             return hdrRows;
         }
 
@@ -415,6 +420,9 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        // 団体IDの列順
+        const int INDEX_OF_ORGANIZATION_ID = 4;
+
         /// <summary>
         /// 変換処理メイン
         /// </summary>
@@ -425,38 +433,39 @@ namespace ConvertDaiwaForBPF
         {
             var userID = hrow["個人番号"].ToString();
 
-            //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
+            // 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
             var userdata = CreateUserData(
                         ref hrow
                         , ref TdlTbl);
 
             if (userdata.Count() <= 0)
             {
-                //結合した結果データが無い
+                // 結合した結果データが無い
                 Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
 
-                //次のユーザーへ
+                // 次のユーザーへ
                 return true;
             }
 
-            //人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
+            // 人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
             var hr_row = GetHumanResorceRow(userID, mHRJoinKey);
             if (hr_row == null)
             {
                 Dbg.ErrorWithView(Properties.Resources.E_NO_USERDATA
                     , userID);
 
-                //存在しない場合はレコードを作成しないで次のユーザーへ
+                // 存在しない場合はレコードを作成しないで次のユーザーへ
                 return true;
             }
 
-            //出力情報の一行分作成
-            var outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+            // 出力情報の一行分作成
+            var outputrow = mOutputCsv.NewRow();        // カラムは、0始まり
 
+            // 必須項目のエラーフラグ
             var requestFiledError = false;
 
-            //項目マッピング処理
-            //必要な検査項目コード分ループ
+            // 項目マッピング処理
+            // 必要な検査項目コード分ループ
             foreach (var row in mItemMap)
             {
                 string outputtype = row.Field<string>("出力形式").Trim();
@@ -465,26 +474,25 @@ namespace ConvertDaiwaForBPF
                     continue;
                 }
 
-                var index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
+                var outputindex = int.Parse(row.Field<string>("列順"));     //列順は１始まり
+                var value = "";
 
-                var  value = "";
-
-                //固定値
+                // 固定値
                 var fixvalue = row.Field<string>("固定値").Trim();
                 if (fixvalue != "")
                 {
                     value = fixvalue;
                 }
 
-                //団体IDの確認(固定)
-                if(index == 4)
+                // 団体IDの確認(固定)
+                if(outputindex == INDEX_OF_ORGANIZATION_ID)
                 {
                     //「参照人事」で指定した項目名で検索
                     try
                     {
                         string hrcolumn = row.Field<string>("参照人事").Trim();
 
-                        //固定IDと人事データの確認、例外が発生しなければOK
+                        // 固定IDと人事データの確認、例外が発生しなければOK
                         var hr_id = mHRRows
                             .Where(x => x.Field<string>(hrcolumn) == value)
                             .First();
@@ -494,27 +502,24 @@ namespace ConvertDaiwaForBPF
                         Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
                                 , value);
 
-                        #pragma warning disable
-                        var e = ex;
-                        #pragma warning restore
-                        //Dbg.Error(ex.ToString());
+                        Dbg.Error(ex.ToString());
 
-                        //処理中断
+                        // 処理中断
                         throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                     }
                 }
 
 
-                //人事データ結合
+                // 人事データ結合
                 if(value == "")
                 {
                     var hrcolumn = row.Field<string>("参照人事");
                     if(hrcolumn != "")
                     {
-                        //人事の指定列名
+                        // 人事の指定列名
                         hrcolumn = hrcolumn.Trim();
 
-                        //項目マッピングで指定した列名の値をセット
+                        // 項目マッピングで指定した列名の値をセット
                         try
                         {
                             value = hr_row.Field<string>(hrcolumn).Trim();
@@ -524,66 +529,62 @@ namespace ConvertDaiwaForBPF
                             Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
                                     , hrcolumn);
 
-                            #pragma warning disable
-                            var e = ex;
-                            #pragma warning restore
-                            //Dbg.Error(ex.ToString());
+                            Dbg.Error(ex.ToString());
 
-                            //処理中断
+                            // 処理中断
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
                     }
                 }
 
-                //参照健診ヘッダーの取得
+                // 参照健診ヘッダーの取得
                 if (value == "")
                 {
                     var inspectionHeader = row.Field<string>("参照健診ヘッダー").Trim();
                     if(inspectionHeader != "")
                     {
-                        //現状、健診実施日と健診実施機関番号のみ
-                        //Dbg.ViewLog(inspectionHeader);
+                        // 現状、健診実施日と健診実施機関番号のみ
                         try
                         {
                             value = hrow[inspectionHeader].ToString();
                         }
                         catch (Exception ex)
                         {
-                            #pragma warning disable 
-                            var e = ex;
-                            #pragma warning restore
-                            //Dbg.Error(ex.ToString());
+                            Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HDR
+                                    , inspectionHeader);
 
-                            //処理中断
+                            Dbg.Error(ex.ToString());
+
+                            // 処理中断
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
                     }
                 }
 
 
-                //検査項目コードの検索
+                // 検査項目コードの検索
                 if (value == "")
                 {
                     var inspectcord = row.Field<string>("検査項目コード").Trim();
                     if (inspectcord != "")
                     {
-                        //検査項目コードに半角英数以外が使われているか確認
+                        // 検査項目コードに半角英数以外が使われているか確認
                         if(!IsOnlyAlphaWithNumeric(inspectcord))
                         {
                             Dbg.ViewLog(Properties.Resources.E_MISMATCHED_INSPECTCORD_TYPE
                                 , inspectcord);
 
-                            //処理中断
+                            // 処理中断
                             throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
                         }
 
-                        //ユーザーデータから検査値を抽出
+                        // ユーザーデータから検査値を抽出
                         var retvalue =  userdata.AsEnumerable()
                                 .Where(x => x.InspectionItemCode == inspectcord)
                                 .Select(x => x.Value)
                                 .FirstOrDefault();
 
-                        //検査値
+                        // 検査値
                         if (!string.IsNullOrEmpty(retvalue))
                         {
                             value = retvalue;
@@ -591,44 +592,44 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
-                //コードマッピング（属性が「コード」の場合、値の置換）
+                // コードマッピング（属性が「コード」の場合、値の置換）
                 if (value != "" && row.Field<string>("属性") == "コード")
                 {
                     var codeid = row.Field<string>("コードID").Trim();
 
-                    //コードマッピング処理
+                    // コードマッピング処理
                     value = GetCodeMapping(value, codeid, userID);
                 }
 
-                //種別と値のチェック
+                // 種別と値のチェック
                 if (value != "")
                 {
                     //種別
                     var type = row.Field<string>("種別").Trim();
 
-                    //種別が数値を期待しているのに、数値以外の値の場合はエラーとする
+                    // 種別が数値を期待しているのに、数値以外の値の場合はエラーとする
                     value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
                 }
 
 
-                //必須項目確認
+                // 必須項目確認
                 var request = row.Field<string>("必須").Trim();
                 if (request == "○" && value == "")
                 {
-                    //必須項目に値が無い場合は、そのデータを作成しない。
+                    // 必須項目に値が無い場合は、そのデータを作成しない。
                     Dbg.ErrorWithView(Properties.Resources.E_NO_VALUE_REQUIRED_FIELD
                         ,userID
                         ,row.Field<string>("項目名"));
 
-                    //必須項目でエラーの場合はフラグを立てる
+                    // 必須項目でエラーの場合はフラグを立てる
                     requestFiledError = true;
                 }
 
-                //出力情報に指定列順で値をセット
-                outputrow[index - 1] = value;
+                // 出力情報に指定列順で値をセット
+                outputrow[outputindex - 1] = value;
             }
 
-            //全ての必須項目で一つでもエラーがあれば、レコードを作成しない
+            // 全ての必須項目で一つでもエラーがあれば、レコードを作成しない
             if (!requestFiledError)
             {
                 // CSV出力情報に追加
@@ -637,7 +638,7 @@ namespace ConvertDaiwaForBPF
 
             outputrow = null;
 
-            //次のユーザー
+            // 次のユーザー
             return true;
         }
 
@@ -647,27 +648,26 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         bool WriteCsv()
         {
-            Dbg.ViewLog("CSV作成中...（件数{0})", mOutputCsv.Rows.Count.ToString());
+            Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, mOutputCsv.Rows.Count.ToString());
 
             var str_arry = new List<string>();
 
-            //初期
+            // 初期カラム名
             foreach (var r in mItemMap)
             {
                 str_arry.Add("-");
             }
 
-            //列順の項目を書き換え
+            // 列順の項目を書き換え
             foreach (var r in mItemMap)
             {
                 str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
             }
 
-            var csv = new UtilCsv();
-
             var dt = DateTime.Now;
             var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
 
+            var csv = new UtilCsv();
             csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
 
             return true;
@@ -728,7 +728,7 @@ namespace ConvertDaiwaForBPF
                     hrow["個人番号"].ToString()
                 );
 
-            //TDLとHDRを結合して取得
+            // TDLとHDRを結合して取得
             var merged =
                     from h in hdt.AsEnumerable()
                     join d in tdlTable.AsEnumerable() on h.Field<string>("組合C") equals d.Field<string>("組合C")
@@ -739,12 +739,12 @@ namespace ConvertDaiwaForBPF
                         && d.Field<string>("測定不能FLG") == "0"
                     select new UserData
                     {
-                        //ヘッダー情報は、人事データ結合時に処理する。
+                        // ヘッダー情報は、人事データ結合時に処理する。
                         InspectionItemCode = d.Field<string>("検査項目コード").Trim(),
                         InspectionItemName = d.Field<string>("検査項目名称").Trim(),
                         InspectionDetailID = d.Field<string>("健診明細情報管理番号").Trim(),
 
-                        //コメントのTrimはしない
+                        // コメントのTrimはしない
                         Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
                     };
 
@@ -771,21 +771,11 @@ namespace ConvertDaiwaForBPF
                 if (!string.IsNullOrEmpty(newcode))
                 {
                     m.InspectionItemCode = newcode.Trim();
-                    //Dbg.Debug("個人番号：{0} 健診実施日:{1} newcode：{2}", userID, date, m.InspectionItemCode);
                 }
 
-                //refが使えない為、値を書き換えて別に保存
+                // refが使えない為、値を書き換えて別に保存
                 ret.Add(m);
             }
-
-            /*
-            if (ret.Count() > 0)
-            {
-                UtilCsv csv = new UtilCsv();
-                csv.WriteFile(".\\out\\UserData_a.csv", csv.CreateDataTable(user));
-                csv.WriteFile(".\\out\\UserData_b.csv", csv.CreateDataTable(ret));
-            }
-            */
 
             return ret.ToList();
         }
@@ -797,11 +787,11 @@ namespace ConvertDaiwaForBPF
         /// <param name="value"></param>
         /// <param name="codeid"></param>
         /// <param name="userID"></param>
-        /// <returns></returns>
+        /// <returns>コード変換した値</returns>
         string GetCodeMapping(string value, string codeid, string userID)
         { 
-            //コードマッピング（属性が「コード」の場合、値の置換）
-            //コードマッピングから抽出
+            // コードマッピング（属性が「コード」の場合、値の置換）
+            // コードマッピングから抽出
             var newvalue = mCordMap.AsEnumerable()
                 .Where(x => x.Field<string>("コードID").Trim() == codeid && x.Field<string>("★コード").Trim() == value)
                 .Select(x => x.Field<string>("コード").Trim())
@@ -809,12 +799,12 @@ namespace ConvertDaiwaForBPF
 
             if(string.IsNullOrEmpty(newvalue))
             {
-                //エラー表示
+                // エラー表示
                 Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED
                     , userID
                     , codeid);
 
-                //エラーの場合空にする
+                // エラーの場合空にする
                 newvalue = "";
             }
 
@@ -834,11 +824,9 @@ namespace ConvertDaiwaForBPF
                 case "半角数字":
                 case "数値":
                     {
-                        var i = 0;
-                        if(!int.TryParse(value, out i))
+                        if (!int.TryParse(value, out int i))
                         {
-                            var f = 0.0f;
-                            if (!float.TryParse(value, out f))
+                            if (!float.TryParse(value, out float f))
                             {
                                 Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
                                     , userID
@@ -846,7 +834,7 @@ namespace ConvertDaiwaForBPF
                                     , type
                                     , value);
 
-                                //エラーの場合空白として出力
+                                // エラーの場合空白として出力
                                 return "";
                             }
                         }
@@ -855,23 +843,23 @@ namespace ConvertDaiwaForBPF
 
                 case "年月日":
                     {
-                        //年月日の変換
+                        // 年月日の変換
                         DateTime d;
                         if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
                         {
-                            //日付
+                            // 日付
                             value = d.ToString("yyyy/MM/dd");
                         }
                         else
                         {
-                            //エラー表示
+                            // エラー表示
                             Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
                                 , userID
                                 , itenName.Trim()
                                 , type
                                 , value);
 
-                            //エラーの場合空にする
+                            // エラーの場合空にする
                             value = "";
                         }
                     }
@@ -881,11 +869,17 @@ namespace ConvertDaiwaForBPF
             return value;
         }
 
+        /// <summary>
+        /// 人事データの取得
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="hrcolumn"></param>
+        /// <returns>DataRow</returns>
         DataRow GetHumanResorceRow(string userID, string hrcolumn)
         {
             DataRow row = null;
 
-            //最終的に残った項目で検索
+            // 最終的に残った項目で検索
             try
             {
                 row = mHRRows
@@ -895,8 +889,8 @@ namespace ConvertDaiwaForBPF
             catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
-
-                //存在しない場合はレコードを作成しないで次のユーザーへ
+                 
+                // 存在しない場合はレコードを作成しないで次のユーザーへ
                 return null;
             }
 
