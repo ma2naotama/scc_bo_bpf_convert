@@ -118,7 +118,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="filepath">開くファイルのパス</param>
         /// <returns>全シート分のDataTable</returns>
-        public DataSet ReadAllSheets(string path)
+        public DataSet ReadAllSheets(string path) 
         {
             var dataSet = new DataSet();
 
@@ -209,9 +209,8 @@ namespace ConvertDaiwaForBPF
             }
             catch(Exception ex)
             {
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
-
                 Dbg.Error(ex.ToString());
+                throw ex;
             }
 
             // 全シート分のDataTableを返す

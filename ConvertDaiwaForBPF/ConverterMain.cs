@@ -63,8 +63,20 @@ namespace ConvertDaiwaForBPF
 
             excel.SetExcelOptionArray(optionarray);
 
-            var master = excel.ReadAllSheets(path);            
-            return master;
+            try 
+            {
+                var master = excel.ReadAllSheets(path);
+                return master;
+            }
+            catch (Exception ex)
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
+
+                throw ex;
+            }
+            
+            // 到達しない
+            //return null;
         }
 
         /// <summary>
@@ -197,6 +209,8 @@ namespace ConvertDaiwaForBPF
             var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
 
             var path = appSettings["SettingPath"];
+
+            // 設定ファイルの読み込み
             Dbg.ViewLog(Properties.Resources.MSG_READ_SETTINGFILE, path);
 
             mMasterSheets = ReadMasterFile(path);
@@ -226,7 +240,6 @@ namespace ConvertDaiwaForBPF
                   .Where(x => x["コードID"].ToString() != "")
                   .ToArray();
 
-
             // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
             mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
                     .Where(x => x["名称"].ToString() == "人事データ結合列名")
@@ -239,7 +252,6 @@ namespace ConvertDaiwaForBPF
                 throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
             }
 
-
             // 次の処理へ
             return true;
         }
@@ -250,32 +262,35 @@ namespace ConvertDaiwaForBPF
         /// <returns>DataTable</returns>
         DataTable ReadHelthHeder(string path)
         {
-            var filename=
-                mMasterSheets.Tables["各種設定"].AsEnumerable()
-                  .Where(x => x["名称"].ToString() == "健診ヘッダー")
-                  .Select(x => x.Field<string>("設定値").ToString().Trim())
-                  .First();
+            try
+            {
+                var filename =
+                    mMasterSheets.Tables["各種設定"].AsEnumerable()
+                      .Where(x => x["名称"].ToString() == "健診ヘッダー")
+                      .Select(x => x.Field<string>("設定値").ToString().Trim())
+                      .First();
 
-            var csv = new UtilCsv();
-            var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
-            if (tbl == null)
+                var csv = new UtilCsv();
+                var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+                if (tbl.Rows.Count == 0)
+                {
+                    // 中断
+                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
+                    return null;
+                }
+
+                SetColumnName(tbl, GlobalVariables.ColumnHDR);
+
+                // 次の処理へ
+                return tbl;
+            }
+            catch (Exception ex)
             {
                 // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
-                return null;
+
+                throw ex;
             }
-
-            if (tbl.Rows.Count == 0)
-            {
-                // 中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
-                return null;
-            }
-
-            SetColumnName(tbl, GlobalVariables.ColumnHDR);
-
-            // 次の処理へ
-            return tbl;
         }
 
         /// <summary>
@@ -284,31 +299,36 @@ namespace ConvertDaiwaForBPF
         /// <returns>DataTable</returns>
         DataTable ReadHelthData(string path)
         {
-            var filename =
-                mMasterSheets.Tables["各種設定"].AsEnumerable()
-                  .Where(x => x["名称"].ToString() == "健診データ")
-                  .Select(x => x.Field<string>("設定値").ToString().Trim())
-                  .First();
+            try
+            {
+                var filename =
+                    mMasterSheets.Tables["各種設定"].AsEnumerable()
+                      .Where(x => x["名称"].ToString() == "健診データ")
+                      .Select(x => x.Field<string>("設定値").ToString().Trim())
+                      .First();
 
-            var csv = new UtilCsv();
-            var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
-            if (tbl == null)
+                var csv = new UtilCsv();
+                var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+                if (tbl.Rows.Count == 0)
+                {
+                    // 中断
+                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
+                    return null;
+                }
+
+                SetColumnName(tbl, GlobalVariables.ColumnTDL);
+                return tbl;
+
+            }
+            catch(Exception ex)
             {
                 // 中断
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                return null;
-            }
 
-            if (tbl.Rows.Count == 0)
-            {
-                // 中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                return null;
+                throw ex;
             }
-
-            SetColumnName(tbl, GlobalVariables.ColumnTDL);
-            return tbl;
         }
+
 
         /// <summary>
         /// 人事CSVの読み込み
@@ -316,29 +336,33 @@ namespace ConvertDaiwaForBPF
         /// <returns>DataRowの配列  削除されている人事を除く</returns>
         DataRow[] ReadHumanResourceData(string path)
         {
-            var csv = new UtilCsv();
-            var tbl = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
-            if (tbl == null)
+            try
+            {
+                var csv = new UtilCsv();
+                var hr = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
+
+                if (hr.Rows.Count == 0)
+                {
+                    // 中断
+                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HR);
+                    return null;
+                }
+
+                // 健診ヘッダーの削除フラグが0だけ抽出
+                var row =
+                    hr.AsEnumerable()
+                    .Where(x => x["削除"].ToString() == "0")
+                    .ToArray();
+
+                return row;
+            }
+            catch (Exception ex)
             {
                 // 中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                return null;
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HR);
+
+                throw ex;
             }
-
-            if (tbl.Rows.Count == 0)
-            {
-                // 中断
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                return null;
-            }
-
-            // 健診ヘッダーの削除フラグが0だけ抽出
-            var row =
-                tbl.AsEnumerable()
-                .Where(x => x["削除"].ToString() == "0")
-                .ToArray();
-
-            return row;
         }
 
 
@@ -640,27 +664,36 @@ namespace ConvertDaiwaForBPF
         {
             Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, mOutputCsv.Rows.Count.ToString());
 
-            var str_arry = new List<string>();
-
-            // 初期カラム名
-            foreach (var r in mItemMap)
+            try
             {
-                str_arry.Add("-");
-            }
+                var str_arry = new List<string>();
 
-            // 列順の項目を書き換え
-            foreach (var r in mItemMap)
+                // 初期カラム名
+                foreach (var r in mItemMap)
+                {
+                    str_arry.Add("-");
+                }
+
+                // 列順の項目を書き換え
+                foreach (var r in mItemMap)
+                {
+                    str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
+                }
+
+                var dt = DateTime.Now;
+                var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+
+                var csv = new UtilCsv();
+                csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
+
+                return true;
+            }
+            catch(Exception ex)
             {
-                str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
+                Dbg.ErrorWithView(Properties.Resources.E_FAILED_CREATE_CSV);
+
+                throw ex;
             }
-
-            var dt = DateTime.Now;
-            var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
-
-            var csv = new UtilCsv();
-            csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
-
-            return true;
         }
 
         /// <summary>

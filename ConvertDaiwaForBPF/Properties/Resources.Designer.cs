@@ -106,6 +106,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   CSVの作成で失敗しました。  に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_FAILED_CREATE_CSV {
+            get {
+                return ResourceManager.GetString("E_FAILED_CREATE_CSV", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診ヘッダーが空です。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_HDR_IS_EMPTY {
@@ -178,6 +187,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   エクセル読み込みのオプション設定がありません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_NO_EXCELOPTION {
+            get {
+                return ResourceManager.GetString("E_NO_EXCELOPTION", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   健診データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NO_TDLDATA {
@@ -223,24 +241,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   オーダーマッピングでエラーが発生した為処理を中断しました。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_ORDERMAPPING_ABORTED {
-            get {
-                return ResourceManager.GetString("E_ORDERMAPPING_ABORTED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_ORDERMAPPING_FILED {
-            get {
-                return ResourceManager.GetString("E_ORDERMAPPING_FILED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   中断しました。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_PROCESSING_ABORTED {
@@ -255,6 +255,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_READFAILED_HDR {
             get {
                 return ResourceManager.GetString("E_READFAILED_HDR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   人事データが読めませんでした。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_READFAILED_HR {
+            get {
+                return ResourceManager.GetString("E_READFAILED_HR", resourceCulture);
             }
         }
         

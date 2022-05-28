@@ -132,6 +132,9 @@
   <data name="E_EMPTY_SHEET" xml:space="preserve">
     <value>シートが空です。シート名：{0}</value>
   </data>
+  <data name="E_FAILED_CREATE_CSV" xml:space="preserve">
+    <value>CSVの作成で失敗しました。 </value>
+  </data>
   <data name="E_HDR_IS_EMPTY" xml:space="preserve">
     <value>健診ヘッダーが空です。</value>
   </data>
@@ -162,6 +165,9 @@
   <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
     <value>人事データに指定の項目がありません。指定項目：{0}</value>
   </data>
+  <data name="E_NO_EXCELOPTION" xml:space="preserve">
+    <value>エクセル読み込みのオプション設定がありません。</value>
+  </data>
   <data name="E_NO_TDLDATA" xml:space="preserve">
     <value>健診データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
@@ -171,17 +177,14 @@
   <data name="E_NO_VALUE_REQUIRED_FIELD" xml:space="preserve">
     <value>必須項目に値がありません。個人番号：{0}　項目名：{1}</value>
   </data>
-  <data name="E_ORDERMAPPING_ABORTED" xml:space="preserve">
-    <value>オーダーマッピングでエラーが発生した為処理を中断しました。</value>
-  </data>
-  <data name="E_ORDERMAPPING_FILED" xml:space="preserve">
-    <value>オーダーマッピングで異常が見つかりました。個人番号：{0}　検査項目コード：{1}</value>
-  </data>
   <data name="E_PROCESSING ABORTED" xml:space="preserve">
     <value>中断しました。</value>
   </data>
   <data name="E_READFAILED_HDR" xml:space="preserve">
     <value>健診ヘッダーが読めませんでした。</value>
+  </data>
+  <data name="E_READFAILED_HR" xml:space="preserve">
+    <value>人事データが読めませんでした。</value>
   </data>
   <data name="E_READFAILED_MASTER" xml:space="preserve">
     <value>設定ファイルが読めませんでした。</value>
