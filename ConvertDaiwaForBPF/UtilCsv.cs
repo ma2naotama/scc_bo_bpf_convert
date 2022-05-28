@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// CSVファイルの読み込み
+    /// </summary>
     internal class UtilCsv
     {
         //コールバックの定義
@@ -24,6 +27,9 @@ namespace ConvertDaiwaForBPF
             mbCancel = false;
         }
 
+        /// <summary>
+        /// キャンセル処理
+        /// </summary>
         public void Cancel()
         {
             mbCancel = true;
@@ -77,13 +83,13 @@ namespace ConvertDaiwaForBPF
                     var row = parser.ReadFields();
 
                     //シート名保存
-                    string fileName = Path.GetFileName(path);
+                    var fileName = Path.GetFileName(path);
                     Dbg.ViewLog("CSVの読み込み:" + fileName);
 
                     dt = new DataTable();
                     dt.TableName = fileName;
 
-                    DataSet dataSet = new DataSet();
+                    var dataSet = new DataSet();
                     dataSet.Tables.Add(dt);
 
                     int n = row.Count();    //カラム数取得
@@ -105,9 +111,6 @@ namespace ConvertDaiwaForBPF
                         }
                     }
 
-                    //var v = new List<string>();
-                    //v.Clear();
-                    //v.AddRange(row);
                     dt.NewRow();
                     dt.Rows.Add(row);
 
@@ -121,13 +124,7 @@ namespace ConvertDaiwaForBPF
                             break;
                         }
 
-                        //一旦リストに変換
                         row = parser.ReadFields();
-
-                        //v.Clear();
-                        //v.AddRange(row);
-                        //callback(processLinse, v);
-
                         dt.NewRow();
                         dt.Rows.Add(row);
                     }
@@ -144,16 +141,13 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        //CSVの最大行数を取得する
-        public long GetFileMaxLines(string path)
-        {
-            int lines = File.ReadLines(path).Count();
-
-            Dbg.ViewLog("GetFileMaxLines:" + lines);
-            return lines;
-        }
-
-
+      
+        /// <summary>
+        /// CSVファイルの書き込み
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="dt"></param>
+        /// <param name="overwriteColumnName"></param>
         public void WriteFile(string path, DataTable dt, List<string>overwriteColumnName = null)
         {
 
@@ -214,11 +208,15 @@ namespace ConvertDaiwaForBPF
         }
 
 
-
+        /// <summary>
+        /// IEnumerableからDataTableへの変換
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         public DataTable CreateDataTable(IEnumerable source)
         {
             var table = new DataTable();
-            int index = 0;
+            var index = 0;
             var properties = new List<PropertyInfo>();
             foreach (var obj in source)
             {

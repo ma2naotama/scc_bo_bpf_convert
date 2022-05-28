@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// 変換処理メイン
+    /// </summary>
     internal class ConverterMain : BaseThread
     {
         private string mPathInput;
@@ -25,8 +24,6 @@ namespace ConvertDaiwaForBPF
         //項目マッピング
         private DataRow[] mItemMap = null;
 
-        //オーダーマッピング
-        //private DataRow[] mOrderMap = null;
 
         //コードマッピング
         private DataRow[] mCordMap = null;
@@ -39,58 +36,31 @@ namespace ConvertDaiwaForBPF
         private DataTable mOutputCsv = null;
 
 
-        //健診ヘッダーと健診データの結合用
-        private class UserData
-        {
-            //public string userId { get; set; }                  //個人番号
-
-            //public string date_of_consult { get; set; }         //受診日
-
-            //検査項目コード
-            public string InspectionItemCode { get; set; }
-
-            //検査項目名称
-            public string InspectionItemName { get; set; }
-
-            //健診明細情報管理番号
-            public string InspectionDetailID { get; set; }
-
-            //結果値
-            public string Value { get; set; }
-        }
-
-        //オーダーマッピング処理で使用
-        private class OrderArray
-        {
-            public string Category { get; set; }
-            public string[] InspectionItemCodeArray { get; set; }
-        }
-
-        private OrderArray[] mOrderArray = null;
-
-
         public ConverterMain()
         {
         }
 
+        /// <summary>
+        /// 設定ファイルの読み込み
+        /// </summary>
+        /// <param name="path">読み込み先</param>
+        /// <returns></returns>
         private DataSet ReadMasterFile(string path)
         {
             //Dbg.Log("master.xlsx 読み込み中...");
 
-            UtilExcel excel = new UtilExcel();
+            var excel = new UtilExcel();
 
-            ExcelOption[] optionarray = new ExcelOption[]
+            var optionarray = new ExcelOption[]
             {
                 new ExcelOption ( "各種設定",           2, 1, true),
                 new ExcelOption ( "項目マッピング",     4, 1, true),
                 new ExcelOption ( "コードマッピング",   3, 1, true),
-                //new ExcelOption ( "JLAC10変換",         2, 1, true),
-                //new ExcelOption ( "オーダーマッピング", 2, 1, true),
             };
 
             excel.SetExcelOptionArray(optionarray);
 
-            DataSet master = excel.ReadAllSheets(path); 
+            var master = excel.ReadAllSheets(path); 
             if(master == null)
             {
                 return null;
@@ -117,12 +87,9 @@ namespace ConvertDaiwaForBPF
             mPathOutput = pathOutput;
 
             mItemMap  = null;
-            //mOrderMap = null;
             mCordMap  = null;
 
             mHRRows = null;
-
-            mOrderArray = null;
 
             mOutputCsv = null;
 
@@ -154,21 +121,21 @@ namespace ConvertDaiwaForBPF
                 }
 
                 //健診ヘッダーの読み込み
-                DataTable hdrTbl = ReadHelthHeder(mPathInput);
+                var hdrTbl = ReadHelthHeder(mPathInput);
                 if (hdrTbl == null)
                 {
                     return 0;
                 }
 
                 //健診データの読み込み
-                DataTable tdlTbl = ReadHelthData(mPathInput);
+                var tdlTbl = ReadHelthData(mPathInput);
                 if (tdlTbl == null)
                 {
                     return 0;
                 }
 
                 //健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
-                DataRow[] hdrUsers = GetActiveUsers(hdrTbl);
+                var hdrUsers = GetActiveUsers(hdrTbl);
                 if (hdrUsers == null)
                 {
                     return 0;
@@ -226,9 +193,9 @@ namespace ConvertDaiwaForBPF
         bool Init()
         {
             // 独自に設定した「appSettings」へのアクセス
-            NameValueCollection appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
+            var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
 
-            string path = appSettings["SettingPath"];
+            var path = appSettings["SettingPath"];
             Dbg.ViewLog("設定ファイルの読み込み:" + path);
 
             mMasterSheets = ReadMasterFile(path);
@@ -258,45 +225,6 @@ namespace ConvertDaiwaForBPF
                 //Dbg.Log("" + row["列順"]);
                 mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
             }
-
-
-            /*
-            //オーダーマッピング初期化
-            mOrderMap = mMasterSheets.Tables["オーダーマッピング"].AsEnumerable()
-                  .Where(x => x["検査項目コード"].ToString() != "")
-                  .ToArray();
-            */
-            /*
-            var inOrder = new string[][] {
-                    new string[]{
-                    "9A751000000000001",    //血圧 収縮期 1回目
-                    "9A752000000000001",    //血圧 収縮期 2回目
-                    "9A755000000000001"     //血圧 収縮期 3回目
-                    }
-                ,
-                new string[] {
-                    "9A761000000000001",    //血圧 拡張期 1回目
-                    "9A762000000000001",    //血圧 拡張期 2回目
-                    "9A765000000000001"     //血圧 拡張期 3回目
-                    }
-            };
-            */
-            /*
-            //上記、カテゴリー別のstring 配列を動的生成 
-            mOrderArray = mOrderMap.AsEnumerable()
-                    .Where(x => x.Field<string>("検査項目コード") != "")
-                    .GroupBy(x => new
-                    {
-                        category = x.Field<string>("カテゴリー"),
-                    })
-                    .Select(x => new OrderArray
-                    {
-                        Category = x.Key.category,
-                        InspectionItemCodeArray = x.Select(y => y.Field<string>("検査項目コード")).ToArray()
-                    })
-                    .ToArray();
-            */
-
 
             //コードマッピング初期化
             mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
@@ -333,8 +261,8 @@ namespace ConvertDaiwaForBPF
                   .Select(x => x.Field<string>("設定値").ToString().Trim())
                   .First();
 
-            UtilCsv　csv = new UtilCsv();
-            DataTable tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+            var csv = new UtilCsv();
+            var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -367,8 +295,8 @@ namespace ConvertDaiwaForBPF
                   .Select(x => x.Field<string>("設定値").ToString().Trim())
                   .First();
 
-            UtilCsv csv = new UtilCsv();
-            DataTable tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
+            var csv = new UtilCsv();
+            var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -393,9 +321,8 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         DataRow[] ReadHumanResourceData(string path)
         {
-            UtilCsv csv = new UtilCsv();
-
-            DataTable tbl = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
+            var csv = new UtilCsv();
+            var tbl = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
             if (tbl == null)
             {
                 //中断
@@ -411,20 +338,10 @@ namespace ConvertDaiwaForBPF
             }
 
             //健診ヘッダーの削除フラグが0だけ抽出
-            DataRow[] row =
+            var row =
                 tbl.AsEnumerable()
                 .Where(x => x["削除"].ToString() == "0")
                 .ToArray();
-
-            /*
-            if (hrTabl.Columns.Contains("健康ポイントID"))
-            { 
-                 foreach (var h in hdrRows)
-                {
-                    Dbg.ViewLog(""+ h.Field<string>("健康ポイントID"));
-                }
-            }
-            */
 
             return row;
         }
@@ -438,7 +355,7 @@ namespace ConvertDaiwaForBPF
         DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
             //健診ヘッダーの削除フラグが0だけ抽出
-            DataRow[] hdrRows =
+            var hdrRows =
                 HdrTbl.AsEnumerable()
                 .Where(x => x["削除フラグ"].ToString() == "0")
                 .ToArray();
@@ -462,7 +379,7 @@ namespace ConvertDaiwaForBPF
                            select row;
 
             //DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
-            int overlapcount = dr_array.Count();
+            var overlapcount = dr_array.Count();
             if (overlapcount > 0)
             {
                 //重複件数の表示
@@ -523,7 +440,7 @@ namespace ConvertDaiwaForBPF
             }
 
             //人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
-            DataRow hr_row = GetHumanResorceRow(userID, mHRJoinKey);
+            var hr_row = GetHumanResorceRow(userID, mHRJoinKey);
             if (hr_row == null)
             {
                 Dbg.ErrorWithView(Properties.Resources.E_NO_USERDATA
@@ -533,16 +450,10 @@ namespace ConvertDaiwaForBPF
                 return true;
             }
 
-            //旧検査項目コードの書き換え
-            //userdata = ReplaceInspectItemCode(ref userdata,  mMasterSheets.Tables["JLAC10変換"], userID, hrow["健診実施日"].ToString());
-
-            //オーダーマッピング（特定の検査項目コードの絞込）
-            //userdata = OrderMapping(ref userdata, ref mOrderMap, userID);
-
             //出力情報の一行分作成
-            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
+            var outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
 
-            bool requestFiledError = false;
+            var requestFiledError = false;
 
             //項目マッピング処理
             //必要な検査項目コード分ループ
@@ -554,12 +465,12 @@ namespace ConvertDaiwaForBPF
                     continue;
                 }
 
-                int index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
+                var index = int.Parse(row.Field<string>("列順"));     //列順は１始まり
 
-                string value = "";
+                var  value = "";
 
                 //固定値
-                string fixvalue = row.Field<string>("固定値").Trim();
+                var fixvalue = row.Field<string>("固定値").Trim();
                 if (fixvalue != "")
                 {
                     value = fixvalue;
@@ -597,7 +508,7 @@ namespace ConvertDaiwaForBPF
                 //人事データ結合
                 if(value == "")
                 {
-                    string hrcolumn = row.Field<string>("参照人事");
+                    var hrcolumn = row.Field<string>("参照人事");
                     if(hrcolumn != "")
                     {
                         //人事の指定列名
@@ -627,7 +538,7 @@ namespace ConvertDaiwaForBPF
                 //参照健診ヘッダーの取得
                 if (value == "")
                 {
-                    string inspectionHeader = row.Field<string>("参照健診ヘッダー").Trim();
+                    var inspectionHeader = row.Field<string>("参照健診ヘッダー").Trim();
                     if(inspectionHeader != "")
                     {
                         //現状、健診実施日と健診実施機関番号のみ
@@ -653,7 +564,7 @@ namespace ConvertDaiwaForBPF
                 //検査項目コードの検索
                 if (value == "")
                 {
-                    string inspectcord = row.Field<string>("検査項目コード").Trim();
+                    var inspectcord = row.Field<string>("検査項目コード").Trim();
                     if (inspectcord != "")
                     {
                         //検査項目コードに半角英数以外が使われているか確認
@@ -693,7 +604,7 @@ namespace ConvertDaiwaForBPF
                 if (value != "")
                 {
                     //種別
-                    string type = row.Field<string>("種別").Trim();
+                    var type = row.Field<string>("種別").Trim();
 
                     //種別が数値を期待しているのに、数値以外の値の場合はエラーとする
                     value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
@@ -701,7 +612,7 @@ namespace ConvertDaiwaForBPF
 
 
                 //必須項目確認
-                string request = row.Field<string>("必須").Trim();
+                var request = row.Field<string>("必須").Trim();
                 if (request == "○" && value == "")
                 {
                     //必須項目に値が無い場合は、そのデータを作成しない。
@@ -738,12 +649,7 @@ namespace ConvertDaiwaForBPF
         {
             Dbg.ViewLog("CSV作成中...（件数{0})", mOutputCsv.Rows.Count.ToString());
 
-            //出力用CSVのカラム名をDataRowの配列で取得（3018行分）
-            //int max = rows.Max(r => int.Parse(r["列順"].ToString()));
-            //int max = rows.Length;
-
-            //最適化できそう
-            List<string> str_arry = new List<string>();
+            var str_arry = new List<string>();
 
             //初期
             foreach (var r in mItemMap)
@@ -757,9 +663,9 @@ namespace ConvertDaiwaForBPF
                 str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
             }
 
-            UtilCsv csv = new UtilCsv();
+            var csv = new UtilCsv();
 
-            DateTime dt = DateTime.Now;
+            var dt = DateTime.Now;
             var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
 
             csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
@@ -774,10 +680,9 @@ namespace ConvertDaiwaForBPF
         /// <param name="sheet"></param>
         void SetColumnName(DataTable dt, List<string> sheet)
         {
-            int n = sheet.Count;
+            var n = sheet.Count;
             for (int i=0; i< sheet.Count(); i++)
             {
-                //Dbg.Log(rows[i][0].ToString());
                 if(i<n)
                 {
                     dt.Columns[""+(i+1)].ColumnName = sheet[i].ToString().Trim();
@@ -810,7 +715,7 @@ namespace ConvertDaiwaForBPF
                   }) 
             */
 
-            DataTable hdt = new DataTable();
+            var hdt = new DataTable();
             hdt.Columns.Add("組合C", typeof(string));
             hdt.Columns.Add("健診基本情報管理番号", typeof(string));
             hdt.Columns.Add("健診実施日", typeof(string));
@@ -843,40 +748,6 @@ namespace ConvertDaiwaForBPF
                         Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
                     };
 
-
-            // 外部結合を行うメソッド式
-            /*
-             * 同じ項目が増えるの使えない
-            var outerJoin =
-                merged.GroupJoin(jlacTable.AsEnumerable(), p => p.InspectionItemCode , j => j.Field<string>("旧検査項目コード"), (p, j) => new
-                {
-                    InspectionItemCode = p.InspectionItemCode,
-                    InspectionItemName = p.InspectionItemName,
-                    InspectionDetailID = p.InspectionDetailID,
-                    Value = p.Value,
-                    NewInspectionItemCode = j.DefaultIfEmpty()
-                })
-                .SelectMany(x => x.NewInspectionItemCode, (x, j) => new 
-                {
-                    InspectionItemCode = x.InspectionItemCode,
-                    InspectionItemName = x.InspectionItemName,
-                    InspectionDetailID = x.InspectionDetailID,
-                    Value = x.Value,
-                    NewInspectionItemCode = j != null ? j.Field<string>("新検査項目コード") : ""
-                });
-            */
-
-            //return merged.ToList();
-
-            /*
-            if (ret.Count() > 0)
-            {
-                UtilCsv csv = new UtilCsv();
-                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "a.csv", csv.CreateDataTable(merged));
-                csv.WriteFile(".\\out\\UserData_" + hrow["個人番号"].ToString() + "b.csv", csv.CreateDataTable(ret));
-            }
-            */
-
             return merged.ToList();
         }
 
@@ -888,7 +759,7 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable jlacTable, string userID, string date)
         {
-            List<UserData> ret = new List<UserData>();
+            var ret = new List<UserData>();
 
             foreach (var m in user)
             {
@@ -917,143 +788,6 @@ namespace ConvertDaiwaForBPF
             */
 
             return ret.ToList();
-        }
-
-
-        /*
-        /// <summary>
-        /// 項目マッピングから該当する必須項目一覧を抽出
-        /// </summary>
-        /// <param name="itemSheet">シート「項目マッピング」</param>
-        /// <param name="ItemMap">１ユーザー分の検査項目一覧</param>
-        /// <returns>項目マッピングの一覧</returns>
-        private IEnumerable<ItemMap> GetItemMapByUserData(DataTable itemSheet, IEnumerable<UserData> merged)
-        {
-            var itemMapped =
-                    from m in merged.AsEnumerable()
-                    join t in itemSheet.AsEnumerable() on m.InspectionItemCode.ToString() equals t.Field<string>("検査項目コード").Trim()
-                    select new ItemMap
-                    {
-                        InspectionItemCode = m.InspectionItemCode,      //検査項目コード
-                        OutputHdrIndex = t.Field<string>("列順"),
-                        ItemName = t.Field<string>("項目名"),
-                        Attribute = t.Field<string>("属性"),
-                        CodeID = t.Field<string>("コードID"),
-                        Type = t.Field<string>("種別"),             //半角英数等
-                        //Rate = t.Field<string>("倍率"),
-                        //StringFormat = t.Field<string>("文字フォーマット"),
-                        Value = m.Value,                            //検査値
-                    };
-
-            //UtilCsv csv = new UtilCsv();
-            //csv.WriteFile(".\\項目.csv", csv.CreateDataTable(itemMapped));
-
-            return itemMapped;
-        }
-        */
-
-        /// <summary>
-        /// オーダーマッピング処理
-        /// 優先度が高い検査項目コードだけ残す
-        /// </summary>
-        /// <param name="merged"></param>
-        /// <param name="ordermap"></param>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        private UserData[] OrderMapping(ref UserData[] merged, ref DataRow[] ordermap, string userID)
-        {
-            /* -------
-             * 元のSQL
-             * -------
-                select
-                    top 1 値 
-                from
-                    10_検査結果 
-                where
-                    組合C = h.組合C 
-                    and 健診基本情報管理番号 = h.健診基本情報管理番号 
-                    and JLAC10 in ( 
-                        '9A751000000000001'
-                        , '9A752000000000001'
-                        , '9A755000000000001'
-                    ) 
-                order by
-                    JLAC10
-             */
-
-            foreach (var order in mOrderArray)
-            {
-                // IN句の条件
-                /*
-                var inCause = new string[] {
-                    "9A751000000000001",    //血圧 収縮期 1回目
-                    "9A752000000000001",    //血圧 収縮期 2回目
-                    "9A755000000000001"     //血圧 収縮期 3回目
-                    };
-                */
-
-                //IN句を動的生成
-                var inCause = order.InspectionItemCodeArray;
-
-                //ユーザーデータから抽出
-                try
-                {
-                    //Dbg.ViewLog("category:" + order.category);
-
-                    var userdataArray = merged.AsEnumerable()
-                        .Where(x => inCause.Contains(x.InspectionItemCode))
-                        .OrderBy(x => x.InspectionItemCode)
-                        .ToArray();
-
-                    var remove = new List<UserData>();
-
-                    int i = 0;
-                    foreach (var o in userdataArray)
-                    {
-                        if (i >= 1)
-                        {
-                            //Dbg.ViewLog("code:" + o.InspectionItemCode + " v:" + o.Value);
-                            remove.Add(o);
-                        }
-                        i++;
-                    }
-
-                    //ユーザーデータから優先度の低いものを削除
-                    if (remove.Count > 0)
-                    {
-                        //書き換え
-                        merged = merged.Except(remove).ToArray();
-
-                        //確認
-                        var resultArray = merged.AsEnumerable()
-                            .Where(x => inCause.Contains(x.InspectionItemCode))
-                            .OrderBy(x => x.InspectionItemCode)
-                            .ToArray();
-
-                        //上記処理により、１つしか残らないはず
-                        if (resultArray.Count() != 1)
-                        {
-                            throw new MyException(Properties.Resources.E_ORDERMAPPING_ABORTED);
-                        }
-
-                        //残った優先度を表示
-                        var top = resultArray[0];
-                        Dbg.ViewLog(Properties.Resources.MSG_RESULT_ORDER_MAPPING
-                            , top.InspectionItemCode
-                            , top.Value
-                            , userID);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Dbg.ErrorWithView(Properties.Resources.E_ORDERMAPPING_FILED
-                        , userID);
-                    throw ex;
-                }
-            }
-
-
-            return merged;
         }
 
         /// <summary>
@@ -1100,10 +834,10 @@ namespace ConvertDaiwaForBPF
                 case "半角数字":
                 case "数値":
                     {
-                        int i = 0;
+                        var i = 0;
                         if(!int.TryParse(value, out i))
                         {
-                            float f = 0.0f;
+                            var f = 0.0f;
                             if (!float.TryParse(value, out f))
                             {
                                 Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
@@ -1151,23 +885,6 @@ namespace ConvertDaiwaForBPF
         {
             DataRow row = null;
 
-            /*
-            if (!mHRRows[0].Table.Columns.Contains("健康ポイントID"))
-            {
-                //健康ポイントIDが無い場合は、指定の列名（カラム名）で検索
-                if (!mHRRows[0].Table.Columns.Contains(hrcolumn))
-                {
-                    //存在しない場合はレコードを作成しないで次のユーザーへ
-                    return null;
-                }
-            }
-            else
-            {
-                hrcolumn = "健康ポイントID";
-            }
-            */
-
-
             //最終的に残った項目で検索
             try
             {
@@ -1177,10 +894,7 @@ namespace ConvertDaiwaForBPF
             }
             catch (Exception ex)
             {
-                #pragma warning disable
-                var e = ex;
-                #pragma warning restore
-                //Dbg.Error(ex.ToString());
+                Dbg.Error(ex.ToString());
 
                 //存在しない場合はレコードを作成しないで次のユーザーへ
                 return null;
@@ -1189,41 +903,6 @@ namespace ConvertDaiwaForBPF
             return row;
         }
 
-        /*
-        bool TestConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
-        {
-            var userID = hrow["個人番号"].ToString();
-
-            //健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = CreateUserData(ref hrow, ref TdlTbl)
-                        .ToArray();
-
-            if (userdata.Count() <= 0)
-            {
-                //結合した結果データが無い
-                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
-
-                //次のユーザーへ
-                return true;
-            }
-
-            //出力情報の一行分作成
-            DataRow outputrow = mOutputCsv.NewRow();        //カラムは、0始まり
-
-            //TODO:人事データ結合(ここで結合できない人事をワーニングとして出力する)
-
-            //TODO:個人番号をセット
-            outputrow[5] = userID;    //仮
-
-            // CSV出力情報に追加
-            mOutputCsv.Rows.Add(outputrow);
-
-            outputrow = null;
-
-            //次のユーザー
-            return true;
-        }
-        */
 
     }
 }

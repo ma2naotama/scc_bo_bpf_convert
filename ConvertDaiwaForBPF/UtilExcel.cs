@@ -9,55 +9,12 @@ using ClosedXML.Excel;
 
 namespace ConvertDaiwaForBPF
 {
-
-    public class ExcelOption
-    {
-        //シート番号（どのシートに対するオプションなのか判断する為に使用する）
-        public string sheetName { get; set; }
-
-        public bool isActive { get; set; }
-
-        public int HeaderRowStartNumber { get; set; }
-
-        public int HeaderColumnStartNumber { get; set; }
-        public int HeaderColumnEndNumber { get; set; }
-
-        //取り出す行の開始位置
-        public int DataRowStartNumber { get; set; }
-
-        public ExcelOption()
-        {
-            this.isActive = false;      //初期設定ではシートは読まない
-            this.HeaderRowStartNumber = 1;
-            this.HeaderColumnStartNumber = 1;
-            this.HeaderColumnEndNumber = 10000;
-
-            this.DataRowStartNumber = 2;
-        }
-
-        public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber, bool active)
-        {
-            this.sheetName = sheetName;
-            this.HeaderRowStartNumber = headerRowStartNumber;
-            this.HeaderColumnStartNumber = headerColumnStartNumber;
-            this.HeaderColumnEndNumber = 10000;
-
-            this.DataRowStartNumber = headerRowStartNumber+1;
-
-            this.isActive = active;
-        }
-
-        public int GetColumnMax()
-        {
-            return HeaderColumnEndNumber - HeaderColumnStartNumber;
-        }
-    }
-
+   
+    /// <summary>
+    /// エクセルファイルの読み込み
+    /// </summary>
     internal class UtilExcel
     {
-        //コールバックの定義
-        //public delegate void CallbackLoader(long processLength, List<string> colums);
-
         private bool mbCancel;
 
 
@@ -67,20 +24,27 @@ namespace ConvertDaiwaForBPF
         {
             mbCancel = false;
 
-            ExcelOption option = new ExcelOption();
+            var option = new ExcelOption();
             mExcelOption.Add(option);
         }
 
+        /// <summary>
+        /// キャンセル処理
+        /// </summary>
         public void Cancel()
         {
             mbCancel = true;
         }
 
 
+        /// <summary>
+        /// オプション設定の登録
+        /// </summary>
+        /// <param name="option"></param>
         public void SetExcelOption(ExcelOption option)
         {
             //シート番号で検索
-            int optindex = mExcelOption.FindIndex(x => x.sheetName == option.sheetName);
+            var optindex = mExcelOption.FindIndex(x => x.sheetName == option.sheetName);
             if(optindex <0)
             {
                 mExcelOption.Add(option);
@@ -91,6 +55,10 @@ namespace ConvertDaiwaForBPF
             mExcelOption[optindex] = option;
         }
 
+        /// <summary>
+        /// オプションの設定を登録
+        /// </summary>
+        /// <param name="options"></param>
         public void SetExcelOptionArray(ExcelOption []options)
         {
             foreach (ExcelOption opt in options)
@@ -99,13 +67,14 @@ namespace ConvertDaiwaForBPF
             }
         }
 
-
+        /// <summary>
+        /// シート名からオプションの設定を取得
+        /// </summary>
+        /// <param name="sheetName"></param>シート名
+        /// <returns>ExcelOption　未設定の場合は初期値を返す</returns>
         private ExcelOption GetExcelOption(string sheetName)
         {
-            ExcelOption option =
-                mExcelOption.Find(x => x.sheetName == sheetName);
-
-
+            var option = mExcelOption.Find(x => x.sheetName == sheetName);
             if(option == null)
             {
                 //Dbg.Log("初期設定のオプション");
@@ -115,75 +84,6 @@ namespace ConvertDaiwaForBPF
             return option;
 
         }
-
-        /*
-        /// <summary>
-        /// Excelの読み込み処理
-        /// </summary>
-        /// <param name="filepath">開くファイルのパス</param>
-        public void ReadSheet(string path, CallbackLoader callback, string sheetName = null)
-        {
-            //既にエクセルが開いている場合でも読める様にする
-            FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            //Excelファイルを開く
-            using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
-            {
-
-                Dbg.Log(""+workbook.Worksheets.Count);
-
-                //シートを選択する　シート名で取得する
-                var worksheet = workbook.Worksheet(sheetName);
-
-                //取得するセルの最大行数
-                int RowsMax = worksheet.LastRowUsed().RowNumber();
-
-                //TODO:最大行数の確認は現在しない
-
-                //最大カラム数の確認
-                //取得するセルの最大カラム番号（個数ではなく番号）
-                int columnNum = worksheet.LastColumnUsed().ColumnNumber();
-                if(columnNum<0)
-                {
-                    Dbg.Log("データがありません。");
-                    return;
-                }
-
-                //シート番号で検索
-                ExcelOption option = GetExcelOption(sheetName);
-                if(option != null)
-                {
-                    if(columnNum > option.GetColumnMax())
-                    {
-                        columnNum = option.GetColumnMax();
-                    }
-                }
-
-
-                //取得するセルの列番号
-                int processLinse = 0;
-
-                //実データの開始行から開始
-                for (int rownum = option.DataRowStartNumber; rownum <= RowsMax; rownum++)
-                {
-                    if (mbCancel)
-                    {
-                        Dbg.Log("cancel:" + path);
-                        break;
-                    }
-
-                    var row = GetRow(worksheet, rownum, option.HeaderColumnStartNumber, columnNum);
-
-                    callback(processLinse, row);
-
-                    processLinse++;
-                }
-
-            }
-        }
-
-        */
-
 
         /// <summary>
         /// エクセルシートから１行分取り出す
@@ -234,7 +134,7 @@ namespace ConvertDaiwaForBPF
         /// <returns>全シート分のDataTable</returns>
         public DataSet ReadAllSheets(string path)
         {
-            DataSet dataSet = new DataSet();
+            var dataSet = new DataSet();
 
             //既にエクセルが開いている場合でも読める様にする
             FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -245,9 +145,9 @@ namespace ConvertDaiwaForBPF
             {
                 //Dbg.Log("sheeet count:" + workbook.Worksheets.Count);
 
-                for (int sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
+                for (var sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
                 {
-                    string sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
+                    var sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
 
                     //Dbg.Log("load sheeet:" + sheeetname);
 
@@ -287,7 +187,7 @@ namespace ConvertDaiwaForBPF
                     }
 
 
-                    DataTable dt = new DataTable();
+                    var dt = new DataTable();
 
                     //シート名保存
                     dt.TableName = sheeetname;
@@ -321,8 +221,7 @@ namespace ConvertDaiwaForBPF
                             , columnNum);
 
 
-                        DataRow r = dt.NewRow();
-
+                        var r = dt.NewRow();
                         for(int i = 0; i < row.Count; i++)
                         {
                             r[i] = row[i];
@@ -338,41 +237,6 @@ namespace ConvertDaiwaForBPF
             return dataSet;
         }
 
-
-        //CSVの最大行数を取得する
-        public long GetFileMaxLines(string path)
-        {
-            int lines =0;
-
-            //既にエクセルが開いている場合でも読める様にする
-            FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            //Excelファイルを開く
-            using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
-            {
-                var worksheet = workbook.Worksheet(1);
-                lines = worksheet.LastRowUsed().RowNumber();
-            }
-
-            Dbg.ViewLog("GetFileMaxLines:" + lines);
-            return lines;
-        }
-
-
-        void WriteFile(string path, DataTable dt)
-        {
-            try
-            {
-                var workbook = new XLWorkbook();
-                var worksheet = workbook.Worksheets.Add(dt);
-                workbook.SaveAs(path);
-            }
-            catch (Exception ex)
-            {
-                Dbg.Error(ex.ToString());
-                throw ex;
-            }
-        }
     }
 }
 

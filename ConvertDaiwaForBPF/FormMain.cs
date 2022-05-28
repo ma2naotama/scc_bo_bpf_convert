@@ -17,7 +17,9 @@ namespace ConvertDaiwaForBPF
     {
         private static FormMain mInstance = null;
 
-
+        /// <summary>
+        /// 起動画面
+        /// </summary>
         public FormMain()
         {
             mInstance = this;
@@ -25,6 +27,10 @@ namespace ConvertDaiwaForBPF
             InitializeComponent();
         }
 
+        /// <summary>
+        /// 起動画面のインスタンスの取得
+        /// </summary>
+        /// <returns></returns>
         public static FormMain GetInstance()
         {
             return mInstance;
@@ -45,19 +51,11 @@ namespace ConvertDaiwaForBPF
                 textBox_Log.SelectionStart = textBox_Log.Text.Length;
                 textBox_Log.SelectionLength = 0;
                 textBox_Log.SelectedText = str;
-                //Debug.WriteLine(str);
             }
         }
 
-        //private string mOutputFileName = "";
-
         private void FormMain_Load(object sender, EventArgs e)
         {
-            /*
-            DateTime dt = DateTime.Now;
-            mOutputFileName = ".\\"+String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
-            textBox3.Text = mOutputFileName;
-            */
 
             textBox3.Text = "..\\";
         }
@@ -161,18 +159,6 @@ namespace ConvertDaiwaForBPF
 
         private void button3_Click(object sender, EventArgs e)
         {
-            /*
-            SaveFileDialog sfd = new SaveFileDialog();
-
-            DateTime dt = DateTime.Now;
-
-            sfd.FileName = mOutputFileName;       // デフォルトファイル名
-
-            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                textBox3.Text = sfd.FileName;
-            }
-            */
 
             FolderBrowserDialog fbDialog = new FolderBrowserDialog();
 
@@ -197,25 +183,6 @@ namespace ConvertDaiwaForBPF
 
         private void textBox3_DragDrop(object sender, DragEventArgs e)
         {
-            /*
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-
-                string path = files[0];
-
-                //ファイルパスを変更（ファイル名は入力した内容のまま）
-                if (textBox3.Text != null)
-                {
-                    var filename = Path.GetFileName(textBox3.Text);
-
-                    path += "\\"+ filename;
-                }
-
-                textBox3.Text = path;
-            }
-            */
-
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
@@ -260,7 +227,6 @@ namespace ConvertDaiwaForBPF
             buttonConvert.Enabled = false;
 
             if (isTextActive(textBox1.Text) && isTextActive(textBox2.Text) && isTextActive(textBox3.Text))
-            //if (isTextActive(textBox1.Text) && isTextActive(textBox3.Text))
             {
                 //実行ボタンの表示
                 buttonConvert.Enabled = true;
@@ -292,7 +258,6 @@ namespace ConvertDaiwaForBPF
                 }
                 else
                 {
-                    //MessageBox.Show("キャンセルしました。");
                     return;
                 }
 
