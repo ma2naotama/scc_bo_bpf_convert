@@ -209,6 +209,8 @@ namespace ConvertDaiwaForBPF
             }
             catch(Exception ex)
             {
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
+
                 Dbg.Error(ex.ToString());
             }
 

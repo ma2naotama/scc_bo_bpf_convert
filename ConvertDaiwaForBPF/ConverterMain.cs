@@ -63,12 +63,7 @@ namespace ConvertDaiwaForBPF
 
             excel.SetExcelOptionArray(optionarray);
 
-            var master = excel.ReadAllSheets(path); 
-            if(master == null)
-            {
-                return null;
-            }
-
+            var master = excel.ReadAllSheets(path);            
             return master;
         }
 
@@ -205,11 +200,6 @@ namespace ConvertDaiwaForBPF
             Dbg.ViewLog(Properties.Resources.MSG_READ_SETTINGFILE, path);
 
             mMasterSheets = ReadMasterFile(path);
-            if (mMasterSheets == null)
-            {
-                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
-                return false;
-            }
 
             // 出力用CSVの初期化
             mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()

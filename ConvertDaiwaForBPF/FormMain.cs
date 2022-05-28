@@ -107,7 +107,7 @@ namespace ConvertDaiwaForBPF
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxReceivePath.Text = files[0];
             }
 
@@ -172,7 +172,7 @@ namespace ConvertDaiwaForBPF
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxHRPath.Text = files[0];
             }
 
@@ -214,7 +214,7 @@ namespace ConvertDaiwaForBPF
             // ダイアログの説明文を指定する
             fbDialog.Description = "出力フォルダの選択";
 
-            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+            var stCurrentDir = System.IO.Directory.GetCurrentDirectory();
 
             // デフォルトのフォルダを指定する
             fbDialog.SelectedPath = stCurrentDir;
@@ -239,7 +239,7 @@ namespace ConvertDaiwaForBPF
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxOutputPath.Text = files[0];
             }
 
@@ -276,7 +276,7 @@ namespace ConvertDaiwaForBPF
             //実行ボタンの非表示
             buttonConvert.Enabled = false;
 
-            if (!string.IsNullOrEmpty(textBoxReceivePath.Text) && string.IsNullOrEmpty(textBoxHRPath.Text) && string.IsNullOrEmpty(textBoxOutputPath.Text))
+            if (!string.IsNullOrEmpty(textBoxReceivePath.Text) && !string.IsNullOrEmpty(textBoxHRPath.Text) && !string.IsNullOrEmpty(textBoxOutputPath.Text))
             {
                 //実行ボタンの表示
                 buttonConvert.Enabled = true;
