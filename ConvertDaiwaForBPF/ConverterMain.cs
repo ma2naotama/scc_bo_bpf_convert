@@ -776,34 +776,6 @@ namespace ConvertDaiwaForBPF
             return merged.ToList();
         }
 
-        /// <summary>
-        /// 旧検査項目コードを新検査項目コードに置換します。
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="jlacTable"></param>
-        /// <returns></returns>
-        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable jlacTable, string userID, string date)
-        {
-            var ret = new List<UserData>();
-
-            foreach (var m in user)
-            {
-                var newcode = jlacTable.AsEnumerable()
-                                .Where(x => x.Field<string>("旧検査項目コード") == m.InspectionItemCode && x.Field<string>("置換対象") == "〇")
-                                .Select(x => x.Field<string>("新検査項目コード"))
-                                .FirstOrDefault();
-
-                if (!string.IsNullOrEmpty(newcode))
-                {
-                    m.InspectionItemCode = newcode.Trim();
-                }
-
-                // refが使えない為、値を書き換えて別に保存
-                ret.Add(m);
-            }
-
-            return ret.ToList();
-        }
 
         /// <summary>
         /// コードマッピング処理
