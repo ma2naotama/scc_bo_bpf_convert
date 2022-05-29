@@ -180,7 +180,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 出力情報から全レコードの書き出し
-                if (!WriteCsv())
+                if (!WriteCsv(ref mItemMap, ref mOutputCsv, mPathOutput))
                 {
                     return 0;
                 }
@@ -203,7 +203,7 @@ namespace ConvertDaiwaForBPF
         /// 初期化と設定ファイルの読み込み
         /// </summary>
         /// <returns></returns>
-        bool Init()
+        private bool Init()
         {
             // 独自に設定した「appSettings」へのアクセス
             var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
@@ -260,7 +260,7 @@ namespace ConvertDaiwaForBPF
         /// 健診ヘッダーCSVの読み込み
         /// </summary>
         /// <returns>DataTable</returns>
-        DataTable ReadHelthHeder(string path)
+        private DataTable ReadHelthHeder(string path)
         {
             try
             {
@@ -297,7 +297,7 @@ namespace ConvertDaiwaForBPF
         /// 健診データCSVの読み込み
         /// </summary>
         /// <returns>DataTable</returns>
-        DataTable ReadHelthData(string path)
+        private DataTable ReadHelthData(string path)
         {
             try
             {
@@ -334,7 +334,7 @@ namespace ConvertDaiwaForBPF
         /// 人事CSVの読み込み
         /// </summary>
         /// <returns>DataRowの配列  削除されている人事を除く</returns>
-        DataRow[] ReadHumanResourceData(string path)
+        private DataRow[] ReadHumanResourceData(string path)
         {
             try
             {
@@ -371,7 +371,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="HdrTbl"></param>
         /// <returns>DataRowの配列  削除されている検診ヘッダーを除く</returns>
-        DataRow[] GetActiveUsers(DataTable HdrTbl)
+        private DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
             // 健診ヘッダーの削除フラグが0だけ抽出
             var hdrRows =
@@ -443,7 +443,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="hrow"></param>
         /// <param name="TdlTbl"></param>
         /// <returns></returns>
-        bool ConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
+        private bool ConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
         {
             var userID = hrow["個人番号"].ToString();
 
@@ -656,26 +656,28 @@ namespace ConvertDaiwaForBPF
             return true;
         }
 
+
         /// <summary>
         /// CSVの書き出し
         /// </summary>
+        /// <param name="datattable"></param>
         /// <returns></returns>
-        bool WriteCsv()
+        private bool WriteCsv(ref DataRow[]itemMap, ref DataTable datattable, string outputPath)
         {
-            Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, mOutputCsv.Rows.Count.ToString());
+            Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datattable.Rows.Count.ToString());
 
             try
             {
                 var str_arry = new List<string>();
 
                 // 初期カラム名
-                foreach (var r in mItemMap)
+                foreach (var r in itemMap)
                 {
                     str_arry.Add("-");
                 }
 
                 // 列順の項目を書き換え
-                foreach (var r in mItemMap)
+                foreach (var r in itemMap)
                 {
                     str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
                 }
@@ -684,7 +686,7 @@ namespace ConvertDaiwaForBPF
                 var outptfilename  = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
 
                 var csv = new UtilCsv();
-                csv.WriteFile(mPathOutput+ outptfilename, mOutputCsv, str_arry);
+                csv.WriteFile(outputPath + outptfilename, datattable, str_arry);
 
                 return true;
             }
@@ -701,7 +703,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="sheet"></param>
-        void SetColumnName(DataTable dt, List<string> sheet)
+        private void SetColumnName(DataTable dt, List<string> sheet)
         {
             var n = sheet.Count;
             for (int i=0; i< sheet.Count(); i++)
@@ -811,7 +813,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="codeid"></param>
         /// <param name="userID"></param>
         /// <returns>コード変換した値</returns>
-        string GetCodeMapping(string value, string codeid, string userID)
+        private string GetCodeMapping(string value, string codeid, string userID)
         { 
             // コードマッピング（属性が「コード」の場合、値の置換）
             // コードマッピングから抽出
@@ -867,8 +869,7 @@ namespace ConvertDaiwaForBPF
                 case "年月日":
                     {
                         // 年月日の変換
-                        DateTime d;
-                        if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out d))
+                        if (DateTime.TryParseExact(value, "yyyyMMdd", null, DateTimeStyles.None, out DateTime d))
                         {
                             // 日付
                             value = d.ToString("yyyy/MM/dd");
@@ -898,7 +899,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="userID"></param>
         /// <param name="hrcolumn"></param>
         /// <returns>DataRow</returns>
-        DataRow GetHumanResorceRow(string userID, string hrcolumn)
+        private DataRow GetHumanResorceRow(string userID, string hrcolumn)
         {
             DataRow row = null;
 
@@ -919,7 +920,5 @@ namespace ConvertDaiwaForBPF
 
             return row;
         }
-
-
     }
 }

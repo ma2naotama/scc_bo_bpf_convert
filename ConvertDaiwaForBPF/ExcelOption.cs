@@ -32,6 +32,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         public int DataRowStartNumber { get; set; }
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public ExcelOption()
         {
             HeaderRowStartNumber = 1;           // ヘッダーが1行名から開始

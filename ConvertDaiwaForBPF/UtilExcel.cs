@@ -73,7 +73,6 @@ namespace ConvertDaiwaForBPF
             }
 
             return option;
-
         }
 
         /// <summary>
@@ -124,7 +123,6 @@ namespace ConvertDaiwaForBPF
 
             try
             {
-
                 // 既にエクセルが開いている場合でも読める様にする
                 var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
@@ -132,7 +130,6 @@ namespace ConvertDaiwaForBPF
                 // XLEventTracking.Disabled 追跡を無効
                 using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
                 {
-
                     for (var sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
                     {
                         var sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
@@ -166,7 +163,6 @@ namespace ConvertDaiwaForBPF
                                 columnNum = option.GetColumnMax();
                             }
                         }
-
 
                         var dt = new DataTable();
 
@@ -203,7 +199,6 @@ namespace ConvertDaiwaForBPF
 
                             dt.Rows.Add(r);
                         }
-
                     }
                 }
             }
