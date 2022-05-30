@@ -120,14 +120,11 @@
   <data name="E_CORDMAPPING_FILED" xml:space="preserve">
     <value>コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1}</value>
   </data>
-  <data name="E_DUPLICATE_USER" xml:space="preserve">
-    <value>健診データが重複しています。個人番号：{0}　受信日：{1}</value>
-  </data>
   <data name="E_DUPLICATE_USERS_COUNT" xml:space="preserve">
     <value>受診者の重複があります。重複件数：{0}</value>
   </data>
   <data name="E_DUPLICATE_USERS_INFO" xml:space="preserve">
-    <value>重複　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2}</value>
+    <value>重複があります。　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2}</value>
   </data>
   <data name="E_EMPTY_SHEET" xml:space="preserve">
     <value>シートが空です。シート名：{0}</value>
@@ -160,13 +157,10 @@
     <value>人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0}</value>
   </data>
   <data name="E_NOT_EXIST_ITEM_IN_HDR" xml:space="preserve">
-    <value>検診ヘッダーに指定の項目がありません。指定項目：{0}</value>
+    <value>検診ヘッダーの参照項目がありません。指定項目：{0}</value>
   </data>
   <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
-    <value>人事データに指定の項目がありません。指定項目：{0}</value>
-  </data>
-  <data name="E_NO_EXCELOPTION" xml:space="preserve">
-    <value>エクセル読み込みのオプション設定がありません。</value>
+    <value>人事データの参照項目がありません。指定項目：{0}</value>
   </data>
   <data name="E_NO_TDLDATA" xml:space="preserve">
     <value>健診データに該当ユーザーがいません。個人番号：{0}</value>
@@ -192,14 +186,11 @@
   <data name="E_READFAILED_TDL" xml:space="preserve">
     <value>健診データが読めませんでした。</value>
   </data>
-  <data name="E_TASK_CANCEL" xml:space="preserve">
-    <value>RunMultiThread キャンセル</value>
+  <data name="E_TASK_CANCEL_ERROR" xml:space="preserve">
+    <value>タスク処理のキャンセルでエラーがありました。</value>
   </data>
   <data name="E_TASK_ERROR" xml:space="preserve">
-    <value>RunMultiThread エラー</value>
-  </data>
-  <data name="E_TDL_IS_EMPTY" xml:space="preserve">
-    <value>健診データが空です。</value>
+    <value>タスク処理でエラーがおきました。</value>
   </data>
   <data name="E_VALUE_IS_ALREADY_EXIST" xml:space="preserve">
     <value>既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}</value>

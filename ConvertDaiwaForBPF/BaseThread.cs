@@ -69,7 +69,7 @@ namespace ConvertDaiwaForBPF
             catch (TaskCanceledException ex)
             {
                 // キャンセルされた場合の例外処理
-                Dbg.Debug(Properties.Resources.E_TASK_CANCEL + ex.ToString());
+                Dbg.Debug(Properties.Resources.E_TASK_CANCEL_ERROR + ex.ToString());
             }
             catch (Exception ex)
             {

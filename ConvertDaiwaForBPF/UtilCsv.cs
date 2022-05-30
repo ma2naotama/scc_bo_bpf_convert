@@ -148,7 +148,7 @@ namespace ConvertDaiwaForBPF
                         }
                         catch (Exception ex)
                         {
-                           Dbg.Error(ex.ToString());
+                            throw ex;
                         }
 
                         sb.AppendLine(string.Join(",", overwriteColumnName));

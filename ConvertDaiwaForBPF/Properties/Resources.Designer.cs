@@ -70,15 +70,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   健診データが重複しています。個人番号：{0}　受信日：{1} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_DUPLICATE_USER {
-            get {
-                return ResourceManager.GetString("E_DUPLICATE_USER", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   受診者の重複があります。重複件数：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_COUNT {
@@ -88,7 +79,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   重複　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
+        ///   重複があります。　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_INFO {
             get {
@@ -187,15 +178,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   エクセル読み込みのオプション設定がありません。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_NO_EXCELOPTION {
-            get {
-                return ResourceManager.GetString("E_NO_EXCELOPTION", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   健診データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NO_TDLDATA {
@@ -223,7 +205,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検診ヘッダーに指定の項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
+        ///   検診ヘッダーの参照項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NOT_EXIST_ITEM_IN_HDR {
             get {
@@ -232,7 +214,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   人事データに指定の項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
+        ///   人事データの参照項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NOT_EXIST_ITEM_IN_HR {
             get {
@@ -286,29 +268,20 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   RunMultiThread キャンセル に類似しているローカライズされた文字列を検索します。
+        ///   タスク処理のキャンセルでエラーがありました。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string E_TASK_CANCEL {
+        internal static string E_TASK_CANCEL_ERROR {
             get {
-                return ResourceManager.GetString("E_TASK_CANCEL", resourceCulture);
+                return ResourceManager.GetString("E_TASK_CANCEL_ERROR", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   RunMultiThread エラー に類似しているローカライズされた文字列を検索します。
+        ///   タスク処理でエラーがおきました。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_TASK_ERROR {
             get {
                 return ResourceManager.GetString("E_TASK_ERROR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   健診データが空です。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_TDL_IS_EMPTY {
-            get {
-                return ResourceManager.GetString("E_TDL_IS_EMPTY", resourceCulture);
             }
         }
         
