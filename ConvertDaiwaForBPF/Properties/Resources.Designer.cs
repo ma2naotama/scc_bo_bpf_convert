@@ -133,7 +133,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   結合したデータが空です。 に類似しているローカライズされた文字列を検索します。
+        ///   結合したデータが空です。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MERGED_DATA_IS_EMPTY {
             get {
@@ -309,6 +309,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_TDL_IS_EMPTY {
             get {
                 return ResourceManager.GetString("E_TDL_IS_EMPTY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_VALUE_IS_ALREADY_EXIST {
+            get {
+                return ResourceManager.GetString("E_VALUE_IS_ALREADY_EXIST", resourceCulture);
             }
         }
         

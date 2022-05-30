@@ -50,8 +50,6 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         private DataSet ReadMasterFile(string path)
         {
-            //Dbg.Log("master.xlsx 読み込み中...");
-
             var excel = new UtilExcel();
 
             var optionarray = new ExcelOption[]
@@ -73,10 +71,7 @@ namespace ConvertDaiwaForBPF
                 Dbg.ErrorWithView(Properties.Resources.E_READFAILED_MASTER, path);
 
                 throw ex;
-            }
-            
-            // 到達しない
-            //return null;
+            }            
         }
 
         /// <summary>
@@ -101,11 +96,10 @@ namespace ConvertDaiwaForBPF
 
             mItemMap  = null;
             mCordMap  = null;
-
             mHRRows = null;
-
             mOutputCsv = null;
 
+            // キャンセルフラグの初期化
             Cancel = false;
 
             Dbg.SetLogPath(mPathOutput);
@@ -118,7 +112,6 @@ namespace ConvertDaiwaForBPF
         public override int MultiThreadMethod()
         {
             Dbg.ViewLog("変換中...");
-            Dbg.Debug("開始");
 
             try
             {
@@ -157,7 +150,6 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 一ユーザー毎に処理する
-                int i = 0;
                 foreach (var hrow in hdrUsers)
                 {
                     // キャンセル
@@ -167,13 +159,7 @@ namespace ConvertDaiwaForBPF
                     }
 
                     // 変換処理
-                    var h = hrow;
-                    if (!ConvertMain(ref h, ref tdlTbl))
-                    {
-                        return 0;
-                    }
-
-                    i++;
+                    ConvertMain(hrow, ref tdlTbl);
 
                     //テスト用、１ユーザー分でやめる
                     //break;
@@ -256,6 +242,7 @@ namespace ConvertDaiwaForBPF
             return true;
         }
 
+
         /// <summary>
         /// 健診ヘッダーCSVの読み込み
         /// </summary>
@@ -293,6 +280,7 @@ namespace ConvertDaiwaForBPF
             }
         }
 
+
         /// <summary>
         /// 健診データCSVの読み込み
         /// </summary>
@@ -329,11 +317,10 @@ namespace ConvertDaiwaForBPF
             }
         }
 
-
         /// <summary>
         /// 人事CSVの読み込み
         /// </summary>
-        /// <returns>DataRowの配列  削除されている人事を除く</returns>
+        /// <returns>削除されている人事データを除いたDataRowの配列</returns>
         private DataRow[] ReadHumanResourceData(string path)
         {
             try
@@ -443,8 +430,9 @@ namespace ConvertDaiwaForBPF
         /// <param name="hrow"></param>
         /// <param name="TdlTbl"></param>
         /// <returns></returns>
-        private bool ConvertMain(ref DataRow hrow, ref DataTable TdlTbl)
+        private void ConvertMain(DataRow hrow, ref DataTable TdlTbl)
         {
+            // 検診ヘッダーの個人番号取得
             var userID = hrow["個人番号"].ToString();
 
             // 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
@@ -455,10 +443,11 @@ namespace ConvertDaiwaForBPF
             if (userdata.Count() <= 0)
             {
                 // 結合した結果データが無い
-                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY);
+                Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY
+                    , userID);
 
                 // 次のユーザーへ
-                return true;
+                return;
             }
 
             // 人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
@@ -469,7 +458,7 @@ namespace ConvertDaiwaForBPF
                     , userID);
 
                 // 存在しない場合はレコードを作成しないで次のユーザーへ
-                return true;
+                return;
             }
 
             // 出力情報の一行分作成
@@ -630,17 +619,33 @@ namespace ConvertDaiwaForBPF
                 var request = row.Field<string>("必須").Trim();
                 if (request == "○" && value == "")
                 {
-                    // 必須項目に値が無い場合は、そのデータを作成しない。
                     Dbg.ErrorWithView(Properties.Resources.E_NO_VALUE_REQUIRED_FIELD
                         ,userID
                         ,row.Field<string>("項目名"));
 
-                    // 必須項目でエラーの場合はフラグを立てる
+                    // 必須項目に値が無い場合は、そのデータを作成しない。
                     requestFiledError = true;
                 }
 
                 // 出力情報に指定列順で値をセット
-                outputrow[outputindex - 1] = value;
+                var sourcevalue = outputrow[outputindex - 1].ToString();
+
+                if (string.IsNullOrEmpty(sourcevalue))
+                {
+                    outputrow[outputindex - 1] = value;
+                }
+                else
+                {
+                    if(sourcevalue != value)
+                    {
+                        // 既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}
+                        Dbg.ErrorWithView(Properties.Resources.E_VALUE_IS_ALREADY_EXIST
+                            , userID
+                            , row.Field<string>("項目名")
+                            , sourcevalue
+                            , value);
+                    }
+                }
             }
 
             // 全ての必須項目で一つでもエラーがあれば、レコードを作成しない
@@ -653,7 +658,7 @@ namespace ConvertDaiwaForBPF
             outputrow = null;
 
             // 次のユーザー
-            return true;
+            return;
         }
 
 
@@ -892,5 +897,36 @@ namespace ConvertDaiwaForBPF
 
             return row;
         }
+
+
+        /// <summary>
+        /// 旧検査項目コードを新検査項目コードに置換します。(※現在確認中の為未使用)
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="replaceTable"></param>
+        /// <returns></returns>
+        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable replaceTable)
+        {
+            var ret = new List<UserData>();
+
+            foreach (var m in user)
+            {
+                var newcode = replaceTable.AsEnumerable()
+                                .Where(x => x.Field<string>("検査結果項目コード") == m.InspectionItemCode && x.Field<string>("置換実施対象") == "〇")
+                                .Select(x => x.Field<string>("検査結果項目コード置換"))
+                                .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(newcode))
+                {
+                    m.InspectionItemCode = newcode.Trim();
+                }
+
+                // refが使えない為、値を書き換えて別に保存
+                ret.Add(m);
+            }
+
+            return ret.ToList();
+        }
+
     }
 }

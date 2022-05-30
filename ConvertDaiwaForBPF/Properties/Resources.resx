@@ -142,7 +142,7 @@
     <value>項目マッピングの順列の最大値と項目数（個数）が合っていません。</value>
   </data>
   <data name="E_MERGED_DATA_IS_EMPTY" xml:space="preserve">
-    <value>結合したデータが空です。</value>
+    <value>結合したデータが空です。個人番号：{0}</value>
   </data>
   <data name="E_MISMATCHED_HDR_COUNT" xml:space="preserve">
     <value>ヘッダーの数が合っていません。</value>
@@ -200,6 +200,9 @@
   </data>
   <data name="E_TDL_IS_EMPTY" xml:space="preserve">
     <value>健診データが空です。</value>
+  </data>
+  <data name="E_VALUE_IS_ALREADY_EXIST" xml:space="preserve">
+    <value>既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}</value>
   </data>
   <data name="MSG_CONVERT_CANCEL" xml:space="preserve">
     <value>変換キャンセル</value>
