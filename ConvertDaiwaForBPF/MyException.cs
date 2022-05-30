@@ -24,8 +24,10 @@ namespace ConvertDaiwaForBPF
         { 
         }
 
+        // 逆シリアル化コンストラクタ。このクラスの逆シリアル化のために必須。
+        // アクセス修飾子をpublicにしないこと！
         protected MyException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context)
         {
-        }
+        }         
     }
 }

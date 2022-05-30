@@ -214,15 +214,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   中断しました。 に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_PROCESSING_ABORTED {
-            get {
-                return ResourceManager.GetString("E_PROCESSING ABORTED", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   健診ヘッダーが読めませんでした。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_READFAILED_HDR {

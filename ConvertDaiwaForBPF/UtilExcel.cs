@@ -142,16 +142,14 @@ namespace ConvertDaiwaForBPF
                         var columnNum = worksheet.LastColumnUsed().ColumnNumber();
                         if (columnNum < 0)
                         {
-                            Dbg.ViewLog(Properties.Resources.E_EMPTY_SHEET, sheeetname);
-                            continue;
+                            new MyException(string.Format(Properties.Resources.E_EMPTY_SHEET, sheeetname));
                         }
 
                         // 取得するセルの最大行数
                         var RowsMax = worksheet.LastRowUsed().RowNumber();
                         if (RowsMax <=0)
                         {
-                            Dbg.ViewLog(Properties.Resources.E_EMPTY_SHEET, sheeetname);
-                            continue;
+                            new MyException(string.Format(Properties.Resources.E_EMPTY_SHEET, sheeetname));
                         }
 
                         // シート名で検索

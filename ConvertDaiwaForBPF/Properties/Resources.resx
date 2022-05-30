@@ -168,9 +168,6 @@
   <data name="E_NO_USERDATA" xml:space="preserve">
     <value>人事データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
-  <data name="E_PROCESSING ABORTED" xml:space="preserve">
-    <value>中断しました。</value>
-  </data>
   <data name="E_READFAILED_HDR" xml:space="preserve">
     <value>健診ヘッダーが読めませんでした。</value>
   </data>

@@ -508,10 +508,8 @@ namespace ConvertDaiwaForBPF
                         Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
                                 , value);
 
-                        Dbg.Error(ex.ToString());
-
                         // 処理中断
-                        throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
+                        throw ex;
                     }
                 }
 
@@ -535,10 +533,8 @@ namespace ConvertDaiwaForBPF
                             Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
                                     , hrcolumn);
 
-                            Dbg.Error(ex.ToString());
-
                             // 処理中断
-                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
+                            throw ex;
                         }
                     }
                 }
@@ -559,10 +555,8 @@ namespace ConvertDaiwaForBPF
                             Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HDR
                                     , inspectionHeader);
 
-                            Dbg.Error(ex.ToString());
-
                             // 処理中断
-                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
+                            throw ex;
                         }
                     }
                 }
@@ -577,11 +571,8 @@ namespace ConvertDaiwaForBPF
                         // 検査項目コードに半角英数以外が使われているか確認
                         if(!IsOnlyAlphaWithNumeric(inspectcord))
                         {
-                            Dbg.ViewLog(Properties.Resources.E_MISMATCHED_INSPECTCORD_TYPE
-                                , inspectcord);
-
                             // 処理中断
-                            throw new MyException(Properties.Resources.E_PROCESSING_ABORTED);
+                            throw new MyException(string.Format(Properties.Resources.E_MISMATCHED_INSPECTCORD_TYPE, inspectcord));
                         }
 
                         // ユーザーデータから検査値を抽出
