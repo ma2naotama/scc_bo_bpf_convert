@@ -35,9 +35,9 @@
             this.textBoxOutputPath = new System.Windows.Forms.TextBox();
             this.buttonOutputPath = new System.Windows.Forms.Button();
             this.buttonConvert = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
+            this.labelReceiveFolder = new System.Windows.Forms.Label();
+            this.labelHR = new System.Windows.Forms.Label();
+            this.labelOutput = new System.Windows.Forms.Label();
             this.textBoxReceivePath = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
@@ -126,32 +126,32 @@
             this.buttonConvert.UseVisualStyleBackColor = true;
             this.buttonConvert.Click += new System.EventHandler(this.buttonConvert_Click);
             // 
-            // label1
+            // labelReceiveFolder
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(26, 22);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(64, 12);
-            this.label1.TabIndex = 10;
-            this.label1.Text = "受領フォルダ";
+            this.labelReceiveFolder.AutoSize = true;
+            this.labelReceiveFolder.Location = new System.Drawing.Point(26, 22);
+            this.labelReceiveFolder.Name = "labelReceiveFolder";
+            this.labelReceiveFolder.Size = new System.Drawing.Size(76, 12);
+            this.labelReceiveFolder.TabIndex = 10;
+            this.labelReceiveFolder.Text = "【受領フォルダ】";
             // 
-            // label2
+            // labelHR
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(25, 85);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(57, 12);
-            this.label2.TabIndex = 11;
-            this.label2.Text = "人事データ";
+            this.labelHR.AutoSize = true;
+            this.labelHR.Location = new System.Drawing.Point(25, 85);
+            this.labelHR.Name = "labelHR";
+            this.labelHR.Size = new System.Drawing.Size(69, 12);
+            this.labelHR.TabIndex = 11;
+            this.labelHR.Text = "【人事データ】";
             // 
-            // label3
+            // labelOutput
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(26, 144);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(41, 12);
-            this.label3.TabIndex = 12;
-            this.label3.Text = "出力先";
+            this.labelOutput.AutoSize = true;
+            this.labelOutput.Location = new System.Drawing.Point(26, 144);
+            this.labelOutput.Name = "labelOutput";
+            this.labelOutput.Size = new System.Drawing.Size(53, 12);
+            this.labelOutput.TabIndex = 12;
+            this.labelOutput.Text = "【出力先】";
             // 
             // textBoxReceivePath
             // 
@@ -173,9 +173,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(666, 485);
             this.Controls.Add(this.textBoxReceivePath);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.labelOutput);
+            this.Controls.Add(this.labelHR);
+            this.Controls.Add(this.labelReceiveFolder);
             this.Controls.Add(this.buttonConvert);
             this.Controls.Add(this.buttonOutputPath);
             this.Controls.Add(this.textBoxOutputPath);
@@ -200,9 +200,9 @@
         private System.Windows.Forms.TextBox textBoxOutputPath;
         private System.Windows.Forms.Button buttonOutputPath;
         private System.Windows.Forms.Button buttonConvert;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label labelReceiveFolder;
+        private System.Windows.Forms.Label labelHR;
+        private System.Windows.Forms.Label labelOutput;
         private System.Windows.Forms.TextBox textBoxReceivePath;
     }
 }

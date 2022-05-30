@@ -349,11 +349,29 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   設定ファイルの読み込み ファイル名：{0} に類似しているローカライズされた文字列を検索します。
+        ///   ・受領ファイル に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string MSG_READ_SETTINGFILE {
+        internal static string MSG_LABEL_INPUT_DAIWA_FILE {
             get {
-                return ResourceManager.GetString("MSG_READ_SETTINGFILE", resourceCulture);
+                return ResourceManager.GetString("MSG_LABEL_INPUT_DAIWA_FILE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   ・人事データ に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_LABEL_INPUT_HR {
+            get {
+                return ResourceManager.GetString("MSG_LABEL_INPUT_HR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   ・出力先 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MSG_LABEL_INPUT_OUTPUT {
+            get {
+                return ResourceManager.GetString("MSG_LABEL_INPUT_OUTPUT", resourceCulture);
             }
         }
         

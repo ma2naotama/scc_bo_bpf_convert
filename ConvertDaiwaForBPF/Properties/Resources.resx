@@ -213,8 +213,14 @@
   <data name="MSG_CREATE_OUTPUT" xml:space="preserve">
     <value>CSV作成中...（件数{0})</value>
   </data>
-  <data name="MSG_READ_SETTINGFILE" xml:space="preserve">
-    <value>設定ファイルの読み込み ファイル名：{0}</value>
+  <data name="MSG_LABEL_INPUT_DAIWA_FILE" xml:space="preserve">
+    <value>・受領ファイル</value>
+  </data>
+  <data name="MSG_LABEL_INPUT_HR" xml:space="preserve">
+    <value>・人事データ</value>
+  </data>
+  <data name="MSG_LABEL_INPUT_OUTPUT" xml:space="preserve">
+    <value>・出力先</value>
   </data>
   <data name="MSG_RESULT_ORDER_MAPPING" xml:space="preserve">
     <value>優先した検査項目コード：{0} 値：{1} 個人番号：{2}</value>

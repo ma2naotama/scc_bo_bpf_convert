@@ -111,19 +111,12 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         public override int MultiThreadMethod()
         {
-            Dbg.ViewLog("変換中...");
+            Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_DAIWA_FILE);
 
             try
             {
                 // 初期化と設定ファイルの読み込み
                 if (!Init())
-                {
-                    return 0;
-                }
-
-                // 人事データの読み込み
-                mHRRows = ReadHumanResourceData(mPathHR);
-                if (mHRRows == null)
                 {
                     return 0;
                 }
@@ -148,6 +141,18 @@ namespace ConvertDaiwaForBPF
                 {
                     return 0;
                 }
+
+                // 人事データの読み込み
+                Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_HR);
+                mHRRows = ReadHumanResourceData(mPathHR);
+                if (mHRRows == null)
+                {
+                    return 0;
+                }
+
+                // 出力先
+                Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_OUTPUT);
+                Dbg.ViewLog(mPathOutput);
 
                 // 一ユーザー毎に処理する
                 foreach (var hrow in hdrUsers)
@@ -197,8 +202,6 @@ namespace ConvertDaiwaForBPF
             var path = appSettings["SettingPath"];
 
             // 設定ファイルの読み込み
-            Dbg.ViewLog(Properties.Resources.MSG_READ_SETTINGFILE, path);
-
             mMasterSheets = ReadMasterFile(path);
 
             // 出力用CSVの初期化
