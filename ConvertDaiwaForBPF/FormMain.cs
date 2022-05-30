@@ -155,6 +155,11 @@ namespace ConvertDaiwaForBPF
             //指定しないとすべてのファイルが表示される
             ofd.Filter = String.Join("|", Csvfilters);
 
+            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+
+            // デフォルトのフォルダを指定する
+            ofd.InitialDirectory = stCurrentDir;
+
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 textBoxHRPath.Text = ofd.FileName;

@@ -621,6 +621,7 @@ namespace ConvertDaiwaForBPF
                 // 出力情報に指定列順で値をセット
                 var sourcevalue = outputrow[outputindex - 1].ToString();
 
+                // 項目が重複しているか確認
                 if (string.IsNullOrEmpty(sourcevalue))
                 {
                     outputrow[outputindex - 1] = value;
