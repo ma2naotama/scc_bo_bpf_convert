@@ -374,23 +374,5 @@ namespace ConvertDaiwaForBPF.Properties {
                 return ResourceManager.GetString("MSG_LABEL_INPUT_OUTPUT", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   優先した検査項目コード：{0} 値：{1} 個人番号：{2} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string MSG_RESULT_ORDER_MAPPING {
-            get {
-                return ResourceManager.GetString("MSG_RESULT_ORDER_MAPPING", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   データがありません。Path：{0} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string WRN_NO_DATA {
-            get {
-                return ResourceManager.GetString("WRN_NO_DATA", resourceCulture);
-            }
-        }
     }
 }

@@ -50,19 +50,18 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         private DataSet ReadMasterFile(string path)
         {
-            var excel = new UtilExcel();
-
-            var optionarray = new ExcelOption[]
-            {
-                new ExcelOption ( "各種設定",           2, 1),
-                new ExcelOption ( "項目マッピング",     4, 1),
-                new ExcelOption ( "コードマッピング",   3, 1),
-            };
-
-            excel.SetExcelOptionArray(optionarray);
-
             try 
             {
+                var excel = new UtilExcel();
+
+                var optionarray = new ExcelOption[]
+                {
+                    new ExcelOption ( "各種設定",           2, 1),
+                    new ExcelOption ( "項目マッピング",     4, 1),
+                    new ExcelOption ( "コードマッピング",   3, 1),
+                };
+
+                excel.SetExcelOptionArray(optionarray);
                 var master = excel.ReadAllSheets(path);
                 return master;
             }
@@ -196,49 +195,55 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         private bool Init()
         {
-            // 独自に設定した「appSettings」へのアクセス
-            var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
+            try
+            { 
+                // 独自に設定した「appSettings」へのアクセス
+                var appSettings = (NameValueCollection)ConfigurationManager.GetSection("appSettings");
 
-            var path = appSettings["SettingPath"];
+                var path = appSettings["SettingPath"];
 
-            // 設定ファイルの読み込み
-            mMasterSheets = ReadMasterFile(path);
+                // 設定ファイルの読み込み
+                mMasterSheets = ReadMasterFile(path);
 
-            // 出力用CSVの初期化
-            mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
-                  .Where(x => x["列順"].ToString() != "")
-                  .ToArray();
+                // 出力用CSVの初期化
+                mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                      .Where(x => x["列順"].ToString() != "")
+                      .ToArray();
 
-            // 項目マッピングの順列の最大値と項目数（個数）の確認
-            if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
-            {
-                Dbg.ErrorWithView(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
-                return false;
+                // 項目マッピングの順列の最大値と項目数（個数）の確認
+                if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
+                {
+                    throw new MyException(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
+                }
+
+                mOutputCsv = new DataTable();
+
+                // 同じ列名（カラム名）はセットできないので、列順をセットしておく
+                foreach (var row in mItemMap)
+                {
+                    mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
+                }
+
+                // コードマッピング初期化
+                mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
+                      .Where(x => x["コードID"].ToString() != "")
+                      .ToArray();
+
+                // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
+                mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
+                        .Where(x => x["名称"].ToString() == "人事データ結合列名")
+                        .Select(x => x.Field<string>("設定値").ToString().Trim())
+                        .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(mHRJoinKey))
+                {
+                    // 処理中断
+                    throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
+                }
             }
-
-            mOutputCsv = new DataTable();
-
-            // 同じ列名（カラム名）はセットできないので、列順をセットしておく
-            foreach (var row in mItemMap)
+            catch (Exception ex)
             {
-                mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
-            }
-
-            // コードマッピング初期化
-            mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
-                  .Where(x => x["コードID"].ToString() != "")
-                  .ToArray();
-
-            // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
-            mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
-                    .Where(x => x["名称"].ToString() == "人事データ結合列名")
-                    .Select(x => x.Field<string>("設定値").ToString().Trim())
-                    .FirstOrDefault();
-
-            if (string.IsNullOrEmpty(mHRJoinKey))
-            {
-                // 処理中断
-                throw new MyException(Properties.Resources.E_MISMATCHED_HR_KEY);
+                throw ex;
             }
 
             // 次の処理へ
@@ -262,12 +267,6 @@ namespace ConvertDaiwaForBPF
 
                 var csv = new UtilCsv();
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
-                if (tbl.Rows.Count == 0)
-                {
-                    // 中断
-                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HDR);
-                    return null;
-                }
 
                 SetColumnName(tbl, GlobalVariables.ColumnHDR);
 
@@ -300,12 +299,6 @@ namespace ConvertDaiwaForBPF
 
                 var csv = new UtilCsv();
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
-                if (tbl.Rows.Count == 0)
-                {
-                    // 中断
-                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_TDL);
-                    return null;
-                }
 
                 SetColumnName(tbl, GlobalVariables.ColumnTDL);
                 return tbl;
@@ -330,13 +323,6 @@ namespace ConvertDaiwaForBPF
             {
                 var csv = new UtilCsv();
                 var hr = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
-
-                if (hr.Rows.Count == 0)
-                {
-                    // 中断
-                    Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HR);
-                    return null;
-                }
 
                 // 健診ヘッダーの削除フラグが0だけ抽出
                 var row =
@@ -363,48 +349,59 @@ namespace ConvertDaiwaForBPF
         /// <returns>DataRowの配列  削除されている検診ヘッダーを除く</returns>
         private DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
-            // 健診ヘッダーの削除フラグが0だけ抽出
-            var hdrRows =
-                HdrTbl.AsEnumerable()
-                .Where(x => x["削除フラグ"].ToString() == "0")
-                .ToArray();
+            DataRow[] hdrRows = null;
 
-            if (hdrRows.Length <= 0)
-            {
-                Dbg.ErrorWithView(Properties.Resources.E_HDR_IS_EMPTY);
-                return null;
-            }
+            try
+            { 
+                // 健診ヘッダーの削除フラグが0だけ抽出
+                hdrRows =
+                    HdrTbl.AsEnumerable()
+                    .Where(x => x["削除フラグ"].ToString() == "0")
+                    .ToArray();
 
-            // 健診ヘッダーの重複の確認
-            var dr_array = from row in hdrRows.AsEnumerable()
-                           where (
-                               from _row in hdrRows.AsEnumerable()
-                               where
-                               row["個人番号"].ToString() == _row["個人番号"].ToString()
-                               && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
-                               && row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
-                               select _row["個人番号"]
-                           ).Count() > 1 // 重複していたら、２つ以上見つかる
-                           select row;
-
-            // DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
-            var overlapcount = dr_array.Count();
-            if (overlapcount > 0)
-            {
-                // 重複件数の表示
-                Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_COUNT
-                        , overlapcount.ToString());
-
-                // 重複している行を表示
-                foreach (var row in dr_array)
+                if (hdrRows.Length <= 0)
                 {
-                    Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_INFO
-                        , row["個人番号"].ToString()
-                        , row["健診実施日"].ToString()
-                        , row["健診実施機関名称"].ToString().Trim());
+                    throw new MyException(Properties.Resources.E_HDR_IS_EMPTY);
                 }
 
-                // 重複したデータをそのまま出力する
+                // 健診ヘッダーの重複の確認
+                var dr_array = from row in hdrRows.AsEnumerable()
+                               where (
+                                   from _row in hdrRows.AsEnumerable()
+                                   where
+                                   row["個人番号"].ToString() == _row["個人番号"].ToString()
+                                   && row["健診実施日"].ToString() == _row["健診実施日"].ToString()
+                                   && row["健診実施機関名称"].ToString() == _row["健診実施機関名称"].ToString()
+                                   select _row["個人番号"]
+                               ).Count() > 1 // 重複していたら、２つ以上見つかる
+                               select row;
+
+                // DataTableが大きすぎるとここで処理が終わらない事がある。※現在ユーザー毎に処理する様に変更した為問題は起きないはず。
+                var overlapcount = dr_array.Count();
+                if (overlapcount > 0)
+                {
+                    // 重複件数の表示
+                    Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_COUNT
+                            , overlapcount.ToString());
+
+                    // 重複している行を表示
+                    foreach (var row in dr_array)
+                    {
+                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_INFO
+                            , row["個人番号"].ToString()
+                            , row["健診実施日"].ToString()
+                            , row["健診実施機関名称"].ToString().Trim());
+                    }
+
+                    // 重複したデータをそのまま出力する
+                }
+
+            }
+            catch(Exception ex)
+            {
+                Dbg.ErrorWithView(Properties.Resources.E_READFAILED_HR);
+
+                throw ex;
             }
 
             // 次の処理へ

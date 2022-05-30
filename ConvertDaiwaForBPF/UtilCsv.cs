@@ -60,11 +60,9 @@ namespace ConvertDaiwaForBPF
 
                     // フィールドの空白トリム設定
                     parser.TrimWhiteSpace = false;
-
                     
                     if(parser.EndOfData)
                     {
-                        Dbg.ViewLog(Properties.Resources.WRN_NO_DATA, path);
                         return null;
                     }
 

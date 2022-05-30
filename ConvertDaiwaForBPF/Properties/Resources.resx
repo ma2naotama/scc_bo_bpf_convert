@@ -222,10 +222,4 @@
   <data name="MSG_LABEL_INPUT_OUTPUT" xml:space="preserve">
     <value>・出力先</value>
   </data>
-  <data name="MSG_RESULT_ORDER_MAPPING" xml:space="preserve">
-    <value>優先した検査項目コード：{0} 値：{1} 個人番号：{2}</value>
-  </data>
-  <data name="WRN_NO_DATA" xml:space="preserve">
-    <value>データがありません。Path：{0}</value>
-  </data>
 </root>
