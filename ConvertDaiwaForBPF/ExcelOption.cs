@@ -33,14 +33,19 @@ namespace ConvertDaiwaForBPF
         public int DataRowStartNumber { get; set; }
 
         /// <summary>
+        /// カラムの最大数
+        /// </summary>
+        const int COLUMN_MAX = 10000;
+
+        /// <summary>
         /// コンストラクタ
         /// </summary>
         public ExcelOption()
         {
-            HeaderRowStartNumber = 1;           // ヘッダーが1行名から開始
-            HeaderColumnStartNumber = 1;
-            HeaderColumnEndNumber = 10000;
-            DataRowStartNumber = 2;             //データはヘッダーの次の行から開始
+            HeaderRowStartNumber = 1;           // ヘッダーは1行名から開始
+            HeaderColumnStartNumber = 1;        // ヘッダーは1カラムから開始
+            HeaderColumnEndNumber = COLUMN_MAX; // ヘッダーの最大カラム
+            DataRowStartNumber = 2;             // データはヘッダーの次の行から開始
         }
 
         /// <summary>
@@ -49,14 +54,13 @@ namespace ConvertDaiwaForBPF
         /// <param name="sheetName"></param>
         /// <param name="headerRowStartNumber"></param>
         /// <param name="headerColumnStartNumber"></param>
-        /// <param name="active"></param>
         public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber)
         {
             SheetName = sheetName;
 
             HeaderRowStartNumber = headerRowStartNumber;
             HeaderColumnStartNumber = headerColumnStartNumber;
-            HeaderColumnEndNumber = 10000;
+            HeaderColumnEndNumber = COLUMN_MAX;
 
             DataRowStartNumber = headerRowStartNumber + 1;
         }

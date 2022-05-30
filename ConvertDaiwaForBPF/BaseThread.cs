@@ -27,7 +27,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         private CancellationTokenSource mTtokenSource = null;
 
-        // コンストラクタ
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public BaseThread()
         {
         }
@@ -49,8 +51,10 @@ namespace ConvertDaiwaForBPF
             Completed = false;
 
             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
-            if (mTtokenSource == null) 
+            if (mTtokenSource == null)
+            { 
                 mTtokenSource = new CancellationTokenSource();
+            }
 
             // 非同期処理（マルチスレッド）開始
             try
@@ -69,16 +73,17 @@ namespace ConvertDaiwaForBPF
             catch (TaskCanceledException ex)
             {
                 // キャンセルされた場合の例外処理
-                Dbg.Debug(Properties.Resources.E_TASK_CANCEL_ERROR + ex.ToString());
+                Dbg.Debug(Properties.Resources.E_TASK_CANCEL_ERROR);
+
+                throw ex;
             }
             catch (Exception ex)
             {
                 // 異常終了した場合の例外処理
-                Dbg.ErrorWithView(Properties.Resources.E_TASK_ERROR + ex.ToString());
+                Dbg.ErrorWithView(Properties.Resources.E_TASK_ERROR);
 
                 throw ex;
             }
-
         }
 
         /// <summary>

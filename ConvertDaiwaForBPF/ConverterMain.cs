@@ -28,8 +28,10 @@ namespace ConvertDaiwaForBPF
         // コードマッピング
         private DataRow[] mCordMap = null;
 
-        // 人事データ
+        // 人事データの結合カラム
         private string mHRJoinKey = null;
+
+        // 人事データ
         private DataRow[] mHRRows = null;
 
         // 出力情報
@@ -314,6 +316,7 @@ namespace ConvertDaiwaForBPF
             }
         }
 
+
         /// <summary>
         /// 人事CSVの読み込み
         /// </summary>
@@ -462,13 +465,11 @@ namespace ConvertDaiwaForBPF
                 return;
             }
 
-
             //旧検査項目コードの書き換え
             userdata = ReplaceInspectItemCode(ref userdata, mMasterSheets.Tables["項目マッピング複数読込"]);
 
             // 出力情報の一行分作成
             var outputrow = mOutputCsv.NewRow();        // カラムは、0始まり
-
 
             // 項目マッピング処理
             // 必要な検査項目コード分ループ
@@ -607,7 +608,6 @@ namespace ConvertDaiwaForBPF
                     // 種別が数値を期待しているのに、数値以外の値の場合はエラーとする
                     value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
                 }
-
 
                 // 出力情報に指定列順で値をセット
                 var sourcevalue = outputrow[outputindex - 1].ToString();
@@ -803,9 +803,9 @@ namespace ConvertDaiwaForBPF
                 case "半角数字":
                 case "数値":
                     {
-                        if (!int.TryParse(value, out int i))
+                        if (!int.TryParse(value, out int _))
                         {
-                            if (!float.TryParse(value, out float f))
+                            if (!float.TryParse(value, out float _))
                             {
                                 Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE
                                     , userID
