@@ -639,7 +639,8 @@ namespace ConvertDaiwaForBPF
                 }
             }
 
-            outputrow = null;
+            // CSV出力情報に追加
+            mOutputCsv.Rows.Add(outputrow);
 
             // 次のユーザー
             return;
