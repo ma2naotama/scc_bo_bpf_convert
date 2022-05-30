@@ -56,9 +56,10 @@ namespace ConvertDaiwaForBPF
 
                 var optionarray = new ExcelOption[]
                 {
-                    new ExcelOption ( "各種設定",           2, 1),
-                    new ExcelOption ( "項目マッピング",     4, 1),
-                    new ExcelOption ( "コードマッピング",   3, 1),
+                    new ExcelOption ( "各種設定", 2, 1),
+                    new ExcelOption ( "項目マッピング", 4, 1),
+                    new ExcelOption ( "コードマッピング", 3, 1),
+                    new ExcelOption ( "項目マッピング複数読込", 3, 1),
                 };
 
                 excel.SetExcelOptionArray(optionarray);
@@ -461,11 +462,13 @@ namespace ConvertDaiwaForBPF
                 return;
             }
 
+
+            //旧検査項目コードの書き換え
+            userdata = ReplaceInspectItemCode(ref userdata, mMasterSheets.Tables["項目マッピング複数読込"]);
+
             // 出力情報の一行分作成
             var outputrow = mOutputCsv.NewRow();        // カラムは、0始まり
 
-            // 必須項目のエラーフラグ
-            var requestFiledError = false;
 
             // 項目マッピング処理
             // 必要な検査項目コード分ループ
@@ -615,18 +618,6 @@ namespace ConvertDaiwaForBPF
                 }
 
 
-                // 必須項目確認
-                var request = row.Field<string>("必須").Trim();
-                if (request == "○" && value == "")
-                {
-                    Dbg.ErrorWithView(Properties.Resources.E_NO_VALUE_REQUIRED_FIELD
-                        ,userID
-                        ,row.Field<string>("項目名"));
-
-                    // 必須項目に値が無い場合は、そのデータを作成しない。
-                    requestFiledError = true;
-                }
-
                 // 出力情報に指定列順で値をセット
                 var sourcevalue = outputrow[outputindex - 1].ToString();
 
@@ -646,13 +637,6 @@ namespace ConvertDaiwaForBPF
                             , value);
                     }
                 }
-            }
-
-            // 全ての必須項目で一つでもエラーがあれば、レコードを作成しない
-            if (!requestFiledError)
-            {
-                // CSV出力情報に追加
-                mOutputCsv.Rows.Add(outputrow);
             }
 
             outputrow = null;
