@@ -9,7 +9,10 @@ namespace ConvertDaiwaForBPF
     /// </summary>
     public partial class FormProgressDialog : Form
     {
-        private BaseThread _base = null;
+        private BaseThread mBase = null;
+
+        const string TITLE_MESSAGE_START = "変換中";
+        const string TITLE_MESSAGE_CANCELING = "キャンセル中...";
 
         /// <summary>
         /// コンストラクタ
@@ -35,11 +38,13 @@ namespace ConvertDaiwaForBPF
 
         protected override void OnLoad(EventArgs e)
         {
+            Text = TITLE_MESSAGE_START;
+
             progressBar.MarqueeAnimationSpeed = 30;
             progressBar.Style = ProgressBarStyle.Marquee;
 
             //マルチスレッドのクラスがない場合は、何もしないで閉じる
-            if (_base == null)
+            if (mBase == null)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
@@ -51,7 +56,7 @@ namespace ConvertDaiwaForBPF
             timerProgress.Interval = 1;
 
             //マルチスレッドスタート
-            _base.RunMultiThreadAsync();
+            mBase.RunMultiThreadAsync();
         }
 
 
@@ -66,7 +71,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="thread"></param>
         public void SetThreadClass(BaseThread thread)
         {
-            _base = thread;
+            mBase = thread;
         }
 
         /// <summary>
@@ -77,23 +82,26 @@ namespace ConvertDaiwaForBPF
         private void timerProgress_Tick(object sender, EventArgs e)
         {
             //終了判定
-            if (_base.Cancel)
+            if (mBase.Cancel)
             {
-                //タイマーの停止
+                // タイマーの停止
                 timerProgress.Stop();
 
-                //Dbg.ViewLog("timer1_Tick Cancel:" + _base.Cancel);
+                // キャンセルボタンの表示
+                buttonCancel.Enabled = true;
 
                 DialogResult = DialogResult.Cancel;
                 Close();
                 return;
             }
 
-            if (_base.Completed)
+            if (mBase.Completed)
             {
-                //タイマーの停止
+                // タイマーの停止
                 timerProgress.Stop();
-                //Dbg.Log("timer1_Tick Completed:" + _base.Completed);
+
+                // キャンセルボタンの表示
+                buttonCancel.Enabled = true;
 
                 DialogResult = DialogResult.OK;
                 Close();
@@ -113,10 +121,16 @@ namespace ConvertDaiwaForBPF
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             //Dbg.Log("From Close");
-            if (!_base.Completed)
+            if (!mBase.Completed)
             {
                 //Dbg.Log("buttonCancel_Click");
-                _base.MultiThreadCancel();
+                if(mBase.MultiThreadCancel())
+                {
+                    // キャンセル処理が正常に実行されたら、キャンセルボタンを非表示にする
+                    buttonCancel.Enabled = false;
+
+                    Text = TITLE_MESSAGE_CANCELING;
+                }
             }
         }
     }

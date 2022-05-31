@@ -35,7 +35,7 @@ namespace ConvertDaiwaForBPF
         /// マルチスレッドの処理
         /// </summary>
         /// <returns></returns>
-        public abstract int MultiThreadMethod();
+        public abstract bool MultiThreadMethod(CancellationToken ct);
 
 
         /// <summary>
@@ -48,23 +48,30 @@ namespace ConvertDaiwaForBPF
             Completed = false;
 
             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
-            if (mTtokenSource == null)
-            {
-                mTtokenSource = new CancellationTokenSource();
-            }
+            mTtokenSource = new CancellationTokenSource();
+            var ct = mTtokenSource.Token;
 
             // 非同期処理（マルチスレッド）開始
             try
             {
                 //Dbg.Log("RunMultiThread");
 
-                var task = Task.Factory.StartNew(() =>
+                var task = Task.Run(() =>
                 {
-                    if (MultiThreadMethod() == 0)
+                    // Were we already canceled?
+                    ct.ThrowIfCancellationRequested();
+
+                    if(!MultiThreadMethod(ct))
                     {
+                        // プログラム上でキャンセルとなった場合
+                        Dbg.ViewLog(Properties.Resources.MSG_CONVERT_CANCEL);
+
+                        // Taskを終了する.
                         Cancel = true;
+                        return;
                     }
-                }, mTtokenSource.Token);
+
+                }, ct);
 
             }
             catch (TaskCanceledException ex)
@@ -86,17 +93,21 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// スレッドのキャンセル
         /// </summary>
-        public virtual void MultiThreadCancel()
+        /// <returns>bool
+        /// true    ;キャンセル処理正常
+        /// false   :キャンセル処理異常
+        /// </returns>
+        public virtual bool MultiThreadCancel()
         {
-            Dbg.ViewLog(Properties.Resources.MSG_CONVERT_CANCEL);
-
             if (mTtokenSource != null)
             {
                 mTtokenSource.Cancel();
                 mTtokenSource = null;
+
+                return true;
             }
 
-            Cancel = true;
+            return false;
         }
 
     }

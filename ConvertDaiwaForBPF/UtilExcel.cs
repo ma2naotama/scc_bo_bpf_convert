@@ -83,7 +83,7 @@ namespace ConvertDaiwaForBPF
             // 一旦リストに変換
             var data = new List<string>();
 
-            for (int col = 0; col < columnMax; col++)
+            for (var col = 0; col < columnMax; col++)
             {
                 // 行、列の順に指定することで値を取得する
                 var cell = worksheet.Cell(rowIndex, col + columnStart);

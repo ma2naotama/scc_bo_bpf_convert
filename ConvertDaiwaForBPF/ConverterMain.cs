@@ -6,6 +6,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace ConvertDaiwaForBPF
 {
@@ -37,22 +38,22 @@ namespace ConvertDaiwaForBPF
         // 出力情報
         private DataTable mOutputCsv = null;
 
-
-        private const string SETTING_SHEET_NAME_CONFIG  = "各種設定";
-        private const string SETTING_SHEET_NAME_ITEMMAPING = "項目マッピング";
+        // 設定ファイルのシート名
+        private const string SETTING_SHEETNAME_CONFIG  = "各種設定";
+        private const string SETTING_SHEETNAME_ITEMMAPING = "項目マッピング";
         private const string SETTING_SHEET_NAME_CORDMAPING = "コードマッピング";
         private const string SETTING_SHEET_NAME_MULUTIITEMMAP = "項目マッピング複数読込";
 
-
+        // 項目マッピングの項目名（カラム名）
         private const string ITEMMAPING_COLUMNNUM = "列順";
         private const string ITEMMAPING_ITEMNAME = "項目名";
         private const string ITEMMAPING_TYPE = "種別";
         private const string ITEMMAPING_ATTRIBUTE = "属性";
+        private const string ITEMMAPING_OUTPUTTYPE = "出力形式";
         private const string ITEMMAPING_INSPECTIONITEMCODE = "検査項目コード";
+        private const string ITEMMAPING_FIXVALUE = "固定値";
         private const string ITEMMAPING_REF_ITEM_HR = "参照人事";
         private const string ITEMMAPING_REF_ITEM_HDR = "参照健診ヘッダー";
-
-        private const string HDR_ITEM = "参照健診ヘッダー";
 
 
         /// <summary>
@@ -75,8 +76,8 @@ namespace ConvertDaiwaForBPF
 
                 var optionarray = new ExcelOption[]
                 {
-                    new ExcelOption ( SETTING_SHEET_NAME_CONFIG, 2, 1),
-                    new ExcelOption ( SETTING_SHEET_NAME_ITEMMAPING, 4, 1),
+                    new ExcelOption ( SETTING_SHEETNAME_CONFIG, 2, 1),
+                    new ExcelOption ( SETTING_SHEETNAME_ITEMMAPING, 4, 1),
                     new ExcelOption ( SETTING_SHEET_NAME_CORDMAPING, 3, 1),
                     new ExcelOption ( SETTING_SHEET_NAME_MULUTIITEMMAP, 3, 1),
                 };
@@ -96,9 +97,15 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// スレッドのキャンセル
         /// </summary>
-        public override void MultiThreadCancel()
+        /// <returns>bool
+        /// true    ;キャンセル処理正常
+        /// false   :キャンセル処理異常
+        /// </returns>
+        public override bool MultiThreadCancel()
         {
             base.MultiThreadCancel();
+
+            return true;
         }
 
         /// <summary>
@@ -127,46 +134,53 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// スレッド内の処理（これ自体をキャンセルはできない）
         /// </summary>
-        /// <returns></returns>
-        public override int MultiThreadMethod()
+        /// <returns>int 0:タスクのキャンセル、１：正常終了</returns>
+        public override bool MultiThreadMethod(CancellationToken cancelToken)
         {
             Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_DAIWA_FILE);
 
             try
             {
                 // 初期化と設定ファイルの読み込み
-                if (!Init())
+                if (!Init() || cancelToken.IsCancellationRequested)          // タスクキャンセル
                 {
-                    return 0;
+                    return false;
+                }
+
+                // タスクキャンセル
+                if (cancelToken.IsCancellationRequested)
+                {
+                    // キャンセルされたらTaskを終了する.
+                    return false;
                 }
 
                 // 健診ヘッダーの読み込み
                 var hdrTbl = ReadHelthHeder(mPathInput);
-                if (hdrTbl == null)
+                if (hdrTbl == null || cancelToken.IsCancellationRequested)      // タスクキャンセル
                 {
-                    return 0;
+                    return false;
                 }
 
                 // 健診データの読み込み
                 var tdlTbl = ReadHelthData(mPathInput);
-                if (tdlTbl == null)
+                if (tdlTbl == null || cancelToken.IsCancellationRequested)      // タスクキャンセル
                 {
-                    return 0;
+                    return false;
                 }
 
                 // 人事データの読み込み
                 Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_HR);
                 mHRRows = ReadHumanResourceData(mPathHR);
-                if (mHRRows == null)
+                if (mHRRows == null || cancelToken.IsCancellationRequested)     // タスクキャンセル
                 {
-                    return 0;
+                    return false;
                 }
 
                 // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
                 var hdrUsers = GetActiveUsers(hdrTbl);
-                if (hdrUsers == null)
+                if (hdrUsers == null || cancelToken.IsCancellationRequested)    // タスクキャンセル
                 {
-                    return 0;
+                    return false;
                 }
 
                 // 出力先
@@ -176,14 +190,19 @@ namespace ConvertDaiwaForBPF
                 // 一ユーザー毎に処理する
                 foreach (var hrow in hdrUsers)
                 {
-                    // キャンセル
-                    if (Cancel)
+                    // タスクキャンセル
+                    if (cancelToken.IsCancellationRequested)
                     {
-                        return 0;
+                        // キャンセルされたらTaskを終了する.
+                        return false;
                     }
 
                     // 変換処理
-                    ConvertMain(hrow, ref tdlTbl);
+                    if(!ConvertMain(hrow, ref tdlTbl, cancelToken))
+                    {
+                        // キャンセルされたらTaskを終了する.
+                        return false;
+                    }
 
                     //テスト用、１ユーザー分でやめる
                     //break;
@@ -197,12 +216,12 @@ namespace ConvertDaiwaForBPF
                 MultiThreadCancel();
                 Dbg.ViewLog(ex.Message);    //メッセージのみ、ログ画面に表示
                 Dbg.Error(ex.ToString());   //エラー内容全体は、ログファイルに書き出す
-                return 0;
+                return false;
             }
 
             //処理完了
             Completed = true;
-            return 1;
+            return true;
         }
 
 
@@ -223,7 +242,7 @@ namespace ConvertDaiwaForBPF
                 mMasterSheets = ReadMasterFile(path);
 
                 // 出力用CSVの初期化
-                mItemMap = mMasterSheets.Tables[SETTING_SHEET_NAME_ITEMMAPING].AsEnumerable()
+                mItemMap = mMasterSheets.Tables[SETTING_SHEETNAME_ITEMMAPING].AsEnumerable()
                       .Where(x => x[ITEMMAPING_COLUMNNUM].ToString() != "")
                       .ToArray();
 
@@ -247,7 +266,7 @@ namespace ConvertDaiwaForBPF
                       .ToArray();
 
                 // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
-                mHRJoinKey = mMasterSheets.Tables[SETTING_SHEET_NAME_CONFIG].AsEnumerable()
+                mHRJoinKey = mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
                         .Where(x => x["名称"].ToString() == "人事データ結合列名")
                         .Select(x => x.Field<string>("設定値").ToString().Trim())
                         .FirstOrDefault();
@@ -277,7 +296,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 var filename =
-                    mMasterSheets.Tables[SETTING_SHEET_NAME_CONFIG].AsEnumerable()
+                    mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
                       .Where(x => x["名称"].ToString() == "健診ヘッダー")
                       .Select(x => x.Field<string>("設定値").ToString().Trim())
                       .First();
@@ -309,7 +328,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 var filename =
-                    mMasterSheets.Tables[SETTING_SHEET_NAME_CONFIG].AsEnumerable()
+                    mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
                       .Where(x => x["名称"].ToString() == "健診データ")
                       .Select(x => x.Field<string>("設定値").ToString().Trim())
                       .First();
@@ -447,8 +466,11 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="hrow"></param>
         /// <param name="TdlTbl"></param>
-        /// <returns></returns>
-        private void ConvertMain(DataRow hrow, ref DataTable TdlTbl)
+        /// <returns>bool
+        /// true    :次のユーザー
+        /// false   :処理キャンセル
+        /// </returns>
+        private bool ConvertMain(DataRow hrow, ref DataTable TdlTbl, CancellationToken cancelToken)
         {
             // 健診ヘッダーの個人番号取得
             var userID = hrow["個人番号"].ToString();
@@ -465,7 +487,7 @@ namespace ConvertDaiwaForBPF
                     , userID);
 
                 // 次のユーザーへ
-                return;
+                return true;
             }
 
             // 人事データ取得(健診ヘッダーの個人番号と「各種設定」で指定したキーで取得)
@@ -476,7 +498,7 @@ namespace ConvertDaiwaForBPF
                     , userID);
 
                 // 存在しない場合はレコードを作成しないで次のユーザーへ
-                return;
+                return true;
             }
 
             //旧検査項目コードの書き換え
@@ -489,7 +511,13 @@ namespace ConvertDaiwaForBPF
             // 必要な検査項目コード分ループ
             foreach (var row in mItemMap)
             {
-                string outputtype = row.Field<string>("出力形式").Trim();
+                // 処理キャンセル
+                if(cancelToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+
+                string outputtype = row.Field<string>(ITEMMAPING_OUTPUTTYPE).Trim();
                 if (outputtype == "該当なし")
                 {
                     continue;
@@ -499,7 +527,7 @@ namespace ConvertDaiwaForBPF
                 var value = "";
 
                 // 固定値
-                var fixvalue = row.Field<string>("固定値").Trim();
+                var fixvalue = row.Field<string>(ITEMMAPING_FIXVALUE).Trim();
                 if (fixvalue != "")
                 {
                     value = fixvalue;
@@ -647,6 +675,8 @@ namespace ConvertDaiwaForBPF
 
             // CSV出力情報に追加
             mOutputCsv.Rows.Add(outputrow);
+
+            return true;
         }
 
 
@@ -896,8 +926,8 @@ namespace ConvertDaiwaForBPF
             foreach (var m in user)
             {
                 var newcode = replaceTable.AsEnumerable()
-                                .Where(x => x.Field<string>("検査結果項目コード") == m.InspectionItemCode && x.Field<string>("置換実施対象") != "")
-                                .Select(x => x.Field<string>("検査結果項目コード置換"))
+                                .Where(x => x.Field<string>("検査結果項目コード").Trim() == m.InspectionItemCode && x.Field<string>("置換実施対象").Trim() != "")
+                                .Select(x => x.Field<string>("検査結果項目コード置換").Trim())
                                 .FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(newcode))
