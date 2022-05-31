@@ -35,7 +35,7 @@ namespace ConvertDaiwaForBPF
         /// マルチスレッドの処理
         /// </summary>
         /// <returns></returns>
-        public  abstract int MultiThreadMethod();
+        public abstract int MultiThreadMethod();
 
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ConvertDaiwaForBPF
 
             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
             if (mTtokenSource == null)
-            { 
+            {
                 mTtokenSource = new CancellationTokenSource();
             }
 
@@ -60,9 +60,9 @@ namespace ConvertDaiwaForBPF
 
                 var task = Task.Factory.StartNew(() =>
                 {
-                    if(MultiThreadMethod() == 0)
+                    if (MultiThreadMethod() == 0)
                     {
-                        Cancel=true;
+                        Cancel = true;
                     }
                 }, mTtokenSource.Token);
 
@@ -94,7 +94,7 @@ namespace ConvertDaiwaForBPF
             {
                 mTtokenSource.Cancel();
                 mTtokenSource = null;
-            } 
+            }
 
             Cancel = true;
         }

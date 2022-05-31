@@ -25,7 +25,6 @@ namespace ConvertDaiwaForBPF
             mExcelOption.Add(option);
         }
 
-
         /// <summary>
         /// オプション設定の登録
         /// </summary>
@@ -34,7 +33,7 @@ namespace ConvertDaiwaForBPF
         {
             // シート番号で検索
             var optindex = mExcelOption.FindIndex(x => x.SheetName == option.SheetName);
-            if(optindex <0)
+            if (optindex < 0)
             {
                 mExcelOption.Add(option);
                 return;
@@ -48,7 +47,7 @@ namespace ConvertDaiwaForBPF
         /// オプションの設定を登録
         /// </summary>
         /// <param name="options"></param>
-        public void SetExcelOptionArray(ExcelOption []options)
+        public void SetExcelOptionArray(ExcelOption[] options)
         {
             foreach (ExcelOption opt in options)
             {
@@ -64,7 +63,7 @@ namespace ConvertDaiwaForBPF
         private ExcelOption GetExcelOption(string sheetName)
         {
             var option = mExcelOption.Find(x => x.SheetName == sheetName);
-            if(option == null)
+            if (option == null)
             {
                 return new ExcelOption();
             }
@@ -82,20 +81,20 @@ namespace ConvertDaiwaForBPF
         private List<string> GetRow(IXLWorksheet worksheet, int rowIndex, int columnStart, int columnMax)
         {
             // 一旦リストに変換
-            var data = new List<string>(); 
+            var data = new List<string>();
 
             for (int col = 0; col < columnMax; col++)
             {
                 // 行、列の順に指定することで値を取得する
                 var cell = worksheet.Cell(rowIndex, col + columnStart);
-                if(cell == null)
+                if (cell == null)
                 {
                     continue;
                 }
 
                 // 取得したデータをListに加える
                 if (cell.CachedValue != null)
-                { 
+                {
                     data.Add(cell.CachedValue.ToString());
                 }
                 else
@@ -114,7 +113,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="filepath">開くファイルのパス</param>
         /// <returns>全シート分のDataTable</returns>
-        public DataSet ReadAllSheets(string path) 
+        public DataSet ReadAllSheets(string path)
         {
             var dataSet = new DataSet();
 
@@ -127,7 +126,7 @@ namespace ConvertDaiwaForBPF
                 // XLEventTracking.Disabled 追跡を無効
                 using (var workbook = new XLWorkbook(fs, XLEventTracking.Disabled))
                 {
-                    for (var sheet =1; sheet <= workbook.Worksheets.Count; sheet++)
+                    for (var sheet = 1; sheet <= workbook.Worksheets.Count; sheet++)
                     {
                         var sheeetname = workbook.Worksheets.Worksheet(sheet).Name;
 
@@ -144,7 +143,7 @@ namespace ConvertDaiwaForBPF
 
                         // 取得するセルの最大行数
                         var RowsMax = worksheet.LastRowUsed().RowNumber();
-                        if (RowsMax <=0)
+                        if (RowsMax <= 0)
                         {
                             new MyException(string.Format(Properties.Resources.E_EMPTY_SHEET, sheeetname));
                         }
@@ -187,7 +186,7 @@ namespace ConvertDaiwaForBPF
                                 , columnNum);
 
                             var r = dt.NewRow();
-                            for(var i = 0; i < row.Count; i++)
+                            for (var i = 0; i < row.Count; i++)
                             {
                                 r[i] = row[i];
                             }
@@ -197,7 +196,7 @@ namespace ConvertDaiwaForBPF
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
                 throw ex;

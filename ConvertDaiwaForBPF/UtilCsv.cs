@@ -45,7 +45,7 @@ namespace ConvertDaiwaForBPF
 
             DataTable dt = null;
             try
-            { 
+            {
                 //	パース開始
                 using (var parser = new TextFieldParser(path, encoding))
                 {
@@ -58,8 +58,8 @@ namespace ConvertDaiwaForBPF
 
                     // フィールドの空白トリム設定
                     parser.TrimWhiteSpace = false;
-                    
-                    if(parser.EndOfData)
+
+                    if (parser.EndOfData)
                     {
                         return null;
                     }
@@ -78,7 +78,7 @@ namespace ConvertDaiwaForBPF
 
                     var n = row.Count();    // カラム数取得
 
-                    if(hasheader)
+                    if (hasheader)
                     {
                         for (var i = 0; i < n; i++)
                         {
@@ -86,11 +86,11 @@ namespace ConvertDaiwaForBPF
                         }
                     }
                     else
-                    { 
+                    {
                         for (var i = 0; i < n; i++)
                         {
                             // 仮のカラム名を設定します。
-                            dt.Columns.Add(new DataColumn("" +(i+1)));       //1始まり
+                            dt.Columns.Add(new DataColumn("" + (i + 1)));       //1始まり
                         }
                     }
 
@@ -117,14 +117,14 @@ namespace ConvertDaiwaForBPF
         }
 
 
-      
+
         /// <summary>
         /// CSVファイルの書き込み
         /// </summary>
         /// <param name="path"></param>
         /// <param name="dt"></param>
         /// <param name="overwriteColumnName"></param>
-        public void WriteFile(string path, DataTable dt, List<string>overwriteColumnName = null)
+        public void WriteFile(string path, DataTable dt, List<string> overwriteColumnName = null)
         {
 
             try
@@ -152,14 +152,15 @@ namespace ConvertDaiwaForBPF
                         sb.AppendLine(string.Join(",", overwriteColumnName));
                     }
                     else
-                    { 
+                    {
                         sb.AppendLine(string.Join(",", columnNames));
                     }
 
                     foreach (DataRow row in dt.Rows)
                     {
                         // カンマ付きの文字列は、全体をダブルクォーテーションで囲む
-                        var fields = row.ItemArray.Select(field => {
+                        var fields = row.ItemArray.Select(field =>
+                        {
                             if (field.ToString().IndexOf(',') > 0)
                             {
                                 return string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\"");
