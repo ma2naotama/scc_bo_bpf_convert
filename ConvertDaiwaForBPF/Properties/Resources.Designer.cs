@@ -178,15 +178,6 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   健診データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_NO_TDLDATA {
-            get {
-                return ResourceManager.GetString("E_NO_TDLDATA", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   人事データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NO_USERDATA {

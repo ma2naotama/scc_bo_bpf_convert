@@ -162,9 +162,6 @@
   <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
     <value>人事データの参照項目がありません。指定項目：{0}</value>
   </data>
-  <data name="E_NO_TDLDATA" xml:space="preserve">
-    <value>健診データに該当ユーザーがいません。個人番号：{0}</value>
-  </data>
   <data name="E_NO_USERDATA" xml:space="preserve">
     <value>人事データに該当ユーザーがいません。個人番号：{0}</value>
   </data>
