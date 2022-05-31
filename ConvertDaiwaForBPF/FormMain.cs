@@ -89,7 +89,7 @@ namespace ConvertDaiwaForBPF
             // 「新しいフォルダーの作成する」ボタンを表示する
             fbDialog.ShowNewFolderButton = true;
 
-            if (fbDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (fbDialog.ShowDialog() == DialogResult.OK)
             {
                 textBoxReceivePath.Text = fbDialog.SelectedPath;
             }
@@ -160,7 +160,7 @@ namespace ConvertDaiwaForBPF
             // デフォルトのフォルダを指定する
             ofd.InitialDirectory = stCurrentDir;
 
-            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (ofd.ShowDialog() == DialogResult.OK)
             {
                 textBoxHRPath.Text = ofd.FileName;
             }
@@ -227,7 +227,7 @@ namespace ConvertDaiwaForBPF
             // 「新しいフォルダーの作成する」ボタンを表示する
             fbDialog.ShowNewFolderButton = true;
 
-            if (fbDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (fbDialog.ShowDialog() == DialogResult.OK)
             {
                 textBoxOutputPath.Text = fbDialog.SelectedPath;
             }
@@ -276,7 +276,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 変換処理の表示非表示の判定
         /// </summary>
-        void CheckActiveRunButton()
+        private void CheckActiveRunButton()
         {
             //実行ボタンの非表示
             buttonConvert.Enabled = false;

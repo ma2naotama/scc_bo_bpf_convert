@@ -157,7 +157,7 @@
     <value>人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0}</value>
   </data>
   <data name="E_NOT_EXIST_ITEM_IN_HDR" xml:space="preserve">
-    <value>検診ヘッダーの参照項目がありません。指定項目：{0}</value>
+    <value>健診ヘッダーの参照項目がありません。指定項目：{0}</value>
   </data>
   <data name="E_NOT_EXIST_ITEM_IN_HR" xml:space="preserve">
     <value>人事データの参照項目がありません。指定項目：{0}</value>

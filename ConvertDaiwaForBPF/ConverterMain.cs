@@ -137,17 +137,17 @@ namespace ConvertDaiwaForBPF
                     return 0;
                 }
 
-                // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
-                var hdrUsers = GetActiveUsers(hdrTbl);
-                if (hdrUsers == null)
-                {
-                    return 0;
-                }
-
                 // 人事データの読み込み
                 Dbg.ViewLog(Properties.Resources.MSG_LABEL_INPUT_HR);
                 mHRRows = ReadHumanResourceData(mPathHR);
                 if (mHRRows == null)
+                {
+                    return 0;
+                }
+
+                // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
+                var hdrUsers = GetActiveUsers(hdrTbl);
+                if (hdrUsers == null)
                 {
                     return 0;
                 }
@@ -173,10 +173,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 出力情報から全レコードの書き出し
-                if (!WriteCsv(ref mItemMap, ref mOutputCsv, mPathOutput))
-                {
-                    return 0;
-                }
+                WriteCsv(ref mItemMap, ref mOutputCsv, mPathOutput);
             }
             catch (Exception ex)
             {
@@ -350,7 +347,7 @@ namespace ConvertDaiwaForBPF
         /// 有効なユーザーの一覧取得
         /// </summary>
         /// <param name="HdrTbl"></param>
-        /// <returns>DataRowの配列  削除されている検診ヘッダーを除く</returns>
+        /// <returns>DataRowの配列  削除されている健診ヘッダーを除く</returns>
         private DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
             DataRow[] hdrRows = null;
@@ -436,7 +433,7 @@ namespace ConvertDaiwaForBPF
         /// <returns></returns>
         private void ConvertMain(DataRow hrow, ref DataTable TdlTbl)
         {
-            // 検診ヘッダーの個人番号取得
+            // 健診ヘッダーの個人番号取得
             var userID = hrow["個人番号"].ToString();
 
             // 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
@@ -633,9 +630,6 @@ namespace ConvertDaiwaForBPF
 
             // CSV出力情報に追加
             mOutputCsv.Rows.Add(outputrow);
-
-            // 次のユーザー
-            return;
         }
 
 
@@ -644,7 +638,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="datattable"></param>
         /// <returns></returns>
-        private bool WriteCsv(ref DataRow[]itemMap, ref DataTable datattable, string outputPath)
+        private void WriteCsv(ref DataRow[]itemMap, ref DataTable datattable, string outputPath)
         {
             Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datattable.Rows.Count.ToString());
 
@@ -669,8 +663,6 @@ namespace ConvertDaiwaForBPF
 
                 var csv = new UtilCsv();
                 csv.WriteFile(outputPath + outptfilename, datattable, str_arry);
-
-                return true;
             }
             catch(Exception ex)
             {
@@ -680,6 +672,7 @@ namespace ConvertDaiwaForBPF
             }
         }
 
+
         /// <summary>
         /// 列名（カラム名）を付け加える
         /// </summary>
@@ -688,7 +681,7 @@ namespace ConvertDaiwaForBPF
         private void SetColumnName(DataTable dt, List<string> sheet)
         {
             var n = sheet.Count;
-            for (int i=0; i< sheet.Count(); i++)
+            for (var i=0; i< sheet.Count(); i++)
             {
                 if(i<n)
                 {
@@ -699,7 +692,6 @@ namespace ConvertDaiwaForBPF
                     dt.Columns.Add(sheet[i].ToString().Trim());
                 }
             }
-
         }
 
         /// <summary>

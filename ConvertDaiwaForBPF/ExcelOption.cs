@@ -5,7 +5,7 @@ namespace ConvertDaiwaForBPF
     /// エクセルのシートの読み込み設定
     /// シート名や列位置や行位置を指定
     /// </summary>
-    public class ExcelOption
+    internal class ExcelOption
     {
         /// <summary>
         /// シート番号（どのシートに対するオプションなのか判断する為に使用する）

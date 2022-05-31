@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Security.Permissions;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// ダイアログ表示
+    /// </summary>
     public partial class FormProgressDialog : Form
     {
-        BaseThread _base = null;
-
+        private BaseThread _base = null;
 
         public FormProgressDialog()
         {
             InitializeComponent();
-
-            //EnableMenuItem(GetSystemMenu(form.Handle, false), 0xF060, 1);
-
         }
 
         protected override CreateParams CreateParams
@@ -40,20 +32,20 @@ namespace ConvertDaiwaForBPF
 
         protected override void OnLoad(EventArgs e)
         {
-            this.progressBar1.MarqueeAnimationSpeed = 30;
-            this.progressBar1.Style = ProgressBarStyle.Marquee;
+            progressBar1.MarqueeAnimationSpeed = 30;
+            progressBar1.Style = ProgressBarStyle.Marquee;
 
             //マルチスレッドのクラスがない場合は、何もしないで閉じる
             if (_base == null)
             {
-                this.DialogResult = DialogResult.Cancel;
-                this.Close();
+                DialogResult = DialogResult.Cancel;
+                Close();
                 return;
             }
 
             //タイマー開始
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1;
+            timerProgress.Enabled = true;
+            timerProgress.Interval = 1;
 
             //マルチスレッドスタート
             _base.RunMultiThreadAsync();
@@ -74,29 +66,34 @@ namespace ConvertDaiwaForBPF
             _base = thread;
         }
 
+        /// <summary>
+        /// タイマーティック処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void timer1_Tick(object sender, EventArgs e)
         {
             //終了判定
             if (_base.Cancel)
             {
                 //タイマーの停止
-                this.timer1.Stop();
+                timerProgress.Stop();
 
                 //Dbg.ViewLog("timer1_Tick Cancel:" + _base.Cancel);
 
-                this.DialogResult = DialogResult.Cancel;
-                this.Close();
+                DialogResult = DialogResult.Cancel;
+                Close();
                 return;
             }
 
             if (_base.Completed)
             {
                 //タイマーの停止
-                this.timer1.Stop();
+                timerProgress.Stop();
                 //Dbg.Log("timer1_Tick Completed:" + _base.Completed);
 
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                DialogResult = DialogResult.OK;
+                Close();
                 return;
             }
 

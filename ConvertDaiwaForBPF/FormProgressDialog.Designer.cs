@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timerProgress = new System.Windows.Forms.Timer(this.components);
             this.buttonCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -44,9 +44,9 @@
             this.progressBar1.Size = new System.Drawing.Size(323, 29);
             this.progressBar1.TabIndex = 0;
             // 
-            // timer1
+            // timerProgress
             // 
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timerProgress.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // buttonCancel
             // 
@@ -78,7 +78,7 @@
         #endregion
 
         private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timerProgress;
         private System.Windows.Forms.Button buttonCancel;
     }
 }

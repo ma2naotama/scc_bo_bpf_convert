@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
-    public class GlobalVariables
+    internal class GlobalVariables
     {
         public enum ENCORDTYPE
         {
@@ -15,7 +15,7 @@ namespace ConvertDaiwaForBPF
         };
 
         /// <summary>
-        /// 検診ヘッダーのカラム
+        /// 健診ヘッダーのカラム
         /// </summary>
         public static List<string> ColumnHDR = new List<string>() 
         {
@@ -81,7 +81,7 @@ namespace ConvertDaiwaForBPF
         };
 
         /// <summary>
-        /// 検診データのカラム
+        /// 健診データのカラム
         /// </summary>
         public static List<string> ColumnTDL = new List<string>()
         {

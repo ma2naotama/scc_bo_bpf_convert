@@ -187,7 +187,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検診ヘッダーの参照項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
+        ///   健診ヘッダーの参照項目がありません。指定項目：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NOT_EXIST_ITEM_IN_HDR {
             get {
