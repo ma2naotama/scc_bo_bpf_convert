@@ -326,7 +326,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 var csv = new UtilCsv();
-                var hr = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.SJIS);
+                var hr = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.UTF8);
 
                 // 健診ヘッダーの削除フラグが0だけ抽出
                 var row =
