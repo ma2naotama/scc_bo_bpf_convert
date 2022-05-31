@@ -56,9 +56,9 @@
             // buttonReceivePath
             // 
             this.buttonReceivePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonReceivePath.Location = new System.Drawing.Point(595, 38);
+            this.buttonReceivePath.Location = new System.Drawing.Point(595, 30);
             this.buttonReceivePath.Name = "buttonReceivePath";
-            this.buttonReceivePath.Size = new System.Drawing.Size(46, 22);
+            this.buttonReceivePath.Size = new System.Drawing.Size(60, 30);
             this.buttonReceivePath.TabIndex = 4;
             this.buttonReceivePath.Text = "選択";
             this.buttonReceivePath.UseVisualStyleBackColor = true;
@@ -81,9 +81,9 @@
             // buttonHRPath
             // 
             this.buttonHRPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonHRPath.Location = new System.Drawing.Point(595, 100);
+            this.buttonHRPath.Location = new System.Drawing.Point(595, 95);
             this.buttonHRPath.Name = "buttonHRPath";
-            this.buttonHRPath.Size = new System.Drawing.Size(46, 22);
+            this.buttonHRPath.Size = new System.Drawing.Size(60, 30);
             this.buttonHRPath.TabIndex = 6;
             this.buttonHRPath.Text = "選択";
             this.buttonHRPath.UseVisualStyleBackColor = true;
@@ -106,9 +106,9 @@
             // buttonOutputPath
             // 
             this.buttonOutputPath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonOutputPath.Location = new System.Drawing.Point(595, 159);
+            this.buttonOutputPath.Location = new System.Drawing.Point(595, 155);
             this.buttonOutputPath.Name = "buttonOutputPath";
-            this.buttonOutputPath.Size = new System.Drawing.Size(46, 22);
+            this.buttonOutputPath.Size = new System.Drawing.Size(60, 30);
             this.buttonOutputPath.TabIndex = 8;
             this.buttonOutputPath.Text = "選択";
             this.buttonOutputPath.UseVisualStyleBackColor = true;
