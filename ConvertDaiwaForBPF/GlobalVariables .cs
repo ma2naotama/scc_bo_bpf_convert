@@ -6,8 +6,14 @@ using System.Threading.Tasks;
 
 namespace ConvertDaiwaForBPF
 {
+    /// <summary>
+    /// グローバル変数
+    /// </summary>
     internal class GlobalVariables
     {
+        /// <summary>
+        /// エンコードタイプ
+        /// </summary>
         public enum ENCORDTYPE
         {
             SJIS,

@@ -18,7 +18,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         private ConverterMain mConverterMain = null;
 
-
+        /// <summary>
+        /// 健診メイン
+        /// </summary>
         public FormMain()
         {
             mInstance = this;
@@ -27,7 +29,7 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// フォームの読み込み
+        /// 健診メインのフォームの読み込み
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

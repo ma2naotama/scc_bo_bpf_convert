@@ -29,24 +29,24 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.timerProgress = new System.Windows.Forms.Timer(this.components);
             this.buttonCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
-            // progressBar1
+            // progressBar
             // 
-            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar1.Location = new System.Drawing.Point(61, 54);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(323, 29);
-            this.progressBar1.TabIndex = 0;
+            this.progressBar.Location = new System.Drawing.Point(61, 54);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(323, 29);
+            this.progressBar.TabIndex = 0;
             // 
             // timerProgress
             // 
-            this.timerProgress.Tick += new System.EventHandler(this.timer1_Tick);
+            this.timerProgress.Tick += new System.EventHandler(this.timerProgress_Tick);
             // 
             // buttonCancel
             // 
@@ -65,7 +65,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(445, 172);
             this.Controls.Add(this.buttonCancel);
-            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.progressBar);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FormProgressDialog";
@@ -77,7 +77,7 @@
 
         #endregion
 
-        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Timer timerProgress;
         private System.Windows.Forms.Button buttonCancel;
     }

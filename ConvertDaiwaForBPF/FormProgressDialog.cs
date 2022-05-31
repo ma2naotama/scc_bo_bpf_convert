@@ -11,6 +11,9 @@ namespace ConvertDaiwaForBPF
     {
         private BaseThread _base = null;
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public FormProgressDialog()
         {
             InitializeComponent();
@@ -32,8 +35,8 @@ namespace ConvertDaiwaForBPF
 
         protected override void OnLoad(EventArgs e)
         {
-            progressBar1.MarqueeAnimationSpeed = 30;
-            progressBar1.Style = ProgressBarStyle.Marquee;
+            progressBar.MarqueeAnimationSpeed = 30;
+            progressBar.Style = ProgressBarStyle.Marquee;
 
             //マルチスレッドのクラスがない場合は、何もしないで閉じる
             if (_base == null)
@@ -50,7 +53,7 @@ namespace ConvertDaiwaForBPF
             //マルチスレッドスタート
             _base.RunMultiThreadAsync();
         }
-      
+
 
         private void FormProgressDialog_Load(object sender, EventArgs e)
         {
@@ -71,7 +74,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timerProgress_Tick(object sender, EventArgs e)
         {
             //終了判定
             if (_base.Cancel)
