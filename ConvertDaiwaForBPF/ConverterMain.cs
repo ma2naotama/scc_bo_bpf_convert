@@ -248,7 +248,7 @@ namespace ConvertDaiwaForBPF
 
                 // コードマッピング初期化
                 mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
-                      .Where(x => x["コードID"].ToString() != "")
+                      .Where(x => x["コードID"].ToString().Trim() != "")
                       .ToArray();
 
                 // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
