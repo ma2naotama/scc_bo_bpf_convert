@@ -115,6 +115,9 @@ namespace ConvertDaiwaForBPF
         }
 
 
+        // 団体IDの確認
+        const string ITEMMAPPING_ORGANIZATIONID = "団体ID";
+
         /// <summary>
         /// スレッド内の処理
         /// これ自体をキャンセルはできない為cancelTokenで処理を中断させる
@@ -161,6 +164,37 @@ namespace ConvertDaiwaForBPF
                 {
                     return false;
                 }
+
+
+                // 団体IDの確認(固定)
+                var itemrow = mItemMap.AsEnumerable()
+                            .Where(x => x.Field<string>("項目名") == ITEMMAPPING_ORGANIZATIONID)
+                            .FirstOrDefault();
+
+                if (itemrow != null)
+                {
+                    var orgaid = itemrow.Field<string>("固定値").Trim();
+
+                    //「参照人事」で指定した項目名で検索
+                    try
+                    {
+                        string hrcolumn = itemrow.Field<string>("参照人事").Trim();
+
+                        // 固定IDと人事データの確認、例外が発生しなければOK
+                        var hr_id = mHRRows
+                            .Where(x => x.Field<string>(hrcolumn) == orgaid)
+                            .First();
+                    }
+                    catch (Exception ex)
+                    {
+                        Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
+                                , orgaid);
+
+                        // 処理中断
+                        throw ex;
+                    }
+                }
+
 
                 // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
                 var hdrUsers = GetActiveUsers(hdrTbl);
@@ -444,9 +478,6 @@ namespace ConvertDaiwaForBPF
         }
 
 
-        // 団体IDの列順
-        const int ITEMMAPPING_INDEX_OF_ORGANIZATIONID = 4;
-
         // 出力形式の値
         const string ITEMMAPPING_VALUE_OF_OUTPUTTYPE = "該当なし";
 
@@ -519,60 +550,11 @@ namespace ConvertDaiwaForBPF
                 var outputindex = int.Parse(row.Field<string>("列順"));     //列順は１始まり
                 var value = "";
 
-                // 固定値
+                // 固定値の取得
                 var fixvalue = row.Field<string>("固定値").Trim();
                 if (fixvalue != "")
                 {
                     value = fixvalue;
-                }
-
-                // 団体IDの確認(固定)
-                if (outputindex == ITEMMAPPING_INDEX_OF_ORGANIZATIONID)
-                {
-                    //「参照人事」で指定した項目名で検索
-                    try
-                    {
-                        string hrcolumn = row.Field<string>("参照人事").Trim();
-
-                        // 固定IDと人事データの確認、例外が発生しなければOK
-                        var hr_id = mHRRows
-                            .Where(x => x.Field<string>(hrcolumn) == value)
-                            .First();
-                    }
-                    catch (Exception ex)
-                    {
-                        Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ORGANIZATION_ID
-                                , value);
-
-                        // 処理中断
-                        throw ex;
-                    }
-                }
-
-
-                // 人事データ結合
-                if (value == "")
-                {
-                    var hrcolumn = row.Field<string>("参照人事");
-                    if (hrcolumn != "")
-                    {
-                        // 人事の指定列名
-                        hrcolumn = hrcolumn.Trim();
-
-                        // 項目マッピングで指定した列名の値をセット
-                        try
-                        {
-                            value = hr_row.Field<string>(hrcolumn).Trim();
-                        }
-                        catch (Exception ex)
-                        {
-                            Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
-                                    , hrcolumn);
-
-                            // 処理中断
-                            throw ex;
-                        }
-                    }
                 }
 
                 // 参照健診ヘッダーの取得
@@ -597,6 +579,28 @@ namespace ConvertDaiwaForBPF
                     }
                 }
 
+                // 人事データの取得
+                if (value == "")
+                {
+                    // 人事の指定列名
+                    var hrcolumn = row.Field<string>("参照人事").Trim();
+                    if (hrcolumn != "")
+                    {
+                        // 項目マッピングで指定した列名の値をセット
+                        try
+                        {
+                            value = hr_row.Field<string>(hrcolumn).Trim();
+                        }
+                        catch (Exception ex)
+                        {
+                            Dbg.ErrorWithView(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR
+                                    , hrcolumn);
+
+                            // 処理中断
+                            throw ex;
+                        }
+                    }
+                }
 
                 // 検査項目コードの検索
                 if (value == "")
