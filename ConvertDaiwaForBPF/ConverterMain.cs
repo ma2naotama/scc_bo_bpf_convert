@@ -674,6 +674,8 @@ namespace ConvertDaiwaForBPF
             return true;
         }
 
+        // 出力ファイル名
+        const string OUTPUTFILENAME = "Converted_{0}.csv";
 
         /// <summary>
         /// CSVの書き出し
@@ -701,7 +703,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 var dt = DateTime.Now;
-                var outptfilename = ".\\" + String.Format("Converted_{0}.csv", dt.ToString("yyyyMMdd"));       // デフォルトファイル名
+                var outptfilename = ".\\" + String.Format(OUTPUTFILENAME, dt.ToString("yyyyMMdd"));       // 出力ファイル名
 
                 var csv = new UtilCsv();
                 csv.WriteFile(outputPath + outptfilename, datattable, str_arry);
