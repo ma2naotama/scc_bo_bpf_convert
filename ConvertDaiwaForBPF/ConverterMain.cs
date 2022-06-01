@@ -738,6 +738,9 @@ namespace ConvertDaiwaForBPF
             }
         }
 
+        // データタイプが4の場合、コメントを参照
+        const string INSPECTION_DATA_TYPE = "4";
+
         /// <summary>
         /// 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を作成する
         /// </summary>
@@ -786,7 +789,7 @@ namespace ConvertDaiwaForBPF
                         InspectionItemCode = d.Field<string>("検査項目コード").Trim(),
 
                         // コメントのTrimはしない
-                        Value = (d.Field<string>("結果値データタイプ") == "4") ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
+                        Value = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
                     };
 
             return merged.ToList();
