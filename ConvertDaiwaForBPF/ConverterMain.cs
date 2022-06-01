@@ -165,7 +165,6 @@ namespace ConvertDaiwaForBPF
                     return false;
                 }
 
-
                 // 団体IDの確認(固定)
                 var itemrow = mItemMap.AsEnumerable()
                             .Where(x => x.Field<string>("項目名") == ITEMMAPPING_ORGANIZATIONID)
@@ -178,7 +177,7 @@ namespace ConvertDaiwaForBPF
                     //「参照人事」で指定した項目名で検索
                     try
                     {
-                        string hrcolumn = itemrow.Field<string>("参照人事").Trim();
+                        var hrcolumn = itemrow.Field<string>("参照人事").Trim();
 
                         // 固定IDと人事データの確認、例外が発生しなければOK
                         var hr_id = mHRRows
@@ -194,7 +193,6 @@ namespace ConvertDaiwaForBPF
                         throw ex;
                     }
                 }
-
 
                 // 健診ヘッダーから「削除フラグ=0」のユーザーのみ抽出
                 var hdrUsers = GetActiveUsers(hdrTbl);
