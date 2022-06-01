@@ -38,23 +38,6 @@ namespace ConvertDaiwaForBPF
         // 出力情報
         private DataTable mOutputCsv = null;
 
-        // 設定ファイルのシート名
-        private const string SETTING_SHEETNAME_CONFIG  = "各種設定";
-        private const string SETTING_SHEETNAME_ITEMMAPING = "項目マッピング";
-        private const string SETTING_SHEET_NAME_CORDMAPING = "コードマッピング";
-        private const string SETTING_SHEET_NAME_MULUTIITEMMAP = "項目マッピング複数読込";
-
-        // 項目マッピングの項目名（カラム名）
-        private const string ITEMMAPING_COLUMNNUM = "列順";
-        private const string ITEMMAPING_ITEMNAME = "項目名";
-        private const string ITEMMAPING_TYPE = "種別";
-        private const string ITEMMAPING_ATTRIBUTE = "属性";
-        private const string ITEMMAPING_OUTPUTTYPE = "出力形式";
-        private const string ITEMMAPING_INSPECTIONITEMCODE = "検査項目コード";
-        private const string ITEMMAPING_FIXVALUE = "固定値";
-        private const string ITEMMAPING_REF_ITEM_HR = "参照人事";
-        private const string ITEMMAPING_REF_ITEM_HDR = "参照健診ヘッダー";
-
 
         /// <summary>
         /// コンストラクタ
@@ -76,10 +59,10 @@ namespace ConvertDaiwaForBPF
 
                 var optionarray = new ExcelOption[]
                 {
-                    new ExcelOption ( SETTING_SHEETNAME_CONFIG, 2, 1),
-                    new ExcelOption ( SETTING_SHEETNAME_ITEMMAPING, 4, 1),
-                    new ExcelOption ( SETTING_SHEET_NAME_CORDMAPING, 3, 1),
-                    new ExcelOption ( SETTING_SHEET_NAME_MULUTIITEMMAP, 3, 1),
+                    new ExcelOption ( "各種設定", 2, 1),
+                    new ExcelOption ( "項目マッピング", 4, 1),
+                    new ExcelOption ( "コードマッピング", 3, 1),
+                    new ExcelOption ( "項目マッピング複数読込", 3, 1),
                 };
 
                 excel.SetExcelOptionArray(optionarray);
@@ -131,9 +114,12 @@ namespace ConvertDaiwaForBPF
             Dbg.SetLogPath(mPathOutput);
         }
 
+
         /// <summary>
-        /// スレッド内の処理（これ自体をキャンセルはできない）
+        /// スレッド内の処理
+        /// これ自体をキャンセルはできない為cancelTokenで処理を中断させる
         /// </summary>
+        /// <param name="cancelToken"></param>
         /// <returns>int 0:タスクのキャンセル、１：正常終了</returns>
         public override bool MultiThreadMethod(CancellationToken cancelToken)
         {
@@ -142,7 +128,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 // 初期化と設定ファイルの読み込み
-                if (!Init() || cancelToken.IsCancellationRequested)          // タスクキャンセル
+                if (!Init() || cancelToken.IsCancellationRequested)             // タスクキャンセル
                 {
                     return false;
                 }
@@ -198,7 +184,7 @@ namespace ConvertDaiwaForBPF
                     }
 
                     // 変換処理
-                    if(!ConvertMain(hrow, ref tdlTbl, cancelToken))
+                    if (!ConvertMain(hrow, ref tdlTbl, cancelToken))
                     {
                         // キャンセルされたらTaskを終了する.
                         return false;
@@ -242,12 +228,12 @@ namespace ConvertDaiwaForBPF
                 mMasterSheets = ReadMasterFile(path);
 
                 // 出力用CSVの初期化
-                mItemMap = mMasterSheets.Tables[SETTING_SHEETNAME_ITEMMAPING].AsEnumerable()
-                      .Where(x => x[ITEMMAPING_COLUMNNUM].ToString() != "")
+                mItemMap = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                      .Where(x => x["列順"].ToString() != "")
                       .ToArray();
 
                 // 項目マッピングの順列の最大値と項目数（個数）の確認
-                if (mItemMap.Length != mItemMap.Max(r => int.Parse(r[ITEMMAPING_COLUMNNUM].ToString())))
+                if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
                 {
                     throw new MyException(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
                 }
@@ -257,16 +243,16 @@ namespace ConvertDaiwaForBPF
                 // 同じ列名（カラム名）はセットできないので、列順をセットしておく
                 foreach (var row in mItemMap)
                 {
-                    mOutputCsv.Columns.Add("" + row[ITEMMAPING_COLUMNNUM], typeof(string));
+                    mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
                 }
 
                 // コードマッピング初期化
-                mCordMap = mMasterSheets.Tables[SETTING_SHEET_NAME_CORDMAPING].AsEnumerable()
+                mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
                       .Where(x => x["コードID"].ToString() != "")
                       .ToArray();
 
                 // 人事データの結合用のキー（テレビ朝日とその他の団体で結合するキーが違う為）
-                mHRJoinKey = mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
+                mHRJoinKey = mMasterSheets.Tables["各種設定"].AsEnumerable()
                         .Where(x => x["名称"].ToString() == "人事データ結合列名")
                         .Select(x => x.Field<string>("設定値").ToString().Trim())
                         .FirstOrDefault();
@@ -296,7 +282,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 var filename =
-                    mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
+                    mMasterSheets.Tables["各種設定"].AsEnumerable()
                       .Where(x => x["名称"].ToString() == "健診ヘッダー")
                       .Select(x => x.Field<string>("設定値").ToString().Trim())
                       .First();
@@ -328,7 +314,7 @@ namespace ConvertDaiwaForBPF
             try
             {
                 var filename =
-                    mMasterSheets.Tables[SETTING_SHEETNAME_CONFIG].AsEnumerable()
+                    mMasterSheets.Tables["各種設定"].AsEnumerable()
                       .Where(x => x["名称"].ToString() == "健診データ")
                       .Select(x => x.Field<string>("設定値").ToString().Trim())
                       .First();
@@ -464,11 +450,12 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 変換処理メイン
         /// </summary>
-        /// <param name="hrow"></param>
-        /// <param name="TdlTbl"></param>
+        /// <param name="hrow">１ユーザー分の健診ヘッダー</param>
+        /// <param name="TdlTbl">健診データ</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
         /// <returns>bool
-        /// true    :次のユーザー
-        /// false   :処理キャンセル
+        /// true :次のユーザー
+        /// false:処理キャンセル
         /// </returns>
         private bool ConvertMain(DataRow hrow, ref DataTable TdlTbl, CancellationToken cancelToken)
         {
@@ -502,7 +489,7 @@ namespace ConvertDaiwaForBPF
             }
 
             //旧検査項目コードの書き換え
-            userdata = ReplaceInspectItemCode(ref userdata, mMasterSheets.Tables[SETTING_SHEET_NAME_MULUTIITEMMAP]);
+            userdata = ReplaceInspectItemCode(ref userdata, mMasterSheets.Tables["項目マッピング複数読込"]);
 
             // 出力情報の一行分作成
             var outputrow = mOutputCsv.NewRow();        // カラムは、0始まり
@@ -512,22 +499,22 @@ namespace ConvertDaiwaForBPF
             foreach (var row in mItemMap)
             {
                 // 処理キャンセル
-                if(cancelToken.IsCancellationRequested)
+                if (cancelToken.IsCancellationRequested)
                 {
                     return false;
                 }
 
-                string outputtype = row.Field<string>(ITEMMAPING_OUTPUTTYPE).Trim();
+                string outputtype = row.Field<string>("出力形式").Trim();
                 if (outputtype == "該当なし")
                 {
                     continue;
                 }
 
-                var outputindex = int.Parse(row.Field<string>(ITEMMAPING_COLUMNNUM));     //列順は１始まり
+                var outputindex = int.Parse(row.Field<string>("列順"));     //列順は１始まり
                 var value = "";
 
                 // 固定値
-                var fixvalue = row.Field<string>(ITEMMAPING_FIXVALUE).Trim();
+                var fixvalue = row.Field<string>("固定値").Trim();
                 if (fixvalue != "")
                 {
                     value = fixvalue;
@@ -539,7 +526,7 @@ namespace ConvertDaiwaForBPF
                     //「参照人事」で指定した項目名で検索
                     try
                     {
-                        string hrcolumn = row.Field<string>(ITEMMAPING_REF_ITEM_HR).Trim();
+                        string hrcolumn = row.Field<string>("参照人事").Trim();
 
                         // 固定IDと人事データの確認、例外が発生しなければOK
                         var hr_id = mHRRows
@@ -560,7 +547,7 @@ namespace ConvertDaiwaForBPF
                 // 人事データ結合
                 if (value == "")
                 {
-                    var hrcolumn = row.Field<string>(ITEMMAPING_REF_ITEM_HR);
+                    var hrcolumn = row.Field<string>("参照人事");
                     if (hrcolumn != "")
                     {
                         // 人事の指定列名
@@ -585,7 +572,7 @@ namespace ConvertDaiwaForBPF
                 // 参照健診ヘッダーの取得
                 if (value == "")
                 {
-                    var inspectionHeader = row.Field<string>(ITEMMAPING_REF_ITEM_HDR).Trim();
+                    var inspectionHeader = row.Field<string>("参照健診ヘッダー").Trim();
                     if (inspectionHeader != "")
                     {
                         // 現状、健診実施日と健診実施機関番号のみ
@@ -608,7 +595,7 @@ namespace ConvertDaiwaForBPF
                 // 検査項目コードの検索
                 if (value == "")
                 {
-                    var inspectcord = row.Field<string>(ITEMMAPING_INSPECTIONITEMCODE).Trim();
+                    var inspectcord = row.Field<string>("検査項目コード").Trim();
                     if (inspectcord != "")
                     {
                         // 検査項目コードに半角英数以外が使われているか確認
@@ -633,7 +620,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // コードマッピング（属性が「コード」の場合、値の置換）
-                if (value != "" && row.Field<string>(ITEMMAPING_ATTRIBUTE) == "コード")
+                if (value != "" && row.Field<string>("属性") == "コード")
                 {
                     var codeid = row.Field<string>("コードID").Trim();
 
@@ -645,10 +632,10 @@ namespace ConvertDaiwaForBPF
                 if (value != "")
                 {
                     //種別
-                    var type = row.Field<string>(ITEMMAPING_TYPE).Trim();
+                    var type = row.Field<string>("種別").Trim();
 
                     // 種別が数値を期待しているのに、数値以外の値の場合はエラーとする
-                    value = CheckMappingType(type, value, userID, row.Field<string>(ITEMMAPING_ITEMNAME));
+                    value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
                 }
 
                 // 出力情報に指定列順で値をセット
@@ -666,7 +653,7 @@ namespace ConvertDaiwaForBPF
                         // 既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}
                         Dbg.ErrorWithView(Properties.Resources.E_VALUE_IS_ALREADY_EXIST
                             , userID
-                            , row.Field<string>(ITEMMAPING_ITEMNAME)
+                            , row.Field<string>("項目名")
                             , sourcevalue
                             , value);
                     }
@@ -702,7 +689,7 @@ namespace ConvertDaiwaForBPF
                 // 列順の項目を書き換え
                 foreach (var r in itemMap)
                 {
-                    str_arry[int.Parse(r.Field<string>(ITEMMAPING_COLUMNNUM)) - 1] = r.Field<string>(ITEMMAPING_ITEMNAME);
+                    str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
                 }
 
                 var dt = DateTime.Now;
@@ -746,7 +733,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
-        /// <returns>１ユーザー分の検査項目一覧</returns>
+        /// <returns>List<UserData> １ユーザー分の検査項目一覧</returns>
         private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
         {
             /*
@@ -803,7 +790,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="value"></param>
         /// <param name="codeid"></param>
         /// <param name="userID"></param>
-        /// <returns>コード変換した値</returns>
+        /// <returns>string コード変換した値</returns>
         private string GetCodeMapping(string value, string codeid, string userID)
         {
             // コードマッピング（属性が「コード」の場合、値の置換）
