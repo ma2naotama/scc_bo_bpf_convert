@@ -117,16 +117,14 @@ namespace ConvertDaiwaForBPF
         }
 
 
-
         /// <summary>
         /// CSVファイルの書き込み
         /// </summary>
         /// <param name="path"></param>
         /// <param name="dt"></param>
-        /// <param name="overwriteColumnName"></param>
+        /// <param name="overwriteColumnName">カラムの上書き</param>
         public void WriteFile(string path, DataTable dt, List<string> overwriteColumnName = null)
         {
-
             try
             {
                 if (dt != null && dt.Rows.Count > 0)
@@ -149,7 +147,17 @@ namespace ConvertDaiwaForBPF
                             throw ex;
                         }
 
-                        sb.AppendLine(string.Join(",", overwriteColumnName));
+                        // カンマ付きの文字列は、全体をダブルクォーテーションで囲む
+                        var fields = overwriteColumnName.Select(field =>
+                        {
+                            if (field.ToString().IndexOf(',') > 0)
+                            {
+                                return string.Concat("\"", field.ToString().Replace("\"", "\"\""), "\"");
+                            }
+                            return field.ToString();
+                        });
+
+                        sb.AppendLine(string.Join(",", fields));
                     }
                     else
                     {

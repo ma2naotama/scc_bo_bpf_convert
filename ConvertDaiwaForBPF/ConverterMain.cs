@@ -265,7 +265,8 @@ namespace ConvertDaiwaForBPF
                       .ToArray();
 
                 // 項目マッピングの順列の最大値と項目数（個数）の確認
-                if (mItemMap.Length != mItemMap.Max(r => int.Parse(r["列順"].ToString())))
+                var max = mItemMap.Max(r => int.Parse(r["列順"].ToString()));
+                if (mItemMap.Length != max)
                 {
                     throw new MyException(Properties.Resources.E_ITEMMAPPING_INDEX_FAILE);
                 }
@@ -680,11 +681,11 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// CSVの書き出し
         /// </summary>
-        /// <param name="datattable"></param>
+        /// <param name="datatable"></param>
         /// <returns></returns>
-        private void WriteCsv(ref DataRow[] itemMap, ref DataTable datattable, string outputPath)
+        private void WriteCsv(ref DataRow[] itemMap, ref DataTable datatable, string outputPath)
         {
-            Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datattable.Rows.Count.ToString());
+            Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datatable.Rows.Count.ToString());
 
             try
             {
@@ -699,14 +700,15 @@ namespace ConvertDaiwaForBPF
                 // 列順の項目を書き換え
                 foreach (var r in itemMap)
                 {
-                    str_arry[int.Parse(r.Field<string>("列順")) - 1] = r.Field<string>("項目名");
+                    var itemname = r.Field<string>("項目名");
+                    str_arry[int.Parse(r.Field<string>("列順")) - 1] = itemname;
                 }
 
                 var dt = DateTime.Now;
                 var outptfilename = ".\\" + String.Format(OUTPUTFILENAME, dt.ToString("yyyyMMdd"));       // 出力ファイル名
 
                 var csv = new UtilCsv();
-                csv.WriteFile(outputPath + outptfilename, datattable, str_arry);
+                csv.WriteFile(outputPath + outptfilename, datatable, str_arry);
             }
             catch (Exception ex)
             {
