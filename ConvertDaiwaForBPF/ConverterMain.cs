@@ -445,7 +445,13 @@ namespace ConvertDaiwaForBPF
 
 
         // 団体IDの列順
-        const int INDEX_OF_ORGANIZATION_ID = 4;
+        const int ITEMMAPPING_INDEX_OF_ORGANIZATIONID = 4;
+
+        // 出力形式の値
+        const string ITEMMAPPING_VALUE_OF_OUTPUTTYPE = "該当なし";
+
+        // 属性の値
+        const string ITEMMAPPING_VALUE_OF_ATTRIBUTE = "コード";
 
         /// <summary>
         /// 変換処理メイン
@@ -505,7 +511,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 string outputtype = row.Field<string>("出力形式").Trim();
-                if (outputtype == "該当なし")
+                if (outputtype == ITEMMAPPING_VALUE_OF_OUTPUTTYPE)
                 {
                     continue;
                 }
@@ -521,7 +527,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 団体IDの確認(固定)
-                if (outputindex == INDEX_OF_ORGANIZATION_ID)
+                if (outputindex == ITEMMAPPING_INDEX_OF_ORGANIZATIONID)
                 {
                     //「参照人事」で指定した項目名で検索
                     try
@@ -620,7 +626,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // コードマッピング（属性が「コード」の場合、値の置換）
-                if (value != "" && row.Field<string>("属性") == "コード")
+                if (value != "" && row.Field<string>("属性") == ITEMMAPPING_VALUE_OF_ATTRIBUTE)
                 {
                     var codeid = row.Field<string>("コードID").Trim();
 
