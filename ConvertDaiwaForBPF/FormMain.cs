@@ -94,6 +94,9 @@ namespace ConvertDaiwaForBPF
             if (fbDialog.ShowDialog() == DialogResult.OK)
             {
                 textBoxReceivePath.Text = fbDialog.SelectedPath;
+
+                // キャレットを文字列の最後に移動
+                textBoxReceivePath.Select(textBoxReceivePath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
@@ -111,6 +114,9 @@ namespace ConvertDaiwaForBPF
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxReceivePath.Text = files[0];
+
+                // キャレットを文字列の最後に移動
+                textBoxReceivePath.Select(textBoxReceivePath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
@@ -165,6 +171,9 @@ namespace ConvertDaiwaForBPF
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 textBoxHRPath.Text = ofd.FileName;
+
+                // キャレットを文字列の最後に移動
+                textBoxHRPath.Select(textBoxHRPath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
@@ -181,6 +190,9 @@ namespace ConvertDaiwaForBPF
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxHRPath.Text = files[0];
+
+                // キャレットを文字列の最後に移動
+                textBoxHRPath.Select(textBoxHRPath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
@@ -232,6 +244,9 @@ namespace ConvertDaiwaForBPF
             if (fbDialog.ShowDialog() == DialogResult.OK)
             {
                 textBoxOutputPath.Text = fbDialog.SelectedPath;
+
+                // キャレットを文字列の最後に移動
+                textBoxOutputPath.Select(textBoxOutputPath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
@@ -248,6 +263,9 @@ namespace ConvertDaiwaForBPF
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 textBoxOutputPath.Text = files[0];
+
+                // キャレットを文字列の最後に移動
+                textBoxOutputPath.Select(textBoxOutputPath.Text.Length, 0);
             }
 
             CheckActiveRunButton();
