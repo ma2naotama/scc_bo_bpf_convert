@@ -449,7 +449,7 @@ namespace ConvertDaiwaForBPF
                             , row["健診実施機関名称"].ToString().Trim());
                     }
 
-                    // 重複したデータをそのまま出力する
+                    // 重複したデータをそのままログに出力する
                 }
 
             }
@@ -540,7 +540,7 @@ namespace ConvertDaiwaForBPF
                     return false;
                 }
 
-                string outputtype = row.Field<string>("出力形式").Trim();
+                var outputtype = row.Field<string>("出力形式").Trim();
                 if (outputtype == ITEMMAPPING_VALUE_OF_OUTPUTTYPE)
                 {
                     continue;
