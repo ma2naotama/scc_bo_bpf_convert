@@ -672,24 +672,9 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 出力情報に指定列順で値をセット
-                var sourcevalue = outputrow[outputindex - 1].ToString();
-
-                // 項目が重複しているか確認
-                if (string.IsNullOrEmpty(sourcevalue))
+                if (!string.IsNullOrEmpty(value))
                 {
                     outputrow[outputindex - 1] = value;
-                }
-                else
-                {
-                    if (sourcevalue != value)
-                    {
-                        // 既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}
-                        Dbg.ErrorWithView(Properties.Resources.E_VALUE_IS_ALREADY_EXIST
-                            , userID
-                            , row.Field<string>("項目名")
-                            , sourcevalue
-                            , value);
-                    }
                 }
             }
 
