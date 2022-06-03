@@ -70,6 +70,24 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   検査項目に重複があります。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPLICATE_INSPECTITEM {
+            get {
+                return ResourceManager.GetString("E_DUPLICATE_INSPECTITEM", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_DUPLICATE_INSPECTITEM_INFO {
+            get {
+                return ResourceManager.GetString("E_DUPLICATE_INSPECTITEM_INFO", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   受診者の重複があります。重複件数：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_COUNT {
@@ -79,7 +97,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   重複があります。　個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
+        ///   健診ヘッダーに重複があります。個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_INFO {
             get {

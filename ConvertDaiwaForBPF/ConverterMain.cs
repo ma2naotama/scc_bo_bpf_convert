@@ -615,15 +615,39 @@ namespace ConvertDaiwaForBPF
                         }
 
                         // ユーザーデータから検査値を抽出
-                        var retvalue = userdata.AsEnumerable()
+                        var retvalueArray = userdata.AsEnumerable()
                                 .Where(x => x.InspectionItemCode == inspectcord)
                                 .Select(x => x.Value)
-                                .FirstOrDefault();
+                                .ToArray();
 
-                        // 検査値
-                        if (!string.IsNullOrEmpty(retvalue))
+                        // 検査値がある
+                        if (retvalueArray != null && retvalueArray.Count()>0)
                         {
-                            value = retvalue;
+                            // 検査項目の重複確認
+                            if (retvalueArray.Count() >= 2)
+                            {
+                                // 検査値が同じかどうか確認
+                                if (retvalueArray.Distinct().Count() >= 2)  //同じ値なら1になる。
+                                {
+                                    // 検査値が違う場合エラー
+                                    foreach (var v in retvalueArray)
+                                    {
+                                        // 検査項目に重複があります。個人番号：{0}　検査項目コード：{1}　検査値：{2}
+                                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_INSPECTITEM_INFO
+                                                , userID
+                                                , inspectcord
+                                                , v);
+                                    }
+
+                                    throw new MyException(string.Format(Properties.Resources.E_DUPLICATE_INSPECTITEM));
+                                }
+                            }
+
+                            // 検査値
+                            if (!string.IsNullOrEmpty(retvalueArray[0]))
+                            {
+                                value = retvalueArray[0];
+                            }
                         }
                     }
                 }
@@ -793,6 +817,7 @@ namespace ConvertDaiwaForBPF
                         // コメントのTrimはしない
                         Value = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
                     };
+
 
             return merged.ToList();
         }
