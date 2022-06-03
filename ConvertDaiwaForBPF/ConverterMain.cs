@@ -633,13 +633,13 @@ namespace ConvertDaiwaForBPF
                                     foreach (var v in retvalueArray)
                                     {
                                         // 検査項目に重複があります。個人番号：{0}　検査項目コード：{1}　検査値：{2}
-                                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_INSPECTITEM_INFO
+                                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_INSPECTCORD_INFO
                                                 , userID
                                                 , inspectcord
                                                 , v);
                                     }
 
-                                    throw new MyException(string.Format(Properties.Resources.E_DUPLICATE_INSPECTITEM));
+                                    throw new MyException(string.Format(Properties.Resources.E_DUPLICATE_INSPECTCORD));
                                 }
                             }
 

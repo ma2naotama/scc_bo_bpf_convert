@@ -72,18 +72,18 @@ namespace ConvertDaiwaForBPF.Properties {
         /// <summary>
         ///   検査項目に重複があります。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string E_DUPLICATE_INSPECTITEM {
+        internal static string E_DUPLICATE_INSPECTCORD {
             get {
-                return ResourceManager.GetString("E_DUPLICATE_INSPECTITEM", resourceCulture);
+                return ResourceManager.GetString("E_DUPLICATE_INSPECTCORD", resourceCulture);
             }
         }
         
         /// <summary>
         ///   検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2} に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string E_DUPLICATE_INSPECTITEM_INFO {
+        internal static string E_DUPLICATE_INSPECTCORD_INFO {
             get {
-                return ResourceManager.GetString("E_DUPLICATE_INSPECTITEM_INFO", resourceCulture);
+                return ResourceManager.GetString("E_DUPLICATE_INSPECTCORD_INFO", resourceCulture);
             }
         }
         
@@ -273,15 +273,6 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string E_TASK_ERROR {
             get {
                 return ResourceManager.GetString("E_TASK_ERROR", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3} に類似しているローカライズされた文字列を検索します。
-        /// </summary>
-        internal static string E_VALUE_IS_ALREADY_EXIST {
-            get {
-                return ResourceManager.GetString("E_VALUE_IS_ALREADY_EXIST", resourceCulture);
             }
         }
         

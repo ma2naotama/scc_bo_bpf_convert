@@ -120,10 +120,10 @@
   <data name="E_CORDMAPPING_FILED" xml:space="preserve">
     <value>コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1}</value>
   </data>
-  <data name="E_DUPLICATE_INSPECTITEM" xml:space="preserve">
+  <data name="E_DUPLICATE_INSPECTCORD" xml:space="preserve">
     <value>検査項目に重複があります。</value>
   </data>
-  <data name="E_DUPLICATE_INSPECTITEM_INFO" xml:space="preserve">
+  <data name="E_DUPLICATE_INSPECTCORD_INFO" xml:space="preserve">
     <value>検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2}</value>
   </data>
   <data name="E_DUPLICATE_USERS_COUNT" xml:space="preserve">
@@ -188,9 +188,6 @@
   </data>
   <data name="E_TASK_ERROR" xml:space="preserve">
     <value>タスク処理でエラーがおきました。</value>
-  </data>
-  <data name="E_VALUE_IS_ALREADY_EXIST" xml:space="preserve">
-    <value>既に別の値が設定されています。個人番号：{0}　項目名：{1}　元値：{2}　置き換え値：{3}</value>
   </data>
   <data name="MSG_CONVERT_CANCEL" xml:space="preserve">
     <value>変換キャンセル</value>
