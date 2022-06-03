@@ -110,18 +110,20 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// warningとして log ファイルへの書き出し
+        ///  ログ画面への表示とwarningとして log ファイルへの書き出し
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="args"></param>
-        public static void Warn(String msg, params string[] args)
+        public static void WarnWithView(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
+
+            _ViewLog(logText);
             _logger.Warn(logText);
         }
 
         /// <summary>
-        /// ログ画面への表示とerror log ファイルへの書き出し
+        /// ログ画面への表示とerrorとして log ファイルへの書き出し
         /// </summary>
         /// <param name="errormsg"></param>
         /// <param name="args"></param>

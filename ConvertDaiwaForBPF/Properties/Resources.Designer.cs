@@ -70,7 +70,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査項目に重複があります。 に類似しているローカライズされた文字列を検索します。
+        ///   健診データの検査項目に検査値の違う重複があります。 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_INSPECTCORD {
             get {
@@ -327,6 +327,15 @@ namespace ConvertDaiwaForBPF.Properties {
         internal static string MSG_LABEL_INPUT_OUTPUT {
             get {
                 return ResourceManager.GetString("MSG_LABEL_INPUT_OUTPUT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string WRN_DUPLICATE_INSPECTCORD {
+            get {
+                return ResourceManager.GetString("WRN_DUPLICATE_INSPECTCORD", resourceCulture);
             }
         }
     }

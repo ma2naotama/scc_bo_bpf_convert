@@ -616,7 +616,7 @@ namespace ConvertDaiwaForBPF
 
                         // ユーザーデータから検査値を抽出
                         var retvalueArray = userdata.AsEnumerable()
-                                .Where(x => x.InspectionItemCode == inspectcord)
+                                .Where(x => x.InspectionItemCode == inspectcord && x.Value != "")
                                 .Select(x => x.Value)
                                 .ToArray();
 
@@ -641,13 +641,18 @@ namespace ConvertDaiwaForBPF
 
                                     throw new MyException(string.Format(Properties.Resources.E_DUPLICATE_INSPECTCORD));
                                 }
+                                else
+                                {
+                                    // 検査項目に重複があります。個人番号：{0}　検査項目コード：{1}　検査値：{2}
+                                    Dbg.WarnWithView(Properties.Resources.WRN_DUPLICATE_INSPECTCORD
+                                            , userID
+                                            , inspectcord
+                                            , retvalueArray[0]);
+                                }
                             }
 
                             // 検査値
-                            if (!string.IsNullOrEmpty(retvalueArray[0]))
-                            {
-                                value = retvalueArray[0];
-                            }
+                            value = retvalueArray[0];
                         }
                     }
                 }

@@ -121,7 +121,7 @@
     <value>コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1}</value>
   </data>
   <data name="E_DUPLICATE_INSPECTCORD" xml:space="preserve">
-    <value>検査項目に重複があります。</value>
+    <value>健診データの検査項目に検査値の違う重複があります。</value>
   </data>
   <data name="E_DUPLICATE_INSPECTCORD_INFO" xml:space="preserve">
     <value>検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2}</value>
@@ -206,5 +206,8 @@
   </data>
   <data name="MSG_LABEL_INPUT_OUTPUT" xml:space="preserve">
     <value>・出力先</value>
+  </data>
+  <data name="WRN_DUPLICATE_INSPECTCORD" xml:space="preserve">
+    <value>検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2}</value>
   </data>
 </root>
