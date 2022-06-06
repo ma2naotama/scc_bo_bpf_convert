@@ -938,6 +938,11 @@ namespace ConvertDaiwaForBPF
                     .Where(x => x.Field<string>(hrcolumn) == userID)
                     .First();
             }
+            catch (ArgumentException ex)
+            {
+                // 処理中断
+                throw new MyException(string.Format(Properties.Resources.E_NOT_EXIST_ITEM_IN_HR, hrcolumn));
+            }
             catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
