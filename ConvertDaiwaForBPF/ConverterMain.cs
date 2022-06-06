@@ -26,6 +26,8 @@ namespace ConvertDaiwaForBPF
         // 項目マッピング
         private DataRow[] mItemMap = null;
 
+        private string mOrganizationName = null;
+
         // コードマッピング
         private DataRow[] mCordMap = null;
 
@@ -104,8 +106,13 @@ namespace ConvertDaiwaForBPF
             mPathOutput = pathOutput;
 
             mItemMap = null;
+            mOrganizationName = null;
+
             mCordMap = null;
+
             mHRRows = null;
+            mHRJoinKey = null;
+
             mOutputCsv = null;
 
             // キャンセルフラグの初期化
@@ -278,6 +285,19 @@ namespace ConvertDaiwaForBPF
                 {
                     mOutputCsv.Columns.Add("" + row["列順"], typeof(string));
                 }
+
+                // 団体名の取得
+                mOrganizationName = mMasterSheets.Tables["項目マッピング"].AsEnumerable()
+                        .Where(x => x["項目名"].ToString() == "団体名称")
+                        .Select(x => x.Field<string>("固定値").ToString().Trim())
+                        .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(mOrganizationName))
+                {
+                    // 処理中断
+                    throw new MyException(Properties.Resources.E_NO_ORGANIZATION_NAME);
+                }
+
 
                 // コードマッピング初期化
                 mCordMap = mMasterSheets.Tables["コードマッピング"].AsEnumerable()
@@ -690,7 +710,7 @@ namespace ConvertDaiwaForBPF
         }
 
         // 出力ファイル名
-        const string OUTPUTFILENAME = "Converted_{0}.csv";
+        const string OUTPUTFILENAME = "Converted_{0}_{1}.csv";
 
         /// <summary>
         /// CSVの書き出し
@@ -719,7 +739,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 var dt = DateTime.Now;
-                var outptfilename = ".\\" + String.Format(OUTPUTFILENAME, dt.ToString("yyyyMMdd"));       // 出力ファイル名
+                var outptfilename = ".\\" + String.Format(OUTPUTFILENAME, mOrganizationName, dt.ToString("yyyyMMdd"));       // 出力ファイル名
 
                 var csv = new UtilCsv();
                 csv.WriteFile(outputPath + outptfilename, datatable, str_arry);

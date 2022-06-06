@@ -196,6 +196,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   団体名称がありません。 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_NO_ORGANIZATION_NAME {
+            get {
+                return ResourceManager.GetString("E_NO_ORGANIZATION_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   人事データに該当ユーザーがいません。個人番号：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_NO_USERDATA {
