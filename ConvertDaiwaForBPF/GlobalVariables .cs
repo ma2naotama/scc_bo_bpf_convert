@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ConvertDaiwaForBPF
 {
@@ -23,7 +19,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 健診ヘッダーのカラム
         /// </summary>
-        public static List<string> ColumnHDR = new List<string>() 
+        public static List<string> ColumnHDR = new List<string>()
         {
             "組合C",
             "健診基本情報管理番号",

@@ -12,12 +12,12 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// キャンセルフラグ
         /// </summary>
-        public bool Cancel { get; set; }
+        public bool Cancel { get; set; } = false;
 
         /// <summary>
         /// 完了フラグ
         /// </summary>
-        public bool Completed { get; set; }
+        public bool Completed { get; set; } = false;
 
         /// <summary>
         /// キャンセル用トークン
@@ -25,18 +25,11 @@ namespace ConvertDaiwaForBPF
         private CancellationTokenSource mTtokenSource = null;
 
         /// <summary>
-        /// コンストラクタ
-        /// </summary>
-        public BaseThread()
-        {
-        }
-
-        /// <summary>
         /// マルチスレッドの処理
         /// </summary>
-        /// <returns></returns>
+        /// <param name="ct"></param>
+        /// <returns>bool false:タスクのキャンセル、true：正常終了</returns>
         public abstract bool MultiThreadMethod(CancellationToken ct);
-
 
         /// <summary>
         /// 非同期処理開始
@@ -45,10 +38,12 @@ namespace ConvertDaiwaForBPF
         {
             // 変数初期化
             Cancel = false;
+
             Completed = false;
 
             // キャンセルトークンソースを生成し、キャンセルトークンを取得します。
             mTtokenSource = new CancellationTokenSource();
+
             var ct = mTtokenSource.Token;
 
             // 非同期処理（マルチスレッド）開始
@@ -61,16 +56,16 @@ namespace ConvertDaiwaForBPF
                     // Were we already canceled?
                     ct.ThrowIfCancellationRequested();
 
-                    if(!MultiThreadMethod(ct))
+                    if (!MultiThreadMethod(ct))
                     {
                         // プログラム上でキャンセルとなった場合
                         Dbg.ViewLog(Properties.Resources.MSG_CONVERT_CANCEL);
 
                         // Taskを終了する.
                         Cancel = true;
+
                         return;
                     }
-
                 }, ct);
 
             }
@@ -102,6 +97,7 @@ namespace ConvertDaiwaForBPF
             if (mTtokenSource != null)
             {
                 mTtokenSource.Cancel();
+
                 mTtokenSource = null;
 
                 return true;
@@ -109,6 +105,5 @@ namespace ConvertDaiwaForBPF
 
             return false;
         }
-
     }
 }

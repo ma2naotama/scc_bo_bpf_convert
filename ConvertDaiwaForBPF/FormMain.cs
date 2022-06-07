@@ -4,22 +4,22 @@ using System.Windows.Forms;
 namespace ConvertDaiwaForBPF
 {
     /// <summary>
-    /// 起動画面
+    /// 健診メインフォーム
     /// </summary>
     public partial class FormMain : Form
     {
         /// <summary>
-        /// FormMainのインスタンス
+        /// 健診メインフォームのインスタンス
         /// </summary>
         private static FormMain mInstance = null;
 
         /// <summary>
-        /// ConverterMainのインスタンス
+        /// 変換処理スレッドのインスタンス
         /// </summary>
         private ConverterMain mConverterMain = null;
 
         /// <summary>
-        /// 健診メイン
+        /// コンストラクタ
         /// </summary>
         public FormMain()
         {
@@ -29,20 +29,19 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// 健診メインのフォームの読み込み
+        /// ロード処理
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void FormMain_Load(object sender, EventArgs e)
         {
-
             textBoxOutputPath.Text = "..\\";
         }
 
         /// <summary>
-        /// 起動画面のインスタンスの取得
+        /// 健診メインフォームのインスタンス取得
         /// </summary>
-        /// <returns></returns>
+        /// <returns>FormMain 健診メインのインスタンス</returns>
         public static FormMain GetInstance()
         {
             return mInstance;
@@ -56,34 +55,38 @@ namespace ConvertDaiwaForBPF
         {
             if (textBox_Log.InvokeRequired)
             {
-                //別スレッドから呼び出されるとエラーになる為、スレッドセーフな処理にする
-                //再起呼び出し
+                // 別スレッドから呼び出されるとエラーになる為、スレッドセーフな処理にする
+                // 再起呼び出し
                 Action safeWrite = delegate { ViewLog($"{logText}"); };
+
                 textBox_Log.Invoke(safeWrite);
             }
             else
             {
-                string str = "[" + System.DateTime.Now.ToString() + "]" + logText + "\r\n";
+                var str = "[" + DateTime.Now.ToString() + "]" + logText + "\r\n";
+
                 textBox_Log.SelectionStart = textBox_Log.Text.Length;
+
                 textBox_Log.SelectionLength = 0;
+
                 textBox_Log.SelectedText = str;
             }
         }
 
-
         /// <summary>
-        /// 受領フォルダパスの選択ボタン
+        /// 受領フォルダ選択ボタンの押下イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void buttonReceivePath_Click(object sender, EventArgs e)
         {
-            var fbDialog = new FolderBrowserDialog();
+            var fbDialog = new FolderBrowserDialog
+            {
+                // ダイアログの説明文を指定する
+                Description = "受領フォルダの選択"
+            };
 
-            // ダイアログの説明文を指定する
-            fbDialog.Description = "受領フォルダの選択";
-
-            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+            var stCurrentDir = System.IO.Directory.GetCurrentDirectory();
 
             // デフォルトのフォルダを指定する
             fbDialog.SelectedPath = stCurrentDir;
@@ -99,7 +102,8 @@ namespace ConvertDaiwaForBPF
                 textBoxReceivePath.Select(textBoxReceivePath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
 
@@ -113,13 +117,15 @@ namespace ConvertDaiwaForBPF
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
                 var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
                 textBoxReceivePath.Text = files[0];
 
                 // キャレットを文字列の最後に移動
                 textBoxReceivePath.Select(textBoxReceivePath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
@@ -131,7 +137,6 @@ namespace ConvertDaiwaForBPF
         {
             //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
-
         }
 
         /// <summary>
@@ -141,12 +146,12 @@ namespace ConvertDaiwaForBPF
         /// <param name="e"></param>
         private void textBoxReceivePath_TextChanged(object sender, EventArgs e)
         {
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
-
         /// <summary>
-        /// 人事パスの選択ボタン
+        /// 人事データ選択ボタンの押下イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -159,11 +164,11 @@ namespace ConvertDaiwaForBPF
                "CSVファイル|*.csv"
             };
 
-            //[ファイルの種類]に表示される選択肢を指定する
-            //指定しないとすべてのファイルが表示される
+            // [ファイルの種類]に表示される選択肢を指定する
+            // 指定しないとすべてのファイルが表示される
             ofd.Filter = String.Join("|", Csvfilters);
 
-            string stCurrentDir = System.IO.Directory.GetCurrentDirectory();
+            var stCurrentDir = System.IO.Directory.GetCurrentDirectory();
 
             // デフォルトのフォルダを指定する
             ofd.InitialDirectory = stCurrentDir;
@@ -176,11 +181,12 @@ namespace ConvertDaiwaForBPF
                 textBoxHRPath.Select(textBoxHRPath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 人事パスのマウスドラッグイベント
+        /// 人事データパスのマウスドラッグイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -195,39 +201,39 @@ namespace ConvertDaiwaForBPF
                 textBoxHRPath.Select(textBoxHRPath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
-
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 人事パスのマウスドラッグイベント
+        /// 人事データパスのマウスドラッグイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void textBoxHRPath_DragEnter(object sender, DragEventArgs e)
         {
-            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
+            // ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
         }
 
         /// <summary>
-        /// 人事パスの内容変更イベント
+        /// 人事データパスの内容変更イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void textBoxHRPath_TextChanged(object sender, EventArgs e)
         {
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 出力フォルダパスの選択ボタン
+        /// 出力先選択ボタンの押下イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void buttonOutputPath_Click(object sender, EventArgs e)
         {
-
             var fbDialog = new FolderBrowserDialog();
 
             // ダイアログの説明文を指定する
@@ -249,11 +255,12 @@ namespace ConvertDaiwaForBPF
                 textBoxOutputPath.Select(textBoxOutputPath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 出力フォルダパスのマウスドラッグイベント
+        /// 出力先パスのマウスドラッグイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -268,73 +275,76 @@ namespace ConvertDaiwaForBPF
                 textBoxOutputPath.Select(textBoxOutputPath.Text.Length, 0);
             }
 
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 出力フォルダパスのマウスドラッグイベント
+        /// 出力先パスのマウスドラッグイベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void textBoxOutputPath_DragEnter(object sender, DragEventArgs e)
         {
-            //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
+            // ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
-
         }
 
         /// <summary>
-        /// 出力フォルダパスの内容変更イベント
+        /// 出力先パスの内容変更イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void textBoxOutputPath_TextChanged(object sender, EventArgs e)
         {
-            CheckActiveRunButton();
+            // 実行ボタン活性／非活性の設定
+            SetEnabledConvertButton();
         }
 
         /// <summary>
-        /// 変換処理の表示非表示の判定
+        /// 実行ボタン活性／非活性の設定
         /// </summary>
-        private void CheckActiveRunButton()
+        private void SetEnabledConvertButton()
         {
-            //実行ボタンの非表示
-            buttonConvert.Enabled = false;
-
-            if (!string.IsNullOrEmpty(textBoxReceivePath.Text) && !string.IsNullOrEmpty(textBoxHRPath.Text) && !string.IsNullOrEmpty(textBoxOutputPath.Text))
+            // 受領フォルダ入力済みかつ、
+            // 人事データ入力済みかつ、
+            // 出力先入力済み
+            if (!string.IsNullOrEmpty(textBoxReceivePath.Text) &&
+                !string.IsNullOrEmpty(textBoxHRPath.Text) &&
+                !string.IsNullOrEmpty(textBoxOutputPath.Text))
             {
-                //実行ボタンの表示
+                // 実行ボタンの活性
                 buttonConvert.Enabled = true;
+            }
+            else
+            {
+                // 実行ボタンの非活性
+                buttonConvert.Enabled = false;
             }
         }
 
         /// <summary>
-        /// 変換処理実行
+        /// 実行ボタンの押下イベント
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void buttonConvert_Click(object sender, EventArgs e)
         {
             mConverterMain = new ConverterMain();
-            mConverterMain.InitConvert(
-                textBoxReceivePath.Text
-                , textBoxHRPath.Text
-                , textBoxOutputPath.Text
-            );
+
+            mConverterMain.InitConvert(textBoxReceivePath.Text, textBoxHRPath.Text, textBoxOutputPath.Text);
 
             using (FormProgressDialog dlg = new FormProgressDialog())
             {
-                //マルチスレッド用のクラスを渡す
+                // マルチスレッド用のクラスを渡す
                 dlg.SetThreadClass(mConverterMain);
 
-                //プログレスバーの表示とマルチスレッドスタート
+                // プログレスバーの表示とマルチスレッドスタート
                 if (dlg.ShowDialog(this) == DialogResult.OK)
                 {
                     MessageBox.Show(Properties.Resources.MSG_CONVERT_FINISHED.ToString());
                 }
             }
-
         }
-
     }
 }

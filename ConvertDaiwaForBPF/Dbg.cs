@@ -17,14 +17,6 @@ namespace ConvertDaiwaForBPF
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// コンストラクタ
-        /// </summary>
-        public Dbg()
-        {
-
-        }
-
-        /// <summary>
         /// ログファイルのパスの設定
         /// </summary>
         /// <param name="path"></param>
@@ -32,15 +24,17 @@ namespace ConvertDaiwaForBPF
         {
             var rootLogger = ((Hierarchy)_logger.Logger.Repository).Root;
 
-            var appender = rootLogger.GetAppender("logFileAbc") as FileAppender; //
+            var appender = rootLogger.GetAppender("logFileAbc") as FileAppender;
 
             //var filename = Path.GetFileName(appender.File);
 
             var dt = DateTime.Now;
+
             var datetime = String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名
-            
+
             // 出力先フォルダとログファイル名をC#で変更したい
-            appender.File = path +"\\"+ datetime;
+            appender.File = path + "\\" + datetime;
+
             appender.ActivateOptions();
         }
 
@@ -52,7 +46,9 @@ namespace ConvertDaiwaForBPF
         private static void _ViewLog(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
+
             var main = FormMain.GetInstance();
+
             if (main == null)
             {
                 Console.WriteLine(logText);
@@ -70,9 +66,9 @@ namespace ConvertDaiwaForBPF
         public static void ViewLog(String msg, params string[] args)
         {
             _ViewLog(msg, args);
+
             Debug(msg, args);
         }
-
 
         /// <summary>
         /// errorとして ログファイルへの書き出し
@@ -82,9 +78,9 @@ namespace ConvertDaiwaForBPF
         public static void Error(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
+
             _logger.Error(logText);
         }
-
 
         /// <summary>
         /// debugとして ログファイルへの書き出し
@@ -94,9 +90,9 @@ namespace ConvertDaiwaForBPF
         public static void Debug(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
+
             _logger.Debug(logText);
         }
-
 
         /// <summary>
         /// infoとして log ファイルへの書き出し
@@ -106,6 +102,7 @@ namespace ConvertDaiwaForBPF
         public static void Info(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
+
             _logger.Info(logText);
         }
 
@@ -119,6 +116,7 @@ namespace ConvertDaiwaForBPF
             var logText = string.Format(msg, args);
 
             _ViewLog(logText);
+
             _logger.Warn(logText);
         }
 
@@ -132,14 +130,14 @@ namespace ConvertDaiwaForBPF
             _ViewLog(string.Format(errormsg, args));
 
             var stackFrames = new StackTrace().GetFrames();
+
             var callingframe = stackFrames.ElementAt(1);
 
             var method = callingframe.GetMethod().Name;
 
-            var logText = string.Format("[" + method +"]"+ errormsg, args);
+            var logText = string.Format("[" + method + "]" + errormsg, args);
 
             _logger.Error(logText);
         }
-
     }
 }

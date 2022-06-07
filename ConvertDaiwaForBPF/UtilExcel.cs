@@ -22,6 +22,7 @@ namespace ConvertDaiwaForBPF
         public UtilExcel()
         {
             var option = new ExcelOption();
+
             mExcelOption.Add(option);
         }
 
@@ -33,9 +34,11 @@ namespace ConvertDaiwaForBPF
         {
             // シート番号で検索
             var optindex = mExcelOption.FindIndex(x => x.SheetName == option.SheetName);
+
             if (optindex < 0)
             {
                 mExcelOption.Add(option);
+
                 return;
             }
 
@@ -63,6 +66,7 @@ namespace ConvertDaiwaForBPF
         private ExcelOption GetExcelOption(string sheetName)
         {
             var option = mExcelOption.Find(x => x.SheetName == sheetName);
+
             if (option == null)
             {
                 return new ExcelOption();
@@ -87,6 +91,7 @@ namespace ConvertDaiwaForBPF
             {
                 // 行、列の順に指定することで値を取得する
                 var cell = worksheet.Cell(rowIndex, col + columnStart);
+
                 if (cell == null)
                 {
                     continue;
@@ -136,6 +141,7 @@ namespace ConvertDaiwaForBPF
                         // 最大カラム数の確認
                         // 取得するセルの最大カラム番号（個数ではなく番号）
                         var columnNum = worksheet.LastColumnUsed().ColumnNumber();
+
                         if (columnNum < 0)
                         {
                             new MyException(string.Format(Properties.Resources.E_EMPTY_SHEET, sheeetname));
@@ -143,6 +149,7 @@ namespace ConvertDaiwaForBPF
 
                         // 取得するセルの最大行数
                         var RowsMax = worksheet.LastRowUsed().RowNumber();
+
                         if (RowsMax <= 0)
                         {
                             new MyException(string.Format(Properties.Resources.E_EMPTY_SHEET, sheeetname));
@@ -150,6 +157,7 @@ namespace ConvertDaiwaForBPF
 
                         // シート名で検索
                         var option = GetExcelOption(sheeetname);
+
                         if (option != null)
                         {
                             if (columnNum > option.GetColumnMax())
@@ -158,16 +166,14 @@ namespace ConvertDaiwaForBPF
                             }
                         }
 
-                        var dt = new DataTable();
-
-                        // シート名保存
-                        dt.TableName = sheeetname;
+                        var dt = new DataTable
+                        {
+                            // シート名保存
+                            TableName = sheeetname
+                        };
 
                         // 最初の行
-                        var row = GetRow(worksheet
-                            , option.HeaderRowStartNumber
-                            , option.HeaderColumnStartNumber
-                            , columnNum);
+                        var row = GetRow(worksheet, option.HeaderRowStartNumber, option.HeaderColumnStartNumber, columnNum);
 
                         for (var i = 0; i < columnNum; i++)
                         {
@@ -180,12 +186,10 @@ namespace ConvertDaiwaForBPF
                         // 実データの開始行から開始
                         for (var rownum = option.DataRowStartNumber; rownum <= RowsMax; rownum++)
                         {
-                            row = GetRow(worksheet
-                                , rownum
-                                , option.HeaderColumnStartNumber
-                                , columnNum);
+                            row = GetRow(worksheet, rownum, option.HeaderColumnStartNumber, columnNum);
 
                             var r = dt.NewRow();
+
                             for (var i = 0; i < row.Count; i++)
                             {
                                 r[i] = row[i];
@@ -199,13 +203,12 @@ namespace ConvertDaiwaForBPF
             catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
+
                 throw ex;
             }
 
             // 全シート分のDataTableを返す
             return dataSet;
         }
-
     }
 }
-

@@ -5,10 +5,13 @@ using System.Windows.Forms;
 namespace ConvertDaiwaForBPF
 {
     /// <summary>
-    /// ダイアログ表示
+    /// 変換中ダイアログ
     /// </summary>
     public partial class FormProgressDialog : Form
     {
+        /// <summary>
+        /// マルチスレッド
+        /// </summary>
         private BaseThread mBase = null;
 
         const string TITLE_MESSAGE_START = "変換中";
@@ -22,6 +25,10 @@ namespace ConvertDaiwaForBPF
             InitializeComponent();
         }
 
+        /// <summary>
+        /// フォームのCreateParamsプロパティをオーバーライド
+        /// 「閉じる」ボタンが無効状態となり、押すことができなくなります
+        /// </summary>
         protected override CreateParams CreateParams
         {
             [SecurityPermission(SecurityAction.Demand,
@@ -30,12 +37,16 @@ namespace ConvertDaiwaForBPF
             {
                 const int CS_NOCLOSE = 0x200;
                 CreateParams cp = base.CreateParams;
-                cp.ClassStyle = cp.ClassStyle | CS_NOCLOSE;
+                cp.ClassStyle |= CS_NOCLOSE;
 
                 return cp;
             }
         }
 
+        /// <summary>
+        /// 変換中ダイアログの読み込み
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnLoad(EventArgs e)
         {
             Text = TITLE_MESSAGE_START;
@@ -43,7 +54,7 @@ namespace ConvertDaiwaForBPF
             progressBar.MarqueeAnimationSpeed = 30;
             progressBar.Style = ProgressBarStyle.Marquee;
 
-            //マルチスレッドのクラスがない場合は、何もしないで閉じる
+            // マルチスレッドのクラスがない場合は、何もしないで閉じる
             if (mBase == null)
             {
                 DialogResult = DialogResult.Cancel;
@@ -51,15 +62,19 @@ namespace ConvertDaiwaForBPF
                 return;
             }
 
-            //タイマー開始
+            // タイマー開始
             timerProgress.Enabled = true;
             timerProgress.Interval = 1;
 
-            //マルチスレッドスタート
+            // マルチスレッドスタート
             mBase.RunMultiThreadAsync();
         }
 
-
+        /// <summary>
+        /// 変換中ダイアログの読み込み
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormProgressDialog_Load(object sender, EventArgs e)
         {
 
@@ -81,7 +96,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="e"></param>
         private void timerProgress_Tick(object sender, EventArgs e)
         {
-            //終了判定
+            // 終了判定
             if (mBase.Cancel)
             {
                 // タイマーの停止
@@ -107,24 +122,33 @@ namespace ConvertDaiwaForBPF
                 Close();
                 return;
             }
-
         }
 
-        //フォームを閉じた時に呼ばれる。（フォームの×ボタンでもthis.Close()を実行でも呼ばれる）
+        /// <summary>
+        /// フォームを閉じた時に呼ばれる。（フォームの×ボタンでもthis.Close()を実行でも呼ばれる）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FormProgressDialog_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
+            {
                 e.Cancel = true;
+            }
         }
 
-
+        /// <summary>
+        /// キャンセルボタン押下
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void buttonCancel_Click(object sender, EventArgs e)
         {
             //Dbg.Log("From Close");
             if (!mBase.Completed)
             {
                 //Dbg.Log("buttonCancel_Click");
-                if(mBase.MultiThreadCancel())
+                if (mBase.MultiThreadCancel())
                 {
                     // キャンセル処理が正常に実行されたら、キャンセルボタンを非表示にする
                     buttonCancel.Enabled = false;

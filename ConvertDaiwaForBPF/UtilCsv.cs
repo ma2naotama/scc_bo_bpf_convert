@@ -16,13 +16,6 @@ namespace ConvertDaiwaForBPF
     internal class UtilCsv
     {
         /// <summary>
-        /// コンストラクタ
-        /// </summary>
-        public UtilCsv()
-        {
-        }
-
-        /// <summary>
         /// CSVファイルから読み込み(クォートで囲まれたカラムも対応)
         /// </summary>
         /// <param name="path">ファイルパス</param>
@@ -51,6 +44,7 @@ namespace ConvertDaiwaForBPF
                 {
                     //  区切りの指定
                     parser.TextFieldType = FieldType.Delimited;
+
                     parser.SetDelimiters(delimiters);
 
                     // フィールドが引用符で囲まれているか
@@ -67,16 +61,21 @@ namespace ConvertDaiwaForBPF
                     var row = parser.ReadFields();
 
                     var fileName = Path.GetFileName(path);
+
                     Dbg.ViewLog(fileName);
 
-                    dt = new DataTable();
-                    // ファイル名をテーブル名にする
-                    dt.TableName = fileName;
+                    dt = new DataTable
+                    {
+                        // ファイル名をテーブル名にする
+                        TableName = fileName
+                    };
 
                     var dataSet = new DataSet();
+
                     dataSet.Tables.Add(dt);
 
-                    var n = row.Count();    // カラム数取得
+                    // カラム数取得
+                    var n = row.Count();
 
                     if (hasheader)
                     {
@@ -90,18 +89,22 @@ namespace ConvertDaiwaForBPF
                         for (var i = 0; i < n; i++)
                         {
                             // 仮のカラム名を設定します。
-                            dt.Columns.Add(new DataColumn("" + (i + 1)));       //1始まり
+                            // 1始まり
+                            dt.Columns.Add(new DataColumn("" + (i + 1)));
                         }
                     }
 
                     dt.NewRow();
+
                     dt.Rows.Add(row);
 
                     // ファイルの終端までループ
                     while (!parser.EndOfData)
                     {
                         row = parser.ReadFields();
+
                         dt.NewRow();
+
                         dt.Rows.Add(row);
                     }
                 }
@@ -109,13 +112,13 @@ namespace ConvertDaiwaForBPF
             catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
+
                 throw ex;
             }
 
             //Dbg.Log("dt.Rows.Count:"+dt.Rows.Count);
             return dt;
         }
-
 
         /// <summary>
         /// CSVファイルの書き込み
@@ -186,10 +189,10 @@ namespace ConvertDaiwaForBPF
             catch (Exception ex)
             {
                 Dbg.Error(ex.ToString());
+
                 throw ex;
             }
         }
-
 
         /// <summary>
         /// IEnumerableからDataTableへの変換
@@ -199,8 +202,11 @@ namespace ConvertDaiwaForBPF
         public DataTable CreateDataTable(IEnumerable source)
         {
             var table = new DataTable();
+
             var index = 0;
+
             var properties = new List<PropertyInfo>();
+
             foreach (var obj in source)
             {
                 if (index == 0)
@@ -213,21 +219,24 @@ namespace ConvertDaiwaForBPF
                         }
 
                         properties.Add(property);
+
                         table.Columns.Add(new DataColumn(property.Name, property.PropertyType));
                     }
                 }
 
                 var values = new object[properties.Count];
+
                 for (int i = 0; i < properties.Count; i++)
                 {
                     values[i] = properties[i].GetValue(obj);
                 }
 
                 table.Rows.Add(values);
+
                 index++;
             }
+
             return table;
         }
-
     }
 }

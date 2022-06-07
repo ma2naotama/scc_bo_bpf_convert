@@ -9,12 +9,11 @@
         /// <summary>
         /// 検査項目コード
         /// </summary>
-        public string InspectionItemCode { get; set; }
+        public string InspectionItemCode { get; set; } = null;
 
         /// <summary>
         /// 結果値
         /// </summary>
-        public string Value { get; set; }
+        public string Value { get; set; } = null;
     }
-
 }

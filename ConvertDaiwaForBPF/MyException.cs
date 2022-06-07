@@ -6,7 +6,7 @@ namespace ConvertDaiwaForBPF
     /// 例外処理のラッパー
     /// </summary>
     [Serializable()]
-    public class MyException : System.Exception
+    public class MyException : Exception
     {
         /// <summary>
         /// 例外引数無し
@@ -28,10 +28,9 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="message"></param>
         /// <param name="inner"></param>
-        public MyException(string message, System.Exception inner) : base(message, inner)
+        public MyException(string message, Exception inner) : base(message, inner)
         {
         }
-
 
         /// <summary>
         /// 逆シリアル化コンストラクタ。このクラスの逆シリアル化のために必須。

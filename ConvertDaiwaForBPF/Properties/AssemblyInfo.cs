@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
@@ -8,7 +7,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ConvertDaiwaForBPF")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Benefit one")]
 [assembly: AssemblyProduct("ConvertDaiwaForBPF")]
 [assembly: AssemblyCopyright("Copyright ©  2022")]
 [assembly: AssemblyTrademark("")]
@@ -37,5 +36,5 @@ using System.Runtime.InteropServices;
 
 //ログの設定ファイルの読み込み
 //[assembly: log4net.Config.XmlConfigurator(Watch = true, ConfigFile = "log4net.config")] 
-[assembly: log4net.Config.XmlConfigurator(Watch = true) ]
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
