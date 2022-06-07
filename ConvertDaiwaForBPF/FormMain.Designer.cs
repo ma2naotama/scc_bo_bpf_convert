@@ -62,7 +62,7 @@
             this.buttonReceivePath.TabIndex = 4;
             this.buttonReceivePath.Text = "選択";
             this.buttonReceivePath.UseVisualStyleBackColor = true;
-            this.buttonReceivePath.Click += new System.EventHandler(this.buttonReceivePath_Click);
+            this.buttonReceivePath.Click += new System.EventHandler(this.ButtonReceivePath_Click);
             // 
             // textBoxHRPath
             // 
@@ -74,9 +74,9 @@
             this.textBoxHRPath.Name = "textBoxHRPath";
             this.textBoxHRPath.Size = new System.Drawing.Size(568, 20);
             this.textBoxHRPath.TabIndex = 5;
-            this.textBoxHRPath.TextChanged += new System.EventHandler(this.textBoxHRPath_TextChanged);
-            this.textBoxHRPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxHRPath_DragDrop);
-            this.textBoxHRPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxHRPath_DragEnter);
+            this.textBoxHRPath.TextChanged += new System.EventHandler(this.TextBoxHRPath_TextChanged);
+            this.textBoxHRPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBoxHRPath_DragDrop);
+            this.textBoxHRPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBoxHRPath_DragEnter);
             // 
             // buttonHRPath
             // 
@@ -87,7 +87,7 @@
             this.buttonHRPath.TabIndex = 6;
             this.buttonHRPath.Text = "選択";
             this.buttonHRPath.UseVisualStyleBackColor = true;
-            this.buttonHRPath.Click += new System.EventHandler(this.buttonHRPath_Click);
+            this.buttonHRPath.Click += new System.EventHandler(this.ButtonHRPath_Click);
             // 
             // textBoxOutputPath
             // 
@@ -99,9 +99,9 @@
             this.textBoxOutputPath.Name = "textBoxOutputPath";
             this.textBoxOutputPath.Size = new System.Drawing.Size(568, 20);
             this.textBoxOutputPath.TabIndex = 7;
-            this.textBoxOutputPath.TextChanged += new System.EventHandler(this.textBoxOutputPath_TextChanged);
-            this.textBoxOutputPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxOutputPath_DragDrop);
-            this.textBoxOutputPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxOutputPath_DragEnter);
+            this.textBoxOutputPath.TextChanged += new System.EventHandler(this.TextBoxOutputPath_TextChanged);
+            this.textBoxOutputPath.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBoxOutputPath_DragDrop);
+            this.textBoxOutputPath.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBoxOutputPath_DragEnter);
             // 
             // buttonOutputPath
             // 
@@ -112,7 +112,7 @@
             this.buttonOutputPath.TabIndex = 8;
             this.buttonOutputPath.Text = "選択";
             this.buttonOutputPath.UseVisualStyleBackColor = true;
-            this.buttonOutputPath.Click += new System.EventHandler(this.buttonOutputPath_Click);
+            this.buttonOutputPath.Click += new System.EventHandler(this.ButtonOutputPath_Click);
             // 
             // buttonConvert
             // 
@@ -124,7 +124,7 @@
             this.buttonConvert.TabIndex = 9;
             this.buttonConvert.Text = "実行";
             this.buttonConvert.UseVisualStyleBackColor = true;
-            this.buttonConvert.Click += new System.EventHandler(this.buttonConvert_Click);
+            this.buttonConvert.Click += new System.EventHandler(this.ButtonConvert_Click);
             // 
             // labelReceiveFolder
             // 
@@ -163,9 +163,9 @@
             this.textBoxReceivePath.Name = "textBoxReceivePath";
             this.textBoxReceivePath.Size = new System.Drawing.Size(568, 20);
             this.textBoxReceivePath.TabIndex = 13;
-            this.textBoxReceivePath.TextChanged += new System.EventHandler(this.textBoxReceivePath_TextChanged);
-            this.textBoxReceivePath.DragDrop += new System.Windows.Forms.DragEventHandler(this.textBoxReceivePath_DragDrop);
-            this.textBoxReceivePath.DragEnter += new System.Windows.Forms.DragEventHandler(this.textBoxReceivePath_DragEnter);
+            this.textBoxReceivePath.TextChanged += new System.EventHandler(this.TextBoxReceivePath_TextChanged);
+            this.textBoxReceivePath.DragDrop += new System.Windows.Forms.DragEventHandler(this.TextBoxReceivePath_DragDrop);
+            this.textBoxReceivePath.DragEnter += new System.Windows.Forms.DragEventHandler(this.TextBoxReceivePath_DragEnter);
             // 
             // FormMain
             // 

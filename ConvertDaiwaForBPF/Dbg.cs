@@ -26,8 +26,6 @@ namespace ConvertDaiwaForBPF
 
             var appender = rootLogger.GetAppender("logFileAbc") as FileAppender;
 
-            //var filename = Path.GetFileName(appender.File);
-
             var dt = DateTime.Now;
 
             var datetime = String.Format("log-{0}.log", dt.ToString("yyyyMMdd_HHmmss"));       // デフォルトファイル名
@@ -43,7 +41,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="msg"></param>
         /// <param name="args"></param>
-        private static void _ViewLog(String msg, params string[] args)
+        private static void BaseViewLog(String msg, params string[] args)
         {
             var logText = string.Format(msg, args);
 
@@ -65,7 +63,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="args"></param>
         public static void ViewLog(String msg, params string[] args)
         {
-            _ViewLog(msg, args);
+            BaseViewLog(msg, args);
 
             Debug(msg, args);
         }
@@ -115,7 +113,7 @@ namespace ConvertDaiwaForBPF
         {
             var logText = string.Format(msg, args);
 
-            _ViewLog(logText);
+            BaseViewLog(logText);
 
             _logger.Warn(logText);
         }
@@ -127,7 +125,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="args"></param>
         public static void ErrorWithView(string errormsg = null, params string[] args)
         {
-            _ViewLog(string.Format(errormsg, args));
+            BaseViewLog(string.Format(errormsg, args));
 
             var stackFrames = new StackTrace().GetFrames();
 

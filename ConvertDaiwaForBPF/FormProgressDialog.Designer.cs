@@ -46,7 +46,7 @@
             // 
             // timerProgress
             // 
-            this.timerProgress.Tick += new System.EventHandler(this.timerProgress_Tick);
+            this.timerProgress.Tick += new System.EventHandler(this.TimerProgress_Tick);
             // 
             // buttonCancel
             // 
@@ -59,7 +59,7 @@
             this.buttonCancel.TabIndex = 1;
             this.buttonCancel.Text = "キャンセル";
             this.buttonCancel.UseVisualStyleBackColor = true;
-            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+            this.buttonCancel.Click += new System.EventHandler(this.ButtonCancel_Click);
             // 
             // FormProgressDialog
             // 

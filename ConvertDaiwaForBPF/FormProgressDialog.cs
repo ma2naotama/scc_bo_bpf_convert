@@ -94,7 +94,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void timerProgress_Tick(object sender, EventArgs e)
+        private void TimerProgress_Tick(object sender, EventArgs e)
         {
             // 終了判定
             if (mBase.Cancel)
@@ -142,7 +142,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonCancel_Click(object sender, EventArgs e)
+        private void ButtonCancel_Click(object sender, EventArgs e)
         {
             //Dbg.Log("From Close");
             if (!mBase.Completed)

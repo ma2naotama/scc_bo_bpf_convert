@@ -78,7 +78,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonReceivePath_Click(object sender, EventArgs e)
+        private void ButtonReceivePath_Click(object sender, EventArgs e)
         {
             var fbDialog = new FolderBrowserDialog
             {
@@ -112,7 +112,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxReceivePath_DragDrop(object sender, DragEventArgs e)
+        private void TextBoxReceivePath_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -133,7 +133,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxReceivePath_DragEnter(object sender, DragEventArgs e)
+        private void TextBoxReceivePath_DragEnter(object sender, DragEventArgs e)
         {
             //ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
@@ -144,7 +144,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxReceivePath_TextChanged(object sender, EventArgs e)
+        private void TextBoxReceivePath_TextChanged(object sender, EventArgs e)
         {
             // 実行ボタン活性／非活性の設定
             SetEnabledConvertButton();
@@ -155,7 +155,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonHRPath_Click(object sender, EventArgs e)
+        private void ButtonHRPath_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog();
 
@@ -190,7 +190,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxHRPath_DragDrop(object sender, DragEventArgs e)
+        private void TextBoxHRPath_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -210,7 +210,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxHRPath_DragEnter(object sender, DragEventArgs e)
+        private void TextBoxHRPath_DragEnter(object sender, DragEventArgs e)
         {
             // ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
@@ -221,7 +221,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxHRPath_TextChanged(object sender, EventArgs e)
+        private void TextBoxHRPath_TextChanged(object sender, EventArgs e)
         {
             // 実行ボタン活性／非活性の設定
             SetEnabledConvertButton();
@@ -232,12 +232,13 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonOutputPath_Click(object sender, EventArgs e)
+        private void ButtonOutputPath_Click(object sender, EventArgs e)
         {
-            var fbDialog = new FolderBrowserDialog();
-
-            // ダイアログの説明文を指定する
-            fbDialog.Description = "出力フォルダの選択";
+            var fbDialog = new FolderBrowserDialog()
+            {
+                // ダイアログの説明文を指定する
+                Description = "出力フォルダの選択"
+            };
 
             var stCurrentDir = System.IO.Directory.GetCurrentDirectory();
 
@@ -264,7 +265,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxOutputPath_DragDrop(object sender, DragEventArgs e)
+        private void TextBoxOutputPath_DragDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -284,7 +285,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxOutputPath_DragEnter(object sender, DragEventArgs e)
+        private void TextBoxOutputPath_DragEnter(object sender, DragEventArgs e)
         {
             // ファイルがドラッグされたとき、カーソルをドラッグ中のアイコンに変更し、そうでない場合は何もしない。
             e.Effect = (e.Data.GetDataPresent(DataFormats.FileDrop)) ? DragDropEffects.Copy : e.Effect = DragDropEffects.None;
@@ -295,7 +296,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void textBoxOutputPath_TextChanged(object sender, EventArgs e)
+        private void TextBoxOutputPath_TextChanged(object sender, EventArgs e)
         {
             // 実行ボタン活性／非活性の設定
             SetEnabledConvertButton();
@@ -328,7 +329,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonConvert_Click(object sender, EventArgs e)
+        private void ButtonConvert_Click(object sender, EventArgs e)
         {
             mConverterMain = new ConverterMain();
 
