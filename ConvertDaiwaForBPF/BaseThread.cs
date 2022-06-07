@@ -27,7 +27,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// マルチスレッドの処理
         /// </summary>
-        /// <param name="ct"></param>
+        /// <param name="ct">CancellationTokenのインスタンス</param>
         /// <returns>bool false:タスクのキャンセル、true：正常終了</returns>
         public abstract bool MultiThreadMethod(CancellationToken ct);
 
