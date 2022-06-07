@@ -58,9 +58,9 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 読み込むシート名の設定
         /// </summary>
-        /// <param name="sheetName"></param>
-        /// <param name="headerRowStartNumber"></param>
-        /// <param name="headerColumnStartNumber"></param>
+        /// <param name="sheetName">読み込むシート名</param>
+        /// <param name="headerRowStartNumber">読み込み開始行</param>
+        /// <param name="headerColumnStartNumber">読み込み開始列番</param>
         public ExcelOption(string sheetName, int headerRowStartNumber, int headerColumnStartNumber)
         {
             SheetName = sheetName;

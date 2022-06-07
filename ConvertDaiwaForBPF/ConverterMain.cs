@@ -366,6 +366,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 健診ヘッダーCSVの読み込み
         /// </summary>
+        /// <param name="path">受領フォルダのパス</param>
         /// <returns>DataTable</returns>
         private DataTable ReadHelthHeder(string path)
         {
@@ -397,6 +398,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 健診データCSVの読み込み
         /// </summary>
+        /// <param name="path">受領フォルダのパス</param>
         /// <returns>DataTable</returns>
         private DataTable ReadHelthData(string path)
         {
@@ -427,6 +429,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 人事CSVの読み込み
         /// </summary>
+        /// <param name="path">読み込む人事データのパス</param>
         /// <returns>削除されている人事データを除いたDataRowの配列</returns>
         private DataRow[] ReadHumanResourceData(string path)
         {
@@ -455,7 +458,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 有効なユーザーの一覧取得
         /// </summary>
-        /// <param name="HdrTbl"></param>
+        /// <param name="HdrTbl">読み込んだ健診ヘッダー</param>
         /// <returns>DataRowの配列  削除されている健診ヘッダーを除く</returns>
         private DataRow[] GetActiveUsers(DataTable HdrTbl)
         {
@@ -743,8 +746,9 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// CSVの書き出し
         /// </summary>
-        /// <param name="datatable"></param>
-        /// <returns></returns>
+        /// <param name="itemMap">項目マッピングの項目名欄</param>
+        /// <param name="datatable">書き出すデータ</param>
+        /// <param name="outputPath">書き出し先のパス</param>
         private void WriteCsv(ref DataRow[] itemMap, ref DataTable datatable, string outputPath)
         {
             Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datatable.Rows.Count.ToString());
@@ -787,21 +791,21 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 列名（カラム名）を付け加える
         /// </summary>
-        /// <param name="dt"></param>
-        /// <param name="sheet"></param>
-        private void SetColumnName(DataTable dt, List<string> sheet)
+        /// <param name="dstTable">設定するDataTable</param>
+        /// <param name="columns">列名のリスト</param>
+        private void SetColumnName(DataTable dstTable, List<string> columns)
         {
-            var n = sheet.Count;
+            var n = columns.Count;
 
-            for (var i = 0; i < sheet.Count(); i++)
+            for (var i = 0; i < columns.Count(); i++)
             {
                 if (i < n)
                 {
-                    dt.Columns["" + (i + 1)].ColumnName = sheet[i].ToString().Trim();
+                    dstTable.Columns["" + (i + 1)].ColumnName = columns[i].ToString().Trim();
                 }
                 else
                 {
-                    dt.Columns.Add(sheet[i].ToString().Trim());
+                    dstTable.Columns.Add(columns[i].ToString().Trim());
                 }
             }
         }
@@ -814,7 +818,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
-        /// <returns>List<UserData> １ユーザー分の検査項目一覧</returns>
+        /// <returns>１ユーザー分の検査項目一覧</returns>
         private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
         {
             /*
@@ -867,10 +871,10 @@ namespace ConvertDaiwaForBPF
         /// コードマッピング処理
         /// 指定のコードを置換する
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="codeid"></param>
-        /// <param name="userID"></param>
-        /// <returns>string コード変換した値</returns>
+        /// <param name="value">検査値</param>
+        /// <param name="codeid">項目マッピングのコードID</param>
+        /// <param name="userID">該当ユーザー</param>
+        /// <returns>コード変換した値</returns>
         private string GetCodeMapping(string value, string codeid, string userID)
         {
             // コードマッピング（属性が「コード」の場合、値の置換）
@@ -895,9 +899,12 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 種別と検査値の判定をします
         /// </summary>
-        /// <param name="ItemMap">抽出した項目マッピングの行</param>
+        /// <param name="type">項目マッピングの種別</param>
+        /// <param name="value">チェックする検査値</param>
+        /// <param name="userID">該当ユーザー</param>
+        /// <param name="itemName">項目マッピングの項目名</param>
         /// <returns>検査値</returns>
-        private string CheckMappingType(string type, string value, string userID, string itenName)
+        private string CheckMappingType(string type, string value, string userID, string itemName)
         {
             switch (type)
             {
@@ -908,7 +915,7 @@ namespace ConvertDaiwaForBPF
                         {
                             if (!float.TryParse(value, out float _))
                             {
-                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itenName.Trim(), type, value);
+                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itemName.Trim(), type, value);
 
                                 // エラーの場合空白として出力
                                 return "";
@@ -928,7 +935,7 @@ namespace ConvertDaiwaForBPF
                         else
                         {
                             // エラー表示
-                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itenName.Trim(), type, value);
+                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itemName.Trim(), type, value);
 
                             // エラーの場合空にする
                             value = "";
@@ -943,8 +950,8 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 人事データの取得
         /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="hrcolumn"></param>
+        /// <param name="userID">該当ユーザー</param>
+        /// <param name="hrcolumn">参照人事の列名</param>
         /// <returns>DataRow</returns>
         private DataRow GetHumanResorceRow(string userID, string hrcolumn)
         {
@@ -976,8 +983,8 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 旧検査項目コードを新検査項目コードに置換します。(※現在確認中の為未使用)
         /// </summary>
-        /// <param name="user"></param>
-        /// <param name="replaceTable"></param>
+        /// <param name="user">UserDataのList</param>
+        /// <param name="replaceTable">設定ファイルで読み込んだ「項目マッピング複数読込」テーブル</param>
         /// <returns></returns>
         private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable replaceTable)
         {

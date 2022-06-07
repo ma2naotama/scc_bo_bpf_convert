@@ -29,7 +29,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// オプション設定の登録
         /// </summary>
-        /// <param name="option"></param>
+        /// <param name="option">ExcelOption</param>
         public void SetExcelOption(ExcelOption option)
         {
             // シート番号で検索
@@ -49,7 +49,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// オプションの設定を登録
         /// </summary>
-        /// <param name="options"></param>
+        /// <param name="options">ExcelOptionの配列</param>
         public void SetExcelOptionArray(ExcelOption[] options)
         {
             foreach (ExcelOption opt in options)

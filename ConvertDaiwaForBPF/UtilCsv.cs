@@ -123,9 +123,9 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// CSVファイルの書き込み
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="dt"></param>
-        /// <param name="overwriteColumnName">カラムの上書き</param>
+        /// <param name="path">書き込み先パス</param>
+        /// <param name="dt">書き込むDataTable</param>
+        /// <param name="overwriteColumnName">列名の上書き用（上書きする場合指定）</param>
         public void WriteFile(string path, DataTable dt, List<string> overwriteColumnName = null)
         {
             try
@@ -197,8 +197,8 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// IEnumerableからDataTableへの変換
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">IEnumerable</param>
+        /// <returns>DataTable</returns>
         public DataTable CreateDataTable(IEnumerable source)
         {
             var table = new DataTable();
