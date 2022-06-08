@@ -116,9 +116,9 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 各パスの設定（実行ボタン押下で呼ばれる）
         /// </summary>
-        /// <param name="pathInput"></param>
-        /// <param name="pathHR"></param>
-        /// <param name="pathOutput"></param>
+        /// <param name="pathInput">受領フォルダのパス</param>
+        /// <param name="pathHR">人事データのファイルパス</param>
+        /// <param name="pathOutput">出力先フォルダのパス</param>
         public void InitConvert(string pathInput, string pathHR, string pathOutput)
         {
             mPathInput = pathInput;
@@ -429,7 +429,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 人事CSVの読み込み
         /// </summary>
-        /// <param name="path">読み込む人事データのパス</param>
+        /// <param name="path">人事データのファイルパス</param>
         /// <returns>削除されている人事データを除いたDataRowの配列</returns>
         private DataRow[] ReadHumanResourceData(string path)
         {
@@ -748,7 +748,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="itemMap">項目マッピングの項目名欄</param>
         /// <param name="datatable">書き出すデータ</param>
-        /// <param name="outputPath">書き出し先のパス</param>
+        /// <param name="outputPath">出力先フォルダのパス</param>
         private void WriteCsv(ref DataRow[] itemMap, ref DataTable datatable, string outputPath)
         {
             Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datatable.Rows.Count.ToString());
@@ -981,11 +981,11 @@ namespace ConvertDaiwaForBPF
         }
 
         /// <summary>
-        /// 旧検査項目コードを新検査項目コードに置換します。(※現在確認中の為未使用)
+        /// 旧検査項目コードを新検査項目コードに置換します。
         /// </summary>
         /// <param name="user">UserDataのList</param>
         /// <param name="replaceTable">設定ファイルで読み込んだ「項目マッピング複数読込」テーブル</param>
-        /// <returns></returns>
+        /// <returns>検査項目コードを置換したUserDataのList</returns>
         private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable replaceTable)
         {
             var ret = new List<UserData>();
