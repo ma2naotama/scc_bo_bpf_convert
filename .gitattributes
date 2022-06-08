@@ -1,0 +1,5 @@
+.gitattributes export-ignore  
+copySetting.bat export-ignore
+シート保護のパスワード.txt export-ignore
+設定ファイル.xlsx export-ignore
+
