@@ -256,7 +256,7 @@ namespace ConvertDaiwaForBPF
                     }
 
                     // 変換処理
-                    if (!ConvertMain(hrow, ref tdlTbl, cancelToken))
+                    if (!ConvertMain(hrow, tdlTbl, cancelToken))
                     {
                         // キャンセルされたらTaskを終了する
                         return false;
@@ -267,7 +267,7 @@ namespace ConvertDaiwaForBPF
                 }
 
                 // 出力情報から全レコードの書き出し
-                WriteCsv(ref mItemMap, ref mOutputCsv, mPathOutput);
+                WriteCsv(mItemMap, mOutputCsv, mPathOutput);
             }
             catch (Exception ex)
             {
@@ -381,7 +381,7 @@ namespace ConvertDaiwaForBPF
 
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
 
-                SetColumnName(tbl, GlobalVariables.ColumnHDR);
+                SetColumnName(ref tbl, GlobalVariables.ColumnHDR);
 
                 // 次の処理へ
                 return tbl;
@@ -413,7 +413,7 @@ namespace ConvertDaiwaForBPF
 
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
 
-                SetColumnName(tbl, GlobalVariables.ColumnTDL);
+                SetColumnName(ref tbl, GlobalVariables.ColumnTDL);
 
                 return tbl;
             }
@@ -546,13 +546,13 @@ namespace ConvertDaiwaForBPF
         /// true :次のユーザー
         /// false:処理キャンセル
         /// </returns>
-        private bool ConvertMain(DataRow hrow, ref DataTable TdlTbl, CancellationToken cancelToken)
+        private bool ConvertMain(DataRow hrow, DataTable TdlTbl, CancellationToken cancelToken)
         {
             // 健診ヘッダーの個人番号取得
             var userID = hrow["個人番号"].ToString();
 
             // 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
-            var userdata = CreateUserData(ref hrow, ref TdlTbl);
+            var userdata = CreateUserData(hrow, TdlTbl);
 
             if (userdata.Count() <= 0)
             {
@@ -575,7 +575,7 @@ namespace ConvertDaiwaForBPF
             }
 
             //旧検査項目コードの書き換え
-            userdata = ReplaceInspectItemCode(ref userdata, mMasterSheets.Tables["項目マッピング複数読込"]);
+            userdata = ReplaceInspectItemCode(userdata, mMasterSheets.Tables["項目マッピング複数読込"]);
 
             // 出力情報の一行分作成
             // カラムは、0始まり
@@ -749,7 +749,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="itemMap">項目マッピングの項目名欄</param>
         /// <param name="datatable">書き出すデータ</param>
         /// <param name="outputPath">出力先フォルダのパス</param>
-        private void WriteCsv(ref DataRow[] itemMap, ref DataTable datatable, string outputPath)
+        private void WriteCsv(DataRow[] itemMap, DataTable datatable, string outputPath)
         {
             Dbg.ViewLog(Properties.Resources.MSG_CREATE_OUTPUT, datatable.Rows.Count.ToString());
 
@@ -793,7 +793,7 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="dstTable">設定するDataTable</param>
         /// <param name="columns">列名のリスト</param>
-        private void SetColumnName(DataTable dstTable, List<string> columns)
+        private void SetColumnName(ref DataTable dstTable, List<string> columns)
         {
             var n = columns.Count;
 
@@ -819,7 +819,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="DataRow">１ユーザー分の健診ヘッダー</param>
         /// <param name="DataTable">健診データ</param>
         /// <returns>１ユーザー分の検査項目一覧</returns>
-        private List<UserData> CreateUserData(ref DataRow hrow, ref DataTable tdlTable)
+        private List<UserData> CreateUserData(DataRow hrow, DataTable tdlTable)
         {
             /*
             .Join(
@@ -986,7 +986,7 @@ namespace ConvertDaiwaForBPF
         /// <param name="user">UserDataのList</param>
         /// <param name="replaceTable">設定ファイルで読み込んだ「項目マッピング複数読込」テーブル</param>
         /// <returns>検査項目コードを置換したUserDataのList</returns>
-        private List<UserData> ReplaceInspectItemCode(ref List<UserData> user, DataTable replaceTable)
+        private List<UserData> ReplaceInspectItemCode(List<UserData> user, DataTable replaceTable)
         {
             var ret = new List<UserData>();
 
