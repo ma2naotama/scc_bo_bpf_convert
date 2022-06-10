@@ -61,7 +61,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   コードマッピングの変換に失敗しました。個人番号：{0}　コードID：{1} に類似しているローカライズされた文字列を検索します。
+        ///   コードマッピングの変換に失敗しました。健診基本情報管理番号：{0}　コードID：{1} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_CORDMAPPING_FILED {
             get {
@@ -79,7 +79,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2} に類似しているローカライズされた文字列を検索します。
+        ///   検査項目コードの重複。健診基本情報管理番号：{0}　検査項目コード：{1}　検査値：{2}　健診データ（行,列）：（{3},{4}） に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_INSPECTCORD_INFO {
             get {
@@ -97,7 +97,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   健診ヘッダーに重複があります。個人番号：{0}　健診実施日：{1}　健診実施機関名称：{2} に類似しているローカライズされた文字列を検索します。
+        ///   健診ヘッダーに重複があります。健診基本情報管理番号：{0}　健診実施日：{1}　健診実施機関名称：{2}　健診ヘッダー行：{3} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_DUPLICATE_USERS_INFO {
             get {
@@ -178,7 +178,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査値が種別と合っていません。 個人番号：{0}　項目名：{1}　種別：{2}　 検査値：{3} に類似しているローカライズされた文字列を検索します。
+        ///   検査値が種別と合っていません。 健診基本情報管理番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}　健診データ（行,列）：（{4},{5}） に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MISMATCHED_ITEM_TYPE {
             get {
@@ -340,7 +340,7 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
-        ///   検査項目コードの重複。個人番号：{0}　検査項目コード：{1}　検査値：{2} に類似しているローカライズされた文字列を検索します。
+        ///   検査項目コードの重複。健診基本情報管理番号：{0}　検査項目コード：{1}　検査値：{2}　健診データ（行,列）：（{3},{4}） に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string WRN_DUPLICATE_INSPECTCORD {
             get {

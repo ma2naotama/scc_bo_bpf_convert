@@ -381,7 +381,11 @@ namespace ConvertDaiwaForBPF
 
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
 
+                // カラム名を追加
                 SetColumnName(ref tbl, GlobalVariables.ColumnHDR);
+
+                // 行番号列に行番号をセット
+                SetLineNumer(ref tbl, "行番号");
 
                 // 次の処理へ
                 return tbl;
@@ -413,7 +417,11 @@ namespace ConvertDaiwaForBPF
 
                 var tbl = csv.ReadFile(path + "\\" + filename, ",", false, GlobalVariables.ENCORDTYPE.SJIS);
 
+                // カラム名を追加
                 SetColumnName(ref tbl, GlobalVariables.ColumnTDL);
+
+                // 行番号列に行番号をセット
+                SetLineNumer(ref tbl, "行番号");
 
                 return tbl;
             }
@@ -438,6 +446,12 @@ namespace ConvertDaiwaForBPF
                 var csv = new UtilCsv();
 
                 var hr = csv.ReadFile(path, ",", true, GlobalVariables.ENCORDTYPE.UTF8);
+
+                // 行番号列追加
+                hr.Columns.Add("行番号");
+
+                // 行番号列に行番号をセット
+                SetLineNumer(ref hr, "行番号");
 
                 // 健診ヘッダーの削除フラグが0だけ抽出
                 var row = hr.AsEnumerable()
@@ -499,10 +513,12 @@ namespace ConvertDaiwaForBPF
                     // 重複している行を表示
                     foreach (var row in dr_array)
                     {
+                        // 健診ヘッダーに重複があります。健診基本情報管理番号：{0}　健診実施日：{1}　健診実施機関名称：{2}　健診ヘッダー行：{3}
                         Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_USERS_INFO,
-                            row["個人番号"].ToString(),
+                            row["健診基本情報管理番号"].ToString(),
                             row["健診実施日"].ToString(),
-                            row["健診実施機関名称"].ToString().Trim());
+                            row["健診実施機関名称"].ToString().Trim(),
+                            row["行番号"].ToString());
                     }
 
                     // 重複したデータをそのままログに出力する
@@ -551,12 +567,16 @@ namespace ConvertDaiwaForBPF
             // 健診ヘッダーの個人番号取得
             var userID = hrow["個人番号"].ToString();
 
+            // 健診ヘッダーの健診基本情報管理番号取得
+            var manageID = hrow["健診基本情報管理番号"].ToString();
+
             // 健診ヘッダーと健診データを結合し、１ユーザー分の検査項目一覧を抽出する。
             var userdata = CreateUserData(hrow, TdlTbl);
 
             if (userdata.Count() <= 0)
             {
                 // 結合した結果データが無い
+                // 結合したデータが空です。個人番号：{0}
                 Dbg.ErrorWithView(Properties.Resources.E_MERGED_DATA_IS_EMPTY, userID);
 
                 // 次のユーザーへ
@@ -602,6 +622,9 @@ namespace ConvertDaiwaForBPF
                 var outputindex = int.Parse(row.Field<string>("列順"));
 
                 var value = "";
+                var dtlLine = "不明";
+                var dtlColIndex = "不明";
+
 
                 // 固定値の取得
                 var fixvalue = row.Field<string>("固定値").Trim();
@@ -673,7 +696,6 @@ namespace ConvertDaiwaForBPF
                         // ユーザーデータから検査値を抽出
                         var retvalueArray = userdata.AsEnumerable()
                             .Where(x => x.InspectionItemCode == inspectcord && x.Value != "")
-                            .Select(x => x.Value)
                             .ToArray();
 
                         // 検査値がある
@@ -684,26 +706,37 @@ namespace ConvertDaiwaForBPF
                             {
                                 // 検査値が同じかどうか確認
                                 // 同じ値なら1になる。
-                                if (retvalueArray.Distinct().Count() >= 2)
+                                var ret = retvalueArray.Select(x => x.Value).Distinct();
+                                if (ret.Count() >= 2)
                                 {
                                     // 検査値が違う場合エラー
                                     foreach (var v in retvalueArray)
                                     {
-                                        // 検査項目に重複があります。個人番号：{0}　検査項目コード：{1}　検査値：{2}
-                                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_INSPECTCORD_INFO, userID, inspectcord, v);
+                                        // 検査項目コードの重複。健診基本情報管理番号：{0}　検査項目コード：{1}　検査値：{2}　健診データ(行,列）：({3},{4})
+                                        Dbg.ErrorWithView(Properties.Resources.E_DUPLICATE_INSPECTCORD_INFO, manageID, inspectcord, v.Value, v.DLine.ToString(), v.DColumnIndex.ToString());
                                     }
 
                                     throw new MyException(string.Format(Properties.Resources.E_DUPLICATE_INSPECTCORD));
                                 }
                                 else
                                 {
-                                    // 検査項目に重複があります。個人番号：{0}　検査項目コード：{1}　検査値：{2}
-                                    Dbg.WarnWithView(Properties.Resources.WRN_DUPLICATE_INSPECTCORD, userID, inspectcord, retvalueArray[0]);
+                                    // 検査値が同じなので、警告のみ
+                                    foreach (var v in retvalueArray)
+                                    {
+                                        // 検査項目コードの重複。健診基本情報管理番号：{0}　検査項目コード：{1}　検査値：{2}　健診データ(行,列）：({3},{4})
+                                        Dbg.WarnWithView(Properties.Resources.WRN_DUPLICATE_INSPECTCORD, manageID, inspectcord, v.Value, v.DLine.ToString(), v.DColumnIndex.ToString());
+                                    }
                                 }
                             }
 
                             // 検査値
-                            value = retvalueArray[0];
+                            value = retvalueArray[0].Value;
+
+                            // 行番号
+                            dtlLine = retvalueArray[0].DLine.ToString();
+
+                            // 列番号
+                            dtlColIndex = retvalueArray[0].DColumnIndex.ToString();
                         }
                     }
                 }
@@ -714,7 +747,7 @@ namespace ConvertDaiwaForBPF
                     var codeid = row.Field<string>("コードID").Trim();
 
                     // コードマッピング処理
-                    value = GetCodeMapping(value, codeid, userID);
+                    value = GetCodeMapping(value, codeid, manageID);
                 }
 
                 // 種別と値のチェック
@@ -724,7 +757,7 @@ namespace ConvertDaiwaForBPF
                     var type = row.Field<string>("種別").Trim();
 
                     // 種別が数値を期待しているのに、数値以外の値の場合はエラーとする
-                    value = CheckMappingType(type, value, userID, row.Field<string>("項目名"));
+                    value = CheckMappingType(type, value, manageID, row.Field<string>("項目名"), dtlLine, dtlColIndex);
                 }
 
                 // 出力情報に指定列順で値をセット
@@ -795,11 +828,12 @@ namespace ConvertDaiwaForBPF
         /// <param name="columns">列名のリスト</param>
         private void SetColumnName(ref DataTable dstTable, List<string> columns)
         {
-            var n = columns.Count;
+            var dcount = dstTable.Columns.Count;
+            var n = columns.Count();
 
-            for (var i = 0; i < columns.Count(); i++)
+            for (var i = 0; i < n; i++)
             {
-                if (i < n)
+                if (i < dcount)
                 {
                     dstTable.Columns["" + (i + 1)].ColumnName = columns[i].ToString().Trim();
                 }
@@ -807,6 +841,21 @@ namespace ConvertDaiwaForBPF
                 {
                     dstTable.Columns.Add(columns[i].ToString().Trim());
                 }
+            }
+        }
+
+
+        /// <summary>
+        /// 指定列名に行番号をセットする
+        /// </summary>
+        /// <param name="dstTable">設定するDataTable</param>
+        /// <param name="columns">列名</param>
+        private void SetLineNumer(ref DataTable dstTable, string columnName)
+        {
+            var n = dstTable.Rows.Count;
+            for (var i = 0; i < n; i++)
+            {
+                dstTable.Rows[i][columnName] = (i + 1).ToString();
             }
         }
 
@@ -838,13 +887,21 @@ namespace ConvertDaiwaForBPF
             hdt.Columns.Add("健診基本情報管理番号", typeof(string));
             hdt.Columns.Add("健診実施日", typeof(string));
             hdt.Columns.Add("個人番号", typeof(string));
+            hdt.Columns.Add("行番号", typeof(string));
 
             hdt.Rows.Add(
                 hrow["組合C"].ToString(),
                 hrow["健診基本情報管理番号"].ToString(),
                 hrow["健診実施日"].ToString(),
-                hrow["個人番号"].ToString()
+                hrow["個人番号"].ToString(),
+                hrow["行番号"].ToString()
             );
+
+            // コメントの列番号取得
+            var indexofComment = tdlTable.Columns.IndexOf("コメント") + 1;
+
+            // 結果値の列番号取得
+            var indexofValue = tdlTable.Columns.IndexOf("結果値") + 1;
 
             // TDLとHDRを結合して取得
             var merged =
@@ -862,6 +919,12 @@ namespace ConvertDaiwaForBPF
 
                     // コメントのTrimはしない
                     Value = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
+
+                    // 健診データの行
+                    DLine = int.Parse(d.Field<string>("行番号")),
+
+                    // 健診データの列番号
+                    DColumnIndex = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? indexofComment : indexofValue,
                 };
 
             return merged.ToList();
@@ -873,9 +936,10 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="value">検査値</param>
         /// <param name="codeid">項目マッピングのコードID</param>
-        /// <param name="userID">該当ユーザー</param>
+        /// <param name="manageID">健診基本情報管理番号</param>
+        /// <param name="issueLine">健診データ行</param>
         /// <returns>コード変換した値</returns>
-        private string GetCodeMapping(string value, string codeid, string userID)
+        private string GetCodeMapping(string value, string codeid, string manageID)
         {
             // コードマッピング（属性が「コード」の場合、値の置換）
             // コードマッピングから抽出
@@ -887,7 +951,8 @@ namespace ConvertDaiwaForBPF
             if (string.IsNullOrEmpty(newvalue))
             {
                 // エラー表示
-                Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED, userID, codeid);
+                // コードマッピングの変換に失敗しました。健診基本情報管理番号：{0}　コードID：{1}
+                Dbg.ErrorWithView(Properties.Resources.E_CORDMAPPING_FILED, manageID, codeid);
 
                 // エラーの場合空にする
                 newvalue = "";
@@ -901,10 +966,11 @@ namespace ConvertDaiwaForBPF
         /// </summary>
         /// <param name="type">項目マッピングの種別</param>
         /// <param name="value">チェックする検査値</param>
-        /// <param name="userID">該当ユーザー</param>
+        /// <param name="manageID">健診基本情報管理番号</param>
         /// <param name="itemName">項目マッピングの項目名</param>
+        /// <param name="issueLine">健診データ行</param>
         /// <returns>検査値</returns>
-        private string CheckMappingType(string type, string value, string userID, string itemName)
+        private string CheckMappingType(string type, string value, string manageID, string itemName, string issueLine, string issueColmn)
         {
             switch (type)
             {
@@ -915,7 +981,8 @@ namespace ConvertDaiwaForBPF
                         {
                             if (!float.TryParse(value, out float _))
                             {
-                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itemName.Trim(), type, value);
+                                // 検査値が種別と合っていません。 健診基本情報管理番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}　健診データ（行,列）：（{4},{5}）
+                                Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, manageID, itemName.Trim(), type, value, issueLine, issueColmn);
 
                                 // エラーの場合空白として出力
                                 return "";
@@ -935,7 +1002,8 @@ namespace ConvertDaiwaForBPF
                         else
                         {
                             // エラー表示
-                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, userID, itemName.Trim(), type, value);
+                            // 検査値が種別と合っていません。 健診基本情報管理番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}　健診データ（行,列）：（{4},{5}）
+                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, manageID, itemName.Trim(), type, value, issueLine, issueColmn);
 
                             // エラーの場合空にする
                             value = "";
@@ -950,7 +1018,7 @@ namespace ConvertDaiwaForBPF
         /// <summary>
         /// 人事データの取得
         /// </summary>
-        /// <param name="userID">該当ユーザー</param>
+        /// <param name="userID">個人番号</param>
         /// <param name="hrcolumn">参照人事の列名</param>
         /// <returns>DataRow</returns>
         private DataRow GetHumanResorceRow(string userID, string hrcolumn)

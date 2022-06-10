@@ -15,5 +15,16 @@
         /// 結果値
         /// </summary>
         public string Value { get; set; } = null;
+
+        /// <summary>
+        /// 健診データの行番号
+        /// </summary>
+        public int DLine { get; set; } = 0;
+
+        /// <summary>
+        /// 健診データの列番号
+        /// </summary>
+        public int DColumnIndex { get; set; } = 0;
+
     }
 }
