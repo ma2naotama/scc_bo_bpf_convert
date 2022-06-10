@@ -750,12 +750,12 @@ namespace ConvertDaiwaForBPF
                     value = GetCodeMapping(value, codeid, manageID);
                 }
 
-                // 種別と値のチェック（検査項目コードの結果値のみ種別チェックを行う）
-                if (value != "" && dtlLine != "")
-                {
-                    // 種別
-                    var type = row.Field<string>("種別").Trim();
+                // 種別
+                var type = row.Field<string>("種別").Trim();
 
+                // 種別と値のチェック（検査項目コードの結果値と、年月日のみ種別チェックを行う）
+                if (value != "" && (dtlLine != "" || type =="年月日"))
+                {
                     // 種別が数値を期待しているのに、数値以外の値の場合はエラーとする
                     value = CheckMappingType(type, value, manageID, row.Field<string>("項目名"), dtlLine, dtlColIndex);
                 }
@@ -1001,12 +1001,9 @@ namespace ConvertDaiwaForBPF
                         }
                         else
                         {
-                            // エラー表示
-                            // 検査値が種別と合っていません。 健診基本情報管理番号：{0}　項目名：{1}　種別：{2}　 検査値：{3}　健診データ（行,列）：（{4},{5}）
-                            Dbg.ErrorWithView(Properties.Resources.E_MISMATCHED_ITEM_TYPE, manageID, itemName.Trim(), type, value, issueLine, issueColmn);
-
-                            // エラーの場合空にする
-                            value = "";
+                            // エラーの場合処理中断
+                            // 年月日の変換に失敗しました。 健診基本情報管理番号：{0}　値：{1}
+                            throw new MyException(string.Format(Properties.Resources.E_MISMATCHED_ITEM_TYPE_DATE, manageID, value));
                         }
                     }
                     break;

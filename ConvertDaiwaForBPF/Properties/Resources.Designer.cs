@@ -187,6 +187,15 @@ namespace ConvertDaiwaForBPF.Properties {
         }
         
         /// <summary>
+        ///   年月日の変換に失敗しました。 健診基本情報管理番号：{0}　値：{1} に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string E_MISMATCHED_ITEM_TYPE_DATE {
+            get {
+                return ResourceManager.GetString("E_MISMATCHED_ITEM_TYPE_DATE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   人事データの団体IDと項目マッピングの団体IDと合っていません。項目マッピングの団体ID：{0} に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string E_MISMATCHED_ORGANIZATION_ID {
