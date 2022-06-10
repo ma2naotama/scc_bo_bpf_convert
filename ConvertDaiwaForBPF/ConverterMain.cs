@@ -622,8 +622,8 @@ namespace ConvertDaiwaForBPF
                 var outputindex = int.Parse(row.Field<string>("列順"));
 
                 var value = "";
-                var dtlLine = "不明";
-                var dtlColIndex = "不明";
+                var dtlLine = "";
+                var dtlColIndex = "";
 
 
                 // 固定値の取得
@@ -750,8 +750,8 @@ namespace ConvertDaiwaForBPF
                     value = GetCodeMapping(value, codeid, manageID);
                 }
 
-                // 種別と値のチェック
-                if (value != "")
+                // 種別と値のチェック（検査項目コードの結果値のみ種別チェックを行う）
+                if (value != "" && dtlLine != "")
                 {
                     // 種別
                     var type = row.Field<string>("種別").Trim();
