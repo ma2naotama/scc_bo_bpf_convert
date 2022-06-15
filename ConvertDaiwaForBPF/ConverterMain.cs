@@ -917,8 +917,8 @@ namespace ConvertDaiwaForBPF
                     // ヘッダー情報は、人事データ結合時に処理する。
                     InspectionItemCode = d.Field<string>("検査項目コード").Trim(),
 
-                    // コメントのTrimはしない
-                    Value = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? d.Field<string>("コメント") : d.Field<string>("結果値").Trim(),
+                    // コメントのTrimも実行
+                    Value = (d.Field<string>("結果値データタイプ") == INSPECTION_DATA_TYPE) ? d.Field<string>("コメント").Trim() : d.Field<string>("結果値").Trim(),
 
                     // 健診データの行
                     DLine = int.Parse(d.Field<string>("行番号")),
